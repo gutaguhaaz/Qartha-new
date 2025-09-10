@@ -13,7 +13,7 @@ export default function PdfOrImage({ diagram }: PdfOrImageProps) {
       <div className="bg-card border border-border rounded-lg p-6" data-testid="diagram-empty">
         <div className="text-center py-12 text-muted-foreground">
           <i className="fas fa-project-diagram text-4xl mb-4"></i>
-          <p>No hay diagrama disponible</p>
+          <p>No diagram available</p>
         </div>
       </div>
     );
@@ -34,7 +34,7 @@ export default function PdfOrImage({ diagram }: PdfOrImageProps) {
     <div className="bg-card border border-border rounded-lg p-6" data-testid="diagram-viewer">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold" data-testid="diagram-title">
-          {diagram.name || 'Diagrama de red'}
+          {diagram.name || 'Network Diagram'}
         </h3>
         <div className="flex items-center space-x-2">
           <button
@@ -68,7 +68,7 @@ export default function PdfOrImage({ diagram }: PdfOrImageProps) {
         {isPdf ? (
           <div className="p-4 text-center text-muted-foreground">
             <i className="fas fa-file-pdf text-4xl mb-4 text-red-400"></i>
-            <p className="mb-4">Vista previa de PDF no disponible</p>
+            <p className="mb-4">PDF preview not available</p>
             <a
               href={diagram.url}
               target="_blank"
@@ -77,7 +77,7 @@ export default function PdfOrImage({ diagram }: PdfOrImageProps) {
               data-testid="link-open-pdf"
             >
               <i className="fas fa-external-link-alt mr-2"></i>
-              Abrir PDF
+              Open PDF
             </a>
           </div>
         ) : (

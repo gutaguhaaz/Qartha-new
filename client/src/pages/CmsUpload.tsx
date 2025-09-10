@@ -238,8 +238,8 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
             data-testid="dropzone-images"
           >
             <i className="fas fa-image text-3xl text-muted-foreground mb-4"></i>
-            <p className="text-lg font-medium mb-2">Subir imágenes</p>
-            <p className="text-muted-foreground mb-4">JPG, PNG hasta 10MB</p>
+            <p className="text-lg font-medium mb-2">Upload Images</p>
+            <p className="text-muted-foreground mb-4">JPG, PNG up to 10MB</p>
             <button
               onClick={() => handleFileSelect('images', true)}
               disabled={uploading}
@@ -261,8 +261,8 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
             data-testid="dropzone-documents"
           >
             <i className="fas fa-file-alt text-3xl text-muted-foreground mb-4"></i>
-            <p className="text-lg font-medium mb-2">Subir documentos</p>
-            <p className="text-muted-foreground mb-4">PDF, DOC, DOCX, XLS, XLSX hasta 50MB</p>
+            <p className="text-lg font-medium mb-2">Upload Documents</p>
+            <p className="text-muted-foreground mb-4">PDF, DOC, DOCX, XLS, XLSX up to 50MB</p>
             <button
               onClick={() => handleFileSelect('documents', true)}
               disabled={uploading}
@@ -284,8 +284,8 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
             data-testid="dropzone-diagram"
           >
             <i className="fas fa-project-diagram text-3xl text-muted-foreground mb-4"></i>
-            <p className="text-lg font-medium mb-2">Subir diagrama</p>
-            <p className="text-muted-foreground mb-4">PDF, PNG, JPG hasta 25MB</p>
+            <p className="text-lg font-medium mb-2">Upload Diagram</p>
+            <p className="text-muted-foreground mb-4">PDF, PNG, JPG up to 25MB</p>
             <button
               onClick={() => handleFileSelect('diagram')}
               disabled={uploading}

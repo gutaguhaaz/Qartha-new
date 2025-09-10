@@ -11,7 +11,7 @@ export default function DataTable({ table }: DataTableProps) {
       <div className="bg-card border border-border rounded-lg overflow-hidden" data-testid="table-empty">
         <div className="p-6 text-center text-muted-foreground">
           <i className="fas fa-table text-4xl mb-4"></i>
-          <p>No hay datos de tabla disponibles</p>
+          <p>No table data available</p>
         </div>
       </div>
     );
@@ -27,8 +27,8 @@ export default function DataTable({ table }: DataTableProps) {
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden" data-testid="data-table">
       <div className="p-6 border-b border-border">
-        <h3 className="text-lg font-semibold">Dispositivos y conexiones</h3>
-        <p className="text-muted-foreground mt-1">Lista completa de dispositivos y su estado actual</p>
+        <h3 className="text-lg font-semibold">Devices and Connections</h3>
+        <p className="text-muted-foreground mt-1">Comprehensive list of devices and current status</p>
       </div>
 
       <div className="overflow-x-auto">
