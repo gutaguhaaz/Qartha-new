@@ -73,7 +73,7 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
     );
   }
 
-  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
   const qrUrl = `${API_BASE}/api/${cluster}/${project}/idfs/${code}/qr.png`;
 
   return (
