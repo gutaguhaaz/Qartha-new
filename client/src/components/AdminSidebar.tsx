@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { X, Upload, Trash2, Plus, Edit3, Save, ArrowUp, ArrowDown } from "lucide-react";
+import { getIdfs, getIdf, uploadAsset } from "@/lib/api";
+import EditableDataTable from "./EditableDataTable";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -28,7 +30,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const [selectedIdf, setSelectedIdf] = useState("");
   const [editingIdf, setEditingIdf] = useState<IdfData | null>(null);
   const [adminToken, setAdminToken] = useState(import.meta.env.VITE_ADMIN_TOKEN || "changeme-demo-token");
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -119,21 +121,44 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     }
   };
 
-  const removeMedia = async (mediaItem: any, type: 'images' | 'documents' | 'diagram') => {
-    if (!editingIdf) return;
+  const removeMedia = (item: any, type: 'images' | 'documents' | 'diagram') => {
+    if (type === 'diagram') {
+      setEditingIdf({...editingIdf, diagram: null});
+    } else {
+      const currentItems = editingIdf[type] || [];
+      const updatedItems = currentItems.filter((i: any) => i.url !== item.url);
+      setEditingIdf({...editingIdf, [type]: updatedItems});
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    if (!selectedCluster || !selectedProject || !selectedIdf || !editingIdf) return;
 
     try {
-      // This would need backend API to remove specific media
-      toast({
-        title: "Success",
-        description: "Media removed successfully"
+      const response = await fetch(`/api/${selectedCluster}/${selectedProject}/idfs/${selectedIdf}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_ADMIN_TOKEN || 'changeme-demo-token'}`
+        },
+        body: JSON.stringify({
+          title: editingIdf.title,
+          description: editingIdf.description,
+          site: editingIdf.site,
+          room: editingIdf.room,
+          table: editingIdf.table
+        })
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to save changes');
+      }
+
+      // Refresh the data
+      window.location.reload();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to remove media",
-        variant: "destructive"
-      });
+      console.error('Error saving changes:', error);
+      alert('Failed to save changes. Please try again.');
     }
   };
 
@@ -146,7 +171,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         className="fixed inset-0 bg-black/50 z-40"
         onClick={onClose}
       />
-      
+
       {/* Sidebar */}
       <div className={`fixed left-0 top-0 h-full w-96 bg-card border-r border-border z-50 transform transition-transform duration-300 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
@@ -169,7 +194,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             {/* Selection */}
             <div className="space-y-4">
               <h3 className="font-medium">Select IDF to Edit</h3>
-              
+
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium mb-1">Cluster</label>
@@ -386,15 +411,18 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 {/* Device Table */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium">Device Table</h4>
-                  <div className="text-xs bg-muted p-3 rounded">
-                    <p>Device table editing will be implemented here.</p>
-                    <p>Current devices: {editingIdf.table?.data?.length || 0}</p>
-                  </div>
+                  <EditableDataTable 
+                    data={editingIdf.table?.data || []} 
+                    columns={editingIdf.table?.columns || []} 
+                    onDataChange={(newData) => setEditingIdf({...editingIdf, table: {...editingIdf.table, data: newData}})}
+                  />
                 </div>
 
                 {/* Save Changes */}
                 <div className="pt-4 border-t border-border">
-                  <button className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors flex items-center justify-center space-x-2">
+                  <button 
+                    onClick={handleSaveChanges} 
+                    className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors flex items-center justify-center space-x-2">
                     <Save className="w-4 h-4" />
                     <span>Save Changes</span>
                   </button>
