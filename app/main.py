@@ -41,12 +41,12 @@ os.makedirs(settings.STATIC_DIR, exist_ok=True)
 # Mount static files
 app.mount("/static", StaticFiles(directory=settings.STATIC_DIR), name="static")
 
-# Include routers
-app.include_router(public_idfs.router)
-app.include_router(admin_idfs.router)
-app.include_router(assets.router)
-app.include_router(devices.router)
-app.include_router(qr.router)
+# Include routers with /api prefix
+app.include_router(public_idfs.router, prefix="/api")
+app.include_router(admin_idfs.router, prefix="/api")
+app.include_router(devices.router, prefix="/api")
+app.include_router(assets.router, prefix="/api")
+app.include_router(qr.router, prefix="/api")
 
 
 @app.get("/")

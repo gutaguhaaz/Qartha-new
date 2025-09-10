@@ -6,7 +6,7 @@ from app.models.idf_models import IdfIndex, IdfPublic, IdfHealth, HealthCounts
 from app.core.config import settings
 
 
-router = APIRouter(prefix="/api", tags=["public"])
+router = APIRouter(tags=["public"])
 
 
 def validate_cluster(cluster: str):

@@ -6,7 +6,7 @@ from app.models.idf_models import IdfPublic, IdfUpsert
 from app.core.config import settings
 
 
-router = APIRouter(prefix="/api", tags=["admin"])
+router = APIRouter(tags=["admin"])
 
 
 def validate_cluster(cluster: str):
