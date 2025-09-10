@@ -555,34 +555,36 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop selectors */}
-          <div className="hidden md:flex items-center space-x-4">
-            <select
-              value={selectedCluster}
-              onChange={(e) => handleClusterChange(e.target.value)}
-              className="bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
-              data-testid="select-cluster"
-            >
-              {CLUSTERS.map((cluster: string) => (
-                <option key={cluster} value={cluster}>
-                  {cluster.toUpperCase()} Cluster
-                </option>
-              ))}
-            </select>
+          {/* Desktop selectors - Only show in directory view */}
+          {!location.includes('/idf/') && (
+            <div className="hidden md:flex items-center space-x-4">
+              <select
+                value={selectedCluster}
+                onChange={(e) => handleClusterChange(e.target.value)}
+                className="bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
+                data-testid="select-cluster"
+              >
+                {CLUSTERS.map((cluster: string) => (
+                  <option key={cluster} value={cluster}>
+                    {cluster.toUpperCase()} Cluster
+                  </option>
+                ))}
+              </select>
 
-            <select
-              value={selectedProject}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              className="bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
-              data-testid="select-project"
-            >
-              {getProjectsForCluster(selectedCluster).map((project) => (
-                <option key={project} value={project}>
-                  {project.charAt(0).toUpperCase() + project.slice(1)} Project
-                </option>
-              ))}
-            </select>
-          </div>
+              <select
+                value={selectedProject}
+                onChange={(e) => setSelectedProject(e.target.value)}
+                className="bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
+                data-testid="select-project"
+              >
+                {getProjectsForCluster(selectedCluster).map((project) => (
+                  <option key={project} value={project}>
+                    {project.charAt(0).toUpperCase() + project.slice(1)} Project
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Desktop navigation links */}
           <div className="hidden md:flex items-center space-x-1">
@@ -594,14 +596,17 @@ export default function Navbar() {
             >
               <i className="fas fa-list"></i>
             </Link>
-            <button
-              onClick={() => setIsAdminOpen(true)}
-              className="nav-link"
-              data-testid="button-admin"
-              title="Admin Panel"
-            >
-              <Settings className="w-4 h-4 animate-spin" />
-            </button>
+            {/* Only show admin button in CMS routes */}
+            {location.includes('/admin') && (
+              <button
+                onClick={() => setIsAdminOpen(true)}
+                className="nav-link"
+                data-testid="button-admin"
+                title="Admin Panel"
+              >
+                <Settings className="w-4 h-4 animate-spin" />
+              </button>
+            )}
             <ThemeToggle />
           </div>
 
@@ -623,33 +628,36 @@ export default function Navbar() {
         <div
           className={`${isMenuOpen ? "block" : "hidden"} md:hidden mt-4 space-y-4`}
         >
-          <div className="flex flex-col space-y-2">
-            <select
-              value={selectedCluster}
-              onChange={(e) => handleClusterChange(e.target.value)}
-              className="bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
-              data-testid="select-cluster-mobile"
-            >
-              {CLUSTERS.map((cluster: string) => (
-                <option key={cluster} value={cluster}>
-                  {cluster.toUpperCase()} Cluster
-                </option>
-              ))}
-            </select>
+          {/* Mobile selectors - Only show in directory view */}
+          {!location.includes('/idf/') && (
+            <div className="flex flex-col space-y-2">
+              <select
+                value={selectedCluster}
+                onChange={(e) => handleClusterChange(e.target.value)}
+                className="bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
+                data-testid="select-cluster-mobile"
+              >
+                {CLUSTERS.map((cluster: string) => (
+                  <option key={cluster} value={cluster}>
+                    {cluster.toUpperCase()} Cluster
+                  </option>
+                ))}
+              </select>
 
-            <select
-              value={selectedProject}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              className="bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
-              data-testid="select-project-mobile"
-            >
-              {getProjectsForCluster(selectedCluster).map((project) => (
-                <option key={project} value={project}>
-                  {project.charAt(0).toUpperCase() + project.slice(1)} Project
-                </option>
-              ))}
-            </select>
-          </div>
+              <select
+                value={selectedProject}
+                onChange={(e) => setSelectedProject(e.target.value)}
+                className="bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
+                data-testid="select-project-mobile"
+              >
+                {getProjectsForCluster(selectedCluster).map((project) => (
+                  <option key={project} value={project}>
+                    {project.charAt0).toUpperCase() + project.slice(1)} Project
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="flex items-center space-x-1">
             <Link
@@ -661,17 +669,20 @@ export default function Navbar() {
             >
               <i className="fas fa-list"></i>
             </Link>
-            <button
-              onClick={() => {
-                setIsAdminOpen(true);
-                setIsMenuOpen(false);
-              }}
-              className="nav-link"
-              data-testid="button-admin-mobile"
-              title="Admin Panel"
-            >
-              <Settings className="w-4 h-4 animate-spin" />
-            </button>
+            {/* Only show admin button in CMS routes */}
+            {location.includes('/admin') && (
+              <button
+                onClick={() => {
+                  setIsAdminOpen(true);
+                  setIsMenuOpen(false);
+                }}
+                className="nav-link"
+                data-testid="button-admin-mobile"
+                title="Admin Panel"
+              >
+                <Settings className="w-4 h-4 animate-spin" />
+              </button>
+            )}
             <ThemeToggle />
           </div>
         </div>

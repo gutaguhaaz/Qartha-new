@@ -9,6 +9,11 @@ import AddIdfDialog from "./AddIdfDialog";
 interface AdminSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  preloadIdf?: {
+    cluster: string;
+    project: string;
+    code: string;
+  };
 }
 
 interface IdfData {
@@ -25,7 +30,7 @@ interface IdfData {
   table?: any;
 }
 
-export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
+export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSidebarProps) {
   const [selectedCluster, setSelectedCluster] = useState("");
   const [selectedProject, setSelectedProject] = useState("");
   const [selectedIdf, setSelectedIdf] = useState<string>("");
@@ -36,6 +41,26 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Effect to preload IDF data when sidebar opens with preloadIdf
+  useEffect(() => {
+    if (isOpen && preloadIdf) {
+      setSelectedCluster(preloadIdf.cluster);
+      setSelectedProject(preloadIdf.project);
+      setSelectedIdf(preloadIdf.code);
+      
+      // Fetch IDFs for this cluster/project to populate the dropdown
+      getIdfs(preloadIdf.cluster, preloadIdf.project, { limit: 100 })
+        .then(data => {
+          setIdfs(data);
+          // Auto-load the specific IDF
+          getIdf(preloadIdf.cluster, preloadIdf.project, preloadIdf.code)
+            .then(idfData => {
+              setEditingIdf(idfData);
+            });
+        });
+    }
+  }, [isOpen, preloadIdf]);
 
   // API calls to get data for dropdowns
   const { data: clusters = [] } = useQuery({

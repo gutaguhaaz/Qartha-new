@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { getIdf, getLogo } from "@/lib/api";
@@ -7,6 +7,7 @@ import Gallery from "@/components/Gallery";
 import DocList from "@/components/DocList";
 import PdfOrImage from "@/components/PdfOrImage";
 import DataTable from "@/components/DataTable";
+import AdminSidebar from "@/components/AdminSidebar";
 
 interface PublicDetailProps {
   cluster: string;
@@ -17,6 +18,19 @@ interface PublicDetailProps {
 export default function PublicDetail({ params }: { params: PublicDetailProps }) {
   const { cluster, project, code } = params;
   const [activeTab, setActiveTab] = useState<string>('overview');
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+
+  // Listen for admin panel open events
+  useEffect(() => {
+    const handleOpenAdmin = (event: CustomEvent) => {
+      setIsAdminOpen(true);
+    };
+
+    window.addEventListener('openAdminWithIdf', handleOpenAdmin as EventListener);
+    return () => {
+      window.removeEventListener('openAdminWithIdf', handleOpenAdmin as EventListener);
+    };
+  }, []);
 
   const { data: idf, isLoading, error } = useQuery({
     queryKey: ['/api', cluster, project, 'idfs', code],
@@ -162,23 +176,42 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
             </div>
           </div>
 
-          {/* QR Code */}
-          <div className="bg-card border border-border rounded-lg p-4" data-testid="qr-code">
-            <img
-              src={qrUrl}
-              alt="QR Code"
-              className="w-24 h-24"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                target.parentElement!.innerHTML = `
-                  <div class="w-24 h-24 bg-muted rounded flex items-center justify-center">
-                    <i class="fas fa-qrcode text-2xl text-muted-foreground"></i>
-                  </div>
-                `;
+          <div className="flex flex-col items-end space-y-4">
+            {/* Admin Button */}
+            <button
+              onClick={() => {
+                // Pre-load the admin panel with current IDF data
+                const event = new CustomEvent('openAdminWithIdf', {
+                  detail: { cluster, project, code }
+                });
+                window.dispatchEvent(event);
               }}
-            />
-            <p className="text-xs text-muted-foreground mt-2 text-center">QR Code</p>
+              className="flex items-center space-x-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm"
+              data-testid="button-admin-edit"
+              title="Edit this IDF"
+            >
+              <i className="fas fa-edit"></i>
+              <span>Edit IDF</span>
+            </button>
+
+            {/* QR Code */}
+            <div className="bg-card border border-border rounded-lg p-4" data-testid="qr-code">
+              <img
+                src={qrUrl}
+                alt="QR Code"
+                className="w-24 h-24"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.parentElement!.innerHTML = `
+                    <div class="w-24 h-24 bg-muted rounded flex items-center justify-center">
+                      <i class="fas fa-qrcode text-2xl text-muted-foreground"></i>
+                    </div>
+                  `;
+                }}
+              />
+              <p className="text-xs text-muted-foreground mt-2 text-center">QR Code</p>
+            </div>
           </div>
         </div>
       </div>
@@ -341,6 +374,13 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
           </div>
         )}
       </div>
+      
+      {/* Admin Sidebar */}
+      <AdminSidebar
+        isOpen={isAdminOpen}
+        onClose={() => setIsAdminOpen(false)}
+        preloadIdf={{ cluster, project, code }}
+      />
     </div>
   );
 }
