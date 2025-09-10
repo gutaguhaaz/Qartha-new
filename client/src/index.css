@@ -131,8 +131,8 @@
   }
 
   /* Custom spinning animation for admin gear */
-  .animate-spin-slow {
-    animation: spin 8s linear infinite;
+  .animate-spin {
+    animation: spin 3s linear infinite;
   }
 
   @keyframes spin {

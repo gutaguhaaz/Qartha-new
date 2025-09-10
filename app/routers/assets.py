@@ -207,7 +207,7 @@ async def upload_logo(
     file: UploadFile = File(...),
     cluster: str = Depends(validate_cluster),
     project: str = "",
-    authorization: Optional[str] = Header(None, alias="Authorization"),
+    authorization: Optional[str] = None,
 ):
     """Upload cluster logo"""
     verify_admin_token(authorization)

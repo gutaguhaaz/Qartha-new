@@ -1,18 +1,14 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { X, Upload, Trash2, Plus, Edit3, Save, ArrowUp, ArrowDown, Maximize, Minimize, Image } from "lucide-react";
-import { getIdfs, getIdf, uploadAsset, uploadLogo, getLogo } from "@/lib/api";
+import { X, Upload, Trash2, Plus, Edit3, Save, ArrowUp, ArrowDown, Maximize, Minimize } from "lucide-react";
+import { getIdfs, getIdf, uploadAsset } from "@/lib/api";
 import EditableDataTable from "./EditableDataTable";
 
 interface AdminSidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const CLUSTERS = import.meta.env.VITE_CLUSTERS?.split(",") || ["trk", "lab"];
-const DEFAULT_CLUSTER = import.meta.env.VITE_DEFAULT_CLUSTER || "trk";
-const DEFAULT_PROJECT = import.meta.env.VITE_DEFAULT_PROJECT || "trinity";
 
 interface IdfData {
   cluster: string;
