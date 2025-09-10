@@ -63,8 +63,8 @@ async def upload_image(
     
     # Check if IDF exists
     idf = await database.fetch_one(
-        "SELECT * FROM idfs WHERE cluster = $1 AND project = $2 AND code = $3",
-        cluster, project, code
+        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": project, "code": code}
     )
     
     if not idf:
@@ -115,8 +115,8 @@ async def upload_document(
     
     # Check if IDF exists
     idf = await database.fetch_one(
-        "SELECT * FROM idfs WHERE cluster = $1 AND project = $2 AND code = $3",
-        cluster, project, code
+        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": project, "code": code}
     )
     
     if not idf:
@@ -167,8 +167,8 @@ async def upload_diagram(
     
     # Check if IDF exists
     idf = await database.fetch_one(
-        "SELECT * FROM idfs WHERE cluster = $1 AND project = $2 AND code = $3",
-        cluster, project, code
+        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": project, "code": code}
     )
     
     if not idf:

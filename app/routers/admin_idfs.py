@@ -42,8 +42,8 @@ async def create_idf(
     """Create new IDF"""
     # Check if IDF already exists
     existing = await database.fetch_one(
-        "SELECT * FROM idfs WHERE cluster = $1 AND project = $2 AND code = $3",
-        cluster, project, code
+        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": project, "code": code}
     )
     
     if existing:
@@ -58,10 +58,13 @@ async def create_idf(
     
     table_json = json.dumps(idf_data.table.dict()) if idf_data.table else None
     
-    row = await database.fetch_one(
-        query, cluster, project, code, idf_data.title, idf_data.description,
-        idf_data.site, idf_data.room, json.dumps([]), json.dumps([]), None, table_json
-    )
+    row = await database.fetch_one(query, {
+        "cluster": cluster, "project": project, "code": code,
+        "title": idf_data.title, "description": idf_data.description,
+        "site": idf_data.site, "room": idf_data.room,
+        "gallery": json.dumps([]), "documents": json.dumps([]),
+        "diagram": None, "table_data": table_json
+    })
     
     # Parse JSON fields for response
     gallery = json.loads(row["gallery"]) if isinstance(row["gallery"], str) else row["gallery"]
@@ -95,8 +98,8 @@ async def update_idf(
     """Update existing IDF"""
     # Check if IDF exists
     existing = await database.fetch_one(
-        "SELECT * FROM idfs WHERE cluster = $1 AND project = $2 AND code = $3",
-        cluster, project, code
+        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": project, "code": code}
     )
     
     if not existing:
@@ -112,10 +115,11 @@ async def update_idf(
         RETURNING *
     """
     
-    row = await database.fetch_one(
-        query, cluster, project, code, idf_data.title, idf_data.description,
-        idf_data.site, idf_data.room, table_json
-    )
+    row = await database.fetch_one(query, {
+        "cluster": cluster, "project": project, "code": code,
+        "title": idf_data.title, "description": idf_data.description,
+        "site": idf_data.site, "room": idf_data.room, "table_data": table_json
+    })
     
     # Parse JSON fields for response
     gallery = json.loads(row["gallery"]) if isinstance(row["gallery"], str) else row["gallery"]
@@ -147,8 +151,8 @@ async def delete_idf(
 ):
     """Delete IDF"""
     # Delete IDF
-    query = "DELETE FROM idfs WHERE cluster = $1 AND project = $2 AND code = $3"
-    result = await database.execute(query, cluster, project, code)
+    query = "DELETE FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code"
+    result = await database.execute(query, {"cluster": cluster, "project": project, "code": code})
     
     if result == 0:
         raise HTTPException(status_code=404, detail="IDF not found")

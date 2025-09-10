@@ -83,7 +83,8 @@ async def get_idfs(
         params["q"] = f"%{q}%"
     
     base_query += " ORDER BY title OFFSET :skip LIMIT :limit"
-    params.update({"skip": skip, "limit": limit})
+    params["skip"] = skip
+    params["limit"] = limit
     
     rows = await database.fetch_all(base_query, params)
     

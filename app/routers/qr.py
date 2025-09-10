@@ -1,6 +1,5 @@
 import io
 import qrcode
-from qrcode import QRCode
 from fastapi import APIRouter, Response, HTTPException, Request
 from app.db.mongo import database
 from app.core.config import settings
@@ -26,15 +25,15 @@ def _absolute_frontend_url(request: Request, cluster: str, project: str, code: s
 async def get_idf_qr_png(cluster: str, project: str, code: str, request: Request):
     # verifica existencia
     doc = await database.fetch_one(
-        "SELECT * FROM idfs WHERE cluster = $1 AND project = $2 AND code = $3",
-        cluster, project, code
+        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": project, "code": code}
     )
     if not doc:
         raise HTTPException(status_code=404, detail="IDF no encontrado")
 
     url = _absolute_frontend_url(request, cluster, project, code)
 
-    qr = QRCode(version=1, box_size=10, border=4)
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
     qr.add_data(url)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")

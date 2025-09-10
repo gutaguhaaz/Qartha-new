@@ -49,8 +49,8 @@ async def upload_csv_devices(
     
     # Check if IDF exists
     idf = await database.fetch_one(
-        "SELECT * FROM idfs WHERE cluster = $1 AND project = $2 AND code = $3",
-        cluster, project, code
+        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": project, "code": code}
     )
     
     if not idf:
@@ -78,8 +78,8 @@ async def upload_csv_devices(
     
     # Delete existing devices for this IDF
     await database.execute(
-        "DELETE FROM devices WHERE cluster = $1 AND project = $2 AND idf_code = $3",
-        cluster, project, code
+        "DELETE FROM devices WHERE cluster = :cluster AND project = :project AND idf_code = :idf_code",
+        {"cluster": cluster, "project": project, "idf_code": code}
     )
     
     # Insert new devices
