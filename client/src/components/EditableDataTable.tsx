@@ -28,14 +28,14 @@ export default function EditableDataTable({ table, onChange }: EditableDataTable
             onClick={() => {
               const newTable: IdfTable = {
                 columns: [
-                  { key: 'charola', label: 'Charola', type: 'text' },
-                  { key: 'patch_panel', label: 'Patch Panel', type: 'text' },
-                  { key: 'puerto', label: 'Puerto', type: 'number' },
-                  { key: 'fibra', label: 'Fibra', type: 'text' },
-                  { key: 'destino_cuarto', label: 'Destino (Cuarto)', type: 'text' },
-                  { key: 'destino_panel', label: 'Destino (Panel)', type: 'text' },
-                  { key: 'puerto_destino', label: 'Puerto Destino', type: 'number' },
-                  { key: 'estado', label: 'Estado', type: 'status' }
+                  { key: 'cable', label: 'Cable', type: 'text' },
+                  { key: 'buffer', label: 'Buffer', type: 'text' },
+                  { key: 'fiber', label: 'Fiber', type: 'text' },
+                  { key: 'port1', label: 'Port 1', type: 'text' },
+                  { key: 'port2', label: 'Port 2', type: 'text' },
+                  { key: 'destination', label: 'Destination', type: 'text' },
+                  { key: 'ring', label: 'Ring', type: 'text' },
+                  { key: 'status', label: 'Status', type: 'status' }
                 ],
                 rows: []
               };
@@ -128,7 +128,7 @@ export default function EditableDataTable({ table, onChange }: EditableDataTable
         value={value || ''}
         onChange={(e) => updateCell(rowIndex, column.key, e.target.value)}
         className="w-full"
-        placeholder={`Ingrese ${column.label.toLowerCase()}`}
+        placeholder={`Enter ${column.label.toLowerCase()}`}
       />
     );
   };
