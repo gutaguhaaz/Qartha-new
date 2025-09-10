@@ -9,9 +9,10 @@ export interface IdfSearchParams {
   include_health?: number;
 }
 
-export async function getIdfs(cluster: string, project: string, limit = 50, includeHealth = true) {
+export async function getIdfs(cluster: string, project: string, options: IdfSearchParams = {}) {
   try {
-    const response = await fetch(`${API_BASE}/${cluster}/${project}/idfs?limit=${limit}&include_health=${includeHealth ? 1 : 0}`);
+    const { limit = 50, include_health = 1 } = options;
+    const response = await fetch(`${API_BASE}/${cluster}/${project}/idfs?limit=${limit}&include_health=${include_health}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch IDFs: ${response.status} ${response.statusText}`);
     }
