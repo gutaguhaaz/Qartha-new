@@ -97,6 +97,11 @@ export default function PublicList({ params }: { params: PublicListProps }) {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8" data-testid="public-list">
+      {/* Welcome Banner */}
+      <div className="bg-primary text-primary-foreground rounded-lg p-4 mb-6 text-center">
+        <h1 className="text-xl font-semibold">Welcome to Qartha: Technical Information Portal</h1>
+      </div>
+
       {/* Header Section */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
