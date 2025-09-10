@@ -24,8 +24,8 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <div className="min-h-screen flex flex-col bg-background text-foreground">
             <Navbar />
@@ -35,8 +35,8 @@ function App() {
           </div>
           <Toaster />
         </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 
