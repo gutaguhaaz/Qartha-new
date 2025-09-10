@@ -19,7 +19,7 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
     if (!idfCode.trim()) {
       toast({
         title: "Error",
-        description: "Por favor ingresa el código del IDF",
+        description: "Please enter the IDF code",
         variant: "destructive"
       });
       return;
@@ -31,23 +31,23 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
       if (type === 'csv') {
         const result = await uploadCsv(cluster, project, idfCode, files[0], adminToken);
         toast({
-          title: "Éxito",
-          description: result.message || "CSV subido exitosamente"
+          title: "Success",
+          description: result.message || "CSV uploaded successfully"
         });
       } else {
         // Upload each file for assets
         for (let i = 0; i < files.length; i++) {
           const result = await uploadAsset(cluster, project, idfCode, files[i], type, adminToken);
           toast({
-            title: "Éxito", 
-            description: `${files[i].name} subido exitosamente`
+            title: "Success", 
+            description: `${files[i].name} uploaded successfully`
           });
         }
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Error al subir archivo",
+        description: error instanceof Error ? error.message : "Error uploading file",
         variant: "destructive"
       });
     } finally {
@@ -92,14 +92,14 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
     <div className="max-w-4xl mx-auto px-6 py-8" data-testid="cms-upload">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-foreground mb-2" data-testid="page-title">
-          Sistema de gestión de contenidos
+          Content Management System
         </h2>
-        <p className="text-muted-foreground">Subir y gestionar archivos para IDFs</p>
+        <p className="text-muted-foreground">Upload and manage files for IDFs</p>
       </div>
 
       {/* Configuration */}
       <div className="bg-card border border-border rounded-lg p-6 mb-8">
-        <h3 className="text-lg font-semibold mb-4">Configuración</h3>
+        <h3 className="text-lg font-semibold mb-4">Configuration</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2">Cluster</label>
@@ -112,7 +112,7 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Proyecto</label>
+            <label className="block text-sm font-medium mb-2">Project</label>
             <input
               type="text"
               value={project.charAt(0).toUpperCase() + project.slice(1)}
@@ -122,7 +122,7 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Código IDF</label>
+            <label className="block text-sm font-medium mb-2">IDF Code</label>
             <input
               type="text"
               placeholder="IDF-1004"
@@ -135,7 +135,7 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
         </div>
 
         <div className="mt-4">
-          <label className="block text-sm font-medium mb-2">Token de administrador</label>
+          <label className="block text-sm font-medium mb-2">Admin Token</label>
           <input
             type="password"
             value={adminToken}
@@ -150,13 +150,13 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
       <div className="space-y-8">
         {/* CSV Upload */}
         <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">Dispositivos (CSV)</h3>
+          <h3 className="text-lg font-semibold mb-4">Devices (CSV)</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <i className="fas fa-download text-blue-400"></i>
                 <div>
-                  <p className="font-medium">Descargar plantilla CSV</p>
+                  <p className="font-medium">Download CSV Template</p>
                   <p className="text-sm text-muted-foreground">Headers: name, model, serial, rack, site, notes</p>
                 </div>
               </div>
@@ -165,7 +165,7 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
                 className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
                 data-testid="button-download-template"
               >
-                Descargar
+                Download
               </button>
             </div>
 
@@ -176,15 +176,15 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
               data-testid="dropzone-csv"
             >
               <i className="fas fa-file-csv text-3xl text-muted-foreground mb-4"></i>
-              <p className="text-lg font-medium mb-2">Arrastra tu archivo CSV aquí</p>
-              <p className="text-muted-foreground mb-4">o haz clic para seleccionar</p>
+              <p className="text-lg font-medium mb-2">Drag your CSV file here</p>
+              <p className="text-muted-foreground mb-4">or click to select</p>
               <button
                 onClick={() => handleFileSelect('csv')}
                 disabled={uploading}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
                 data-testid="button-select-csv"
               >
-                {uploading ? 'Subiendo...' : 'Seleccionar archivo'}
+                {uploading ? 'Uploading...' : 'Select File'}
               </button>
             </div>
           </div>
@@ -192,7 +192,7 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
 
         {/* Image Upload */}
         <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">Imágenes</h3>
+          <h3 className="text-lg font-semibold mb-4">Images</h3>
           <div
             className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-ring transition-colors"
             onDrop={(e) => handleDrop(e, 'images')}
@@ -208,14 +208,14 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
               data-testid="button-select-images"
             >
-              {uploading ? 'Subiendo...' : 'Seleccionar imágenes'}
+              {uploading ? 'Uploading...' : 'Select Images'}
             </button>
           </div>
         </div>
 
         {/* Document Upload */}
         <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">Documentos</h3>
+          <h3 className="text-lg font-semibold mb-4">Documents</h3>
           <div
             className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-ring transition-colors"
             onDrop={(e) => handleDrop(e, 'documents')}
@@ -231,14 +231,14 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
               data-testid="button-select-documents"
             >
-              {uploading ? 'Subiendo...' : 'Seleccionar documentos'}
+              {uploading ? 'Uploading...' : 'Select Documents'}
             </button>
           </div>
         </div>
 
         {/* Diagram Upload */}
         <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">Diagrama</h3>
+          <h3 className="text-lg font-semibold mb-4">Diagram</h3>
           <div
             className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-ring transition-colors"
             onDrop={(e) => handleDrop(e, 'diagram')}
@@ -254,7 +254,7 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
               data-testid="button-select-diagram"
             >
-              {uploading ? 'Subiendo...' : 'Seleccionar diagrama'}
+              {uploading ? 'Uploading...' : 'Select Diagram'}
             </button>
           </div>
         </div>

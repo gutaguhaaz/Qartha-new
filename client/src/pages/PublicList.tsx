@@ -42,11 +42,11 @@ export default function PublicList({ params }: { params: PublicListProps }) {
 
   const getHealthTitle = (level?: string) => {
     switch (level) {
-      case 'green': return 'Operativo';
-      case 'yellow': return 'En revisión';
-      case 'red': return 'Falla crítica';
-      case 'gray': return 'Sin datos';
-      default: return 'Sin datos';
+      case 'green': return 'Operational';
+      case 'yellow': return 'Under Review';
+      case 'red': return 'Critical Failure';
+      case 'gray': return 'No Data';
+      default: return 'No Data';
     }
   };
 
@@ -77,9 +77,9 @@ export default function PublicList({ params }: { params: PublicListProps }) {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="text-center py-12">
           <i className="fas fa-exclamation-triangle text-4xl text-destructive mb-4"></i>
-          <h2 className="text-xl font-semibold mb-2">Error al cargar IDFs</h2>
+          <h2 className="text-xl font-semibold mb-2">Error Loading IDFs</h2>
           <p className="text-muted-foreground">
-            {error instanceof Error ? error.message : 'Error desconocido'}
+            {error instanceof Error ? error.message : 'Unknown error'}
           </p>
         </div>
       </div>
@@ -93,7 +93,7 @@ export default function PublicList({ params }: { params: PublicListProps }) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-bold text-foreground" data-testid="page-title">
-              Directorio de IDFs
+              IDF Directory
             </h2>
             <p className="text-muted-foreground mt-1" data-testid="page-subtitle">
               {cluster.toUpperCase()} Cluster • {project.charAt(0).toUpperCase() + project.slice(1)} Project
@@ -105,7 +105,7 @@ export default function PublicList({ params }: { params: PublicListProps }) {
             <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"></i>
             <input
               type="text"
-              placeholder="Buscar IDFs por código, título o ubicación..."
+              placeholder="Search IDFs by code, title or location..."
               className="w-full bg-input border border-border rounded-lg pl-10 pr-4 py-3 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -116,22 +116,22 @@ export default function PublicList({ params }: { params: PublicListProps }) {
 
         {/* Health Legend */}
         <div className="flex items-center space-x-6 text-sm" data-testid="health-legend">
-          <span className="text-muted-foreground">Estado de salud:</span>
+          <span className="text-muted-foreground">Health Status:</span>
           <div className="flex items-center space-x-2">
             <div className="health-indicator bg-green-500"></div>
-            <span>Operativo</span>
+            <span>Operational</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="health-indicator bg-yellow-500"></div>
-            <span>Revisión</span>
+            <span>Under Review</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="health-indicator bg-red-500"></div>
-            <span>Falla</span>
+            <span>Critical</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="health-indicator bg-gray-500"></div>
-            <span>Sin datos</span>
+            <span>No Data</span>
           </div>
         </div>
       </div>
@@ -140,8 +140,8 @@ export default function PublicList({ params }: { params: PublicListProps }) {
       {filteredIdfs.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground" data-testid="empty-state">
           <i className="fas fa-search text-4xl mb-4"></i>
-          <h3 className="text-lg font-semibold mb-2">No se encontraron IDFs</h3>
-          <p>Intenta ajustar los términos de búsqueda</p>
+          <h3 className="text-lg font-semibold mb-2">No IDFs Found</h3>
+          <p>Try adjusting your search terms</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="idf-grid">
@@ -193,22 +193,22 @@ export default function PublicList({ params }: { params: PublicListProps }) {
                   )}
                   {idf.health.counts.revision > 0 && (
                     <span className="px-2 py-1 bg-yellow-500/10 text-yellow-400 rounded-full">
-                      {idf.health.counts.revision} Revisión
+                      {idf.health.counts.revision} Review
                     </span>
                   )}
                   {idf.health.counts.falla > 0 && (
                     <span className="px-2 py-1 bg-red-500/10 text-red-400 rounded-full">
-                      {idf.health.counts.falla} Falla
+                      {idf.health.counts.falla} Critical
                     </span>
                   )}
                   {idf.health.counts.libre > 0 && (
                     <span className="px-2 py-1 bg-gray-500/10 text-gray-400 rounded-full">
-                      {idf.health.counts.libre} Libre
+                      {idf.health.counts.libre} Available
                     </span>
                   )}
                   {idf.health.counts.reservado > 0 && (
                     <span className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded-full">
-                      {idf.health.counts.reservado} Reservado
+                      {idf.health.counts.reservado} Reserved
                     </span>
                   )}
                 </div>

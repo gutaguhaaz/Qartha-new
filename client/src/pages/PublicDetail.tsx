@@ -35,11 +35,11 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
 
   const getHealthLabel = (level?: string) => {
     switch (level) {
-      case 'green': return 'Operativo';
-      case 'yellow': return 'En revisión';
-      case 'red': return 'Falla crítica';
-      case 'gray': return 'Sin datos';
-      default: return 'Sin datos';
+      case 'green': return 'Operational';
+      case 'yellow': return 'Under Review';
+      case 'red': return 'Critical Failure';
+      case 'gray': return 'No Data';
+      default: return 'No Data';
     }
   };
 
@@ -61,12 +61,12 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="text-center py-12">
           <i className="fas fa-exclamation-triangle text-4xl text-destructive mb-4"></i>
-          <h2 className="text-xl font-semibold mb-2">Error al cargar IDF</h2>
+          <h2 className="text-xl font-semibold mb-2">Error Loading IDF</h2>
           <p className="text-muted-foreground">
-            {error instanceof Error ? error.message : 'IDF no encontrado'}
+            {error instanceof Error ? error.message : 'IDF not found'}
           </p>
           <Link href={`/${cluster}/${project}`} className="mt-4 inline-block text-primary hover:underline">
-            Volver al directorio
+            Back to Directory
           </Link>
         </div>
       </div>
@@ -82,7 +82,7 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
       <div className="mb-8">
         <nav className="text-sm mb-4" data-testid="breadcrumb">
           <Link href={`/${cluster}/${project}`} className="text-muted-foreground hover:text-foreground">
-            Directorio
+            Directory
           </Link>
           <span className="mx-2 text-muted-foreground">/</span>
           <span className="text-foreground">{idf.title}</span>
@@ -112,22 +112,22 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
                   )}
                   {idf.health.counts.revision > 0 && (
                     <span className="px-2 py-1 bg-yellow-500/10 text-yellow-400 rounded-full">
-                      {idf.health.counts.revision} Revisión
+                      {idf.health.counts.revision} Review
                     </span>
                   )}
                   {idf.health.counts.falla > 0 && (
                     <span className="px-2 py-1 bg-red-500/10 text-red-400 rounded-full">
-                      {idf.health.counts.falla} Falla
+                      {idf.health.counts.falla} Critical
                     </span>
                   )}
                   {idf.health.counts.libre > 0 && (
                     <span className="px-2 py-1 bg-gray-500/10 text-gray-400 rounded-full">
-                      {idf.health.counts.libre} Libre
+                      {idf.health.counts.libre} Available
                     </span>
                   )}
                   {idf.health.counts.reservado > 0 && (
                     <span className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded-full">
-                      {idf.health.counts.reservado} Reservado
+                      {idf.health.counts.reservado} Reserved
                     </span>
                   )}
                 </div>
@@ -151,7 +151,7 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
                 `;
               }}
             />
-            <p className="text-xs text-muted-foreground mt-2 text-center">Código QR</p>
+            <p className="text-xs text-muted-foreground mt-2 text-center">QR Code</p>
           </div>
         </div>
       </div>
@@ -164,35 +164,35 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
             onClick={() => setActiveTab('overview')}
             data-testid="tab-overview"
           >
-            <i className="fas fa-info-circle mr-2"></i>Información
+            <i className="fas fa-info-circle mr-2"></i>Overview
           </button>
           <button
             className={`tab-button ${activeTab === 'gallery' ? 'active' : ''}`}
             onClick={() => setActiveTab('gallery')}
             data-testid="tab-gallery"
           >
-            <i className="fas fa-images mr-2"></i>Galería
+            <i className="fas fa-images mr-2"></i>Gallery
           </button>
           <button
             className={`tab-button ${activeTab === 'documents' ? 'active' : ''}`}
             onClick={() => setActiveTab('documents')}
             data-testid="tab-documents"
           >
-            <i className="fas fa-file-alt mr-2"></i>Documentos
+            <i className="fas fa-file-alt mr-2"></i>Documents
           </button>
           <button
             className={`tab-button ${activeTab === 'diagram' ? 'active' : ''}`}
             onClick={() => setActiveTab('diagram')}
             data-testid="tab-diagram"
           >
-            <i className="fas fa-project-diagram mr-2"></i>Diagrama
+            <i className="fas fa-project-diagram mr-2"></i>Diagram
           </button>
           <button
             className={`tab-button ${activeTab === 'table' ? 'active' : ''}`}
             onClick={() => setActiveTab('table')}
             data-testid="tab-table"
           >
-            <i className="fas fa-table mr-2"></i>Tabla de dispositivos
+            <i className="fas fa-table mr-2"></i>Device Table
           </button>
         </div>
       </div>
@@ -202,31 +202,31 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-testid="tab-content-overview">
             <div className="bg-card border border-border rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Detalles del IDF</h3>
+              <h3 className="text-lg font-semibold mb-4">IDF Details</h3>
               <dl className="space-y-3">
                 <div>
-                  <dt className="text-sm text-muted-foreground">Código</dt>
+                  <dt className="text-sm text-muted-foreground">Code</dt>
                   <dd className="font-mono" data-testid="detail-code">{idf.code}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-muted-foreground">Título</dt>
+                  <dt className="text-sm text-muted-foreground">Title</dt>
                   <dd data-testid="detail-title">{idf.title}</dd>
                 </div>
                 {idf.site && (
                   <div>
-                    <dt className="text-sm text-muted-foreground">Sitio</dt>
+                    <dt className="text-sm text-muted-foreground">Site</dt>
                     <dd data-testid="detail-site">{idf.site}</dd>
                   </div>
                 )}
                 {idf.room && (
                   <div>
-                    <dt className="text-sm text-muted-foreground">Cuarto</dt>
+                    <dt className="text-sm text-muted-foreground">Room</dt>
                     <dd data-testid="detail-room">{idf.room}</dd>
                   </div>
                 )}
                 {idf.description && (
                   <div>
-                    <dt className="text-sm text-muted-foreground">Descripción</dt>
+                    <dt className="text-sm text-muted-foreground">Description</dt>
                     <dd className="text-muted-foreground" data-testid="detail-description">
                       {idf.description}
                     </dd>
@@ -237,12 +237,12 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
 
             {idf.health && (
               <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">Estado de salud</h3>
+                <h3 className="text-lg font-semibold mb-4">Health Status</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span>Operativo (OK)</span>
+                      <span>Operational (OK)</span>
                     </div>
                     <span className="font-semibold" data-testid="count-ok">
                       {idf.health.counts.ok}
@@ -251,7 +251,7 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                      <span>En revisión</span>
+                      <span>Under Review</span>
                     </div>
                     <span className="font-semibold" data-testid="count-revision">
                       {idf.health.counts.revision}
@@ -260,7 +260,7 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <span>Falla</span>
+                      <span>Critical Failure</span>
                     </div>
                     <span className="font-semibold" data-testid="count-falla">
                       {idf.health.counts.falla}
@@ -269,7 +269,7 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <span>Reservado</span>
+                      <span>Reserved</span>
                     </div>
                     <span className="font-semibold" data-testid="count-reservado">
                       {idf.health.counts.reservado}
@@ -278,7 +278,7 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-                      <span>Libre</span>
+                      <span>Available</span>
                     </div>
                     <span className="font-semibold" data-testid="count-libre">
                       {idf.health.counts.libre}
