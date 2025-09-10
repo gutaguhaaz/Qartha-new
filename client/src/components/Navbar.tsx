@@ -109,7 +109,7 @@ export default function Navbar() {
               data-testid="button-admin"
               title="Admin Panel"
             >
-              <Settings className="w-4 h-4 animate-spin" />
+              <Settings className="w-4 h-4 animate-spin-slow" />
             </button>
             <ThemeToggle />
           </div>
@@ -174,7 +174,7 @@ export default function Navbar() {
               data-testid="button-admin-mobile"
               title="Admin Panel"
             >
-              <Settings className="w-4 h-4 animate-spin" />
+              <Settings className="w-4 h-4 animate-spin-slow" />
             </button>
             <ThemeToggle />
           </div>
