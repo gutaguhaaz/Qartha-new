@@ -67,6 +67,30 @@ export async function uploadAsset(cluster: string, project: string, code: string
   return response.json();
 }
 
+export async function uploadLogo(cluster: string, project: string, file: File, token: string) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const url = `${API_BASE}/api/${cluster}/${project}/assets/logo`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+    body: formData
+  });
+
+  if (!response.ok) throw new Error(`Failed to upload logo: ${response.statusText}`);
+  return response.json();
+}
+
+export async function getLogo(cluster: string) {
+  const url = `${API_BASE}/api/${cluster}/logo`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Failed to fetch logo: ${response.statusText}`);
+  return response.json();
+}
+
 export function downloadCsvTemplate() {
   const headers = ['name', 'model', 'serial', 'rack', 'site', 'notes'];
   const csvContent = headers.join(',') + '\n';

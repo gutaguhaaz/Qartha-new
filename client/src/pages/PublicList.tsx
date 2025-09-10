@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { getIdfs } from "@/lib/api";
+import { getIdfs, getLogo } from "@/lib/api";
 import { IdfIndex } from "@shared/schema";
 
 interface PublicListProps {
@@ -16,6 +16,13 @@ export default function PublicList({ params }: { params: PublicListProps }) {
   const { data: idfs = [], isLoading, error } = useQuery({
     queryKey: ['idfs', cluster, project, 'list'],
     queryFn: () => getIdfs(cluster, project, { include_health: 1, limit: 50 })
+  });
+
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+  const { data: logo } = useQuery({
+    queryKey: ['logo', cluster],
+    queryFn: () => getLogo(cluster),
+    retry: false,
   });
 
   // Client-side search filtering
@@ -91,13 +98,23 @@ export default function PublicList({ params }: { params: PublicListProps }) {
       {/* Header Section */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground" data-testid="page-title">
-              IDF Directory
-            </h2>
-            <p className="text-muted-foreground mt-1" data-testid="page-subtitle">
-              {cluster.toUpperCase()} Cluster • {project.charAt(0).toUpperCase() + project.slice(1)} Project
-            </p>
+          <div className="flex items-center space-x-4">
+            {logo && (
+              <img
+                src={`${API_BASE}${logo.url}`}
+                alt={`${cluster} logo`}
+                className="h-12 w-auto"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+            )}
+            <div>
+              <h2 className="text-2xl font-bold text-foreground" data-testid="page-title">
+                IDF Directory
+              </h2>
+              <p className="text-muted-foreground mt-1" data-testid="page-subtitle">
+                {cluster.toUpperCase()} Cluster • {project.charAt(0).toUpperCase() + project.slice(1)} Project
+              </p>
+            </div>
           </div>
 
           {/* Search */}
