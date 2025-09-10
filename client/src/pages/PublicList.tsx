@@ -14,7 +14,7 @@ export default function PublicList({ params }: { params: PublicListProps }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: idfs = [], isLoading, error } = useQuery({
-    queryKey: ['/api', cluster, project, 'idfs', 'list'],
+    queryKey: ['idfs', cluster, project, 'list'],
     queryFn: () => getIdfs(cluster, project, { include_health: 1, limit: 50 })
   });
 
