@@ -144,6 +144,20 @@
       transform: rotate(360deg);
     }
   }
+
+  /* Logo theme switching */
+  .logo-container .logo-svg {
+    color: hsl(var(--primary-foreground));
+  }
+
+  .dark .logo-container .logo-svg * {
+    stroke: white;
+  }
+
+  /* Alternative approach using fill for filled SVGs */
+  .dark .logo-svg path {
+    stroke: white;
+  }
 }
 
 a.bg-card.border.rounded-lg {
