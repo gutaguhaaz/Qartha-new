@@ -115,7 +115,7 @@ export default function PublicList({ params }: { params: PublicListProps }) {
                   IDF Directory
                 </h2>
                 <p className="text-muted-foreground mt-1" data-testid="page-subtitle">
-                  {cluster.toUpperCase()} Cluster • {project.charAt(0).toUpperCase() + project.slice(1)} Project
+                  {cluster === 'trk' ? 'Trinity Project' : cluster.toUpperCase() + ' Cluster'} • {project === 'trinity' ? 'Sabinas Project' : project.charAt(0).toUpperCase() + project.slice(1) + ' Project'}
                 </p>
               </div>
               <button

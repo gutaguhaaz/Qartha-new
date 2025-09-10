@@ -147,7 +147,7 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
             <label className="block text-sm font-medium mb-2">Cluster</label>
             <input
               type="text"
-              value={cluster.toUpperCase()}
+              value={cluster === 'trk' ? 'Trinity Project' : cluster.toUpperCase()}
               disabled
               className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground"
               data-testid="input-cluster"
@@ -157,7 +157,7 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
             <label className="block text-sm font-medium mb-2">Project</label>
             <input
               type="text"
-              value={project.charAt(0).toUpperCase() + project.slice(1)}
+              value={project === 'trinity' ? 'Sabinas Project' : project.charAt(0).toUpperCase() + project.slice(1)}
               disabled
               className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground"
               data-testid="input-project"
