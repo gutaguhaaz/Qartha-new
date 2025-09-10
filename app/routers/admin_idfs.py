@@ -31,7 +31,7 @@ def verify_admin_token(authorization: Optional[str] = Header(None)):
     return token
 
 
-@router.post("/{cluster}/{project}/idfs", response_model=IdfPublic)
+@router.post("/{cluster}/{project}/idfs/{code}", response_model=IdfPublic)
 async def create_idf(
     idf_data: IdfUpsert,
     cluster: str = Depends(validate_cluster),
@@ -58,13 +58,13 @@ async def create_idf(
     
     table_json = json.dumps(idf_data.table.dict()) if idf_data.table else None
     
-    row = await database.fetch_one(query, {
-        "cluster": cluster, "project": project, "code": code,
-        "title": idf_data.title, "description": idf_data.description,
-        "site": idf_data.site, "room": idf_data.room,
-        "gallery": json.dumps([]), "documents": json.dumps([]),
-        "diagram": None, "table_data": table_json
-    })
+    row = await database.fetch_one(query, 
+        cluster, project, code,
+        idf_data.title, idf_data.description,
+        idf_data.site, idf_data.room,
+        json.dumps([]), json.dumps([]),
+        None, table_json
+    )
     
     # Parse JSON fields for response
     gallery = json.loads(row["gallery"]) if isinstance(row["gallery"], str) else row["gallery"]
@@ -115,11 +115,11 @@ async def update_idf(
         RETURNING *
     """
     
-    row = await database.fetch_one(query, {
-        "cluster": cluster, "project": project, "code": code,
-        "title": idf_data.title, "description": idf_data.description,
-        "site": idf_data.site, "room": idf_data.room, "table_data": table_json
-    })
+    row = await database.fetch_one(query,
+        cluster, project, code,
+        idf_data.title, idf_data.description,
+        idf_data.site, idf_data.room, table_json
+    )
     
     # Parse JSON fields for response
     gallery = json.loads(row["gallery"]) if isinstance(row["gallery"], str) else row["gallery"]

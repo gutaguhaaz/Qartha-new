@@ -29,6 +29,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const [selectedProject, setSelectedProject] = useState("");
   const [selectedIdf, setSelectedIdf] = useState("");
   const [editingIdf, setEditingIdf] = useState<IdfData | null>(null);
+  const [idfs, setIdfs] = useState<any[]>([]); // State to hold the list of IDFs
   const [adminToken, setAdminToken] = useState(import.meta.env.VITE_ADMIN_TOKEN || "changeme-demo-token");
 
   const { toast } = useToast();
@@ -38,31 +39,65 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const { data: clusters = [] } = useQuery({
     queryKey: ['admin', 'clusters'],
     queryFn: async () => {
-      // For now using env vars, but this could be an API call
-      return import.meta.env.VITE_CLUSTERS?.split(',') || ['trk', 'lab'];
+      // Using predefined clusters for now
+      return [
+        { value: "trk", label: "TRK" },
+        { value: "lab", label: "LAB" },
+        { value: "alpha", label: "ALPHA" }
+      ];
     }
   });
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ['admin', 'projects', selectedCluster],
-    queryFn: async () => {
-      if (!selectedCluster) return [];
-      const projectsEnvVar = import.meta.env[`VITE_PROJECTS_${selectedCluster}`];
-      return projectsEnvVar?.split(',') || [];
-    },
-    enabled: !!selectedCluster
-  });
+  // Define projects based on cluster selection
+  const projectsByCluster = {
+    trk: [
+      { value: "trinity", label: "Trinity" },
+      { value: "alpha", label: "Alpha" }
+    ],
+    lab: [
+      { value: "demo", label: "Demo" },
+      { value: "research", label: "Research" }
+    ],
+    alpha: [
+      { value: "prototype", label: "Prototype" }
+    ]
+  };
 
-  const { data: idfs = [] } = useQuery({
-    queryKey: ['admin', 'idfs', selectedCluster, selectedProject],
-    queryFn: async () => {
-      if (!selectedCluster || !selectedProject) return [];
-      const response = await fetch(`/api/${selectedCluster}/${selectedProject}/idfs?limit=100`);
-      if (!response.ok) throw new Error('Failed to fetch IDFs');
-      return response.json();
-    },
-    enabled: !!selectedCluster && !!selectedProject
-  });
+  // Dynamically get projects based on selected cluster
+  const projects = selectedCluster ? projectsByCluster[selectedCluster as keyof typeof projectsByCluster] || [] : [];
+
+  // Fetch IDFs using the getIdfs function from api
+  useEffect(() => {
+    const loadIdfs = async () => {
+      if (selectedCluster && selectedProject) {
+        try {
+          console.log(`Loading IDFs for ${selectedCluster}/${selectedProject}`);
+          const data = await getIdfs(selectedCluster, selectedProject);
+          console.log('Loaded IDFs:', data);
+          setIdfs(data);
+        } catch (error) {
+          console.error('Error loading IDFs:', error);
+          setIdfs([]);
+        }
+      } else {
+        setIdfs([]);
+      }
+    };
+
+    loadIdfs();
+  }, [selectedCluster, selectedProject]);
+
+  // Reset dependent fields when cluster changes
+  useEffect(() => {
+    setSelectedProject('');
+    setSelectedIdf('');
+    setIdfs([]);
+  }, [selectedCluster]);
+
+  // Reset IDF when project changes
+  useEffect(() => {
+    setSelectedIdf('');
+  }, [selectedProject]);
 
   const { data: idfDetails } = useQuery({
     queryKey: ['admin', 'idf-details', selectedCluster, selectedProject, selectedIdf],
@@ -161,11 +196,22 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         throw new Error('Failed to save changes');
       }
 
-      // Refresh the data
-      window.location.reload();
+      // Refresh IDF details after saving
+      queryClient.invalidateQueries({
+        queryKey: ['admin', 'idf-details', selectedCluster, selectedProject, selectedIdf]
+      });
+      toast({
+        title: "Success",
+        description: "Changes saved successfully"
+      });
+
     } catch (error) {
       console.error('Error saving changes:', error);
-      alert('Failed to save changes. Please try again.');
+      toast({
+        title: "Error",
+        description: "Failed to save changes. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -209,15 +255,15 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                     value={selectedCluster}
                     onChange={(e) => {
                       setSelectedCluster(e.target.value);
-                      setSelectedProject("");
-                      setSelectedIdf("");
+                      setSelectedProject(""); // Reset project when cluster changes
+                      setSelectedIdf("");     // Reset IDF when cluster changes
                     }}
                     className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm"
                   >
                     <option value="">Select Cluster</option>
-                    {clusters.map((cluster: string) => (
-                      <option key={cluster} value={cluster}>
-                        {cluster.toUpperCase()}
+                    {clusters.map((cluster: { value: string; label: string }) => (
+                      <option key={cluster.value} value={cluster.value}>
+                        {cluster.label}
                       </option>
                     ))}
                   </select>
@@ -229,15 +275,15 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                     value={selectedProject}
                     onChange={(e) => {
                       setSelectedProject(e.target.value);
-                      setSelectedIdf("");
+                      setSelectedIdf(""); // Reset IDF when project changes
                     }}
                     className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm"
                     disabled={!selectedCluster}
                   >
                     <option value="">Select Project</option>
-                    {projects.map((project: string) => (
-                      <option key={project} value={project}>
-                        {project.charAt(0).toUpperCase() + project.slice(1)}
+                    {projects.map((project: { value: string; label: string }) => (
+                      <option key={project.value} value={project.value}>
+                        {project.label}
                       </option>
                     ))}
                   </select>
