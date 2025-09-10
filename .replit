@@ -1,5 +1,5 @@
 modules = ["nodejs-20", "web", "postgresql-16", "python-3.11", "python3"]
-run = "npm run dev"
+run = "workflow.run Project"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
@@ -8,8 +8,10 @@ packages = ["libxcrypt", "postgresql"]
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
+# Para autoscale en producción normalmente se expone un solo servicio.
+# En dev seguimos usando workflows paralelos.
+build = ["pip install -r requirements.txt", "npm install", "npm run build"]
+run = ["uvicorn app.main:app --host 0.0.0.0 --port 8000"]
 
 [[ports]]
 localPort = 5000
@@ -31,14 +33,13 @@ mode = "parallel"
 author = "agent"
 
 [[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Start application"
-
-[[workflows.workflow]]
-name = "Start application"
-author = "agent"
+# Backend FastAPI
+task = "shell.exec"
+args = "pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+waitForPort = 8000
 
 [[workflows.workflow.tasks]]
+# Frontend (Vite/Next/etc.)
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
