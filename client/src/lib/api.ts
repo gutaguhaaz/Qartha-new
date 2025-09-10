@@ -1,6 +1,6 @@
 import { apiRequest } from "./queryClient";
 
-const API_BASE = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? window.location.origin + '/api' : '/api');
+const API_BASE = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? window.location.origin : '/api');
 
 export interface IdfSearchParams {
   q?: string;
