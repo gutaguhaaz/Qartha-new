@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { X, Upload, Trash2, Edit3, Save, ArrowUp, ArrowDown, Maximize, Minimize, Plus } from "lucide-react";
 import { getIdfs, getIdf, uploadAsset } from "@/lib/api";
 import EditableDataTable from "./EditableDataTable";
+import DataTable from "./DataTable";
 import AddIdfDialog from "./AddIdfDialog";
 import LogoWidget from "./LogoWidget"; // Assuming LogoWidget is in this path
 
@@ -624,12 +625,17 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 {/* Device Table Section */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium">Device Table</h4>
-                  <EditableDataTable
-                    table={editingIdf.table || undefined}
-                    onChange={(newTable) =>
-                      setEditingIdf({ ...editingIdf, table: newTable })
-                    }
-                  />
+                  <div className="bg-card border border-border rounded-lg overflow-hidden">
+                    <DataTable table={editingIdf.table || undefined} />
+                    <div className="p-4 border-t border-border">
+                      <EditableDataTable
+                        table={editingIdf.table || undefined}
+                        onChange={(newTable) =>
+                          setEditingIdf({ ...editingIdf, table: newTable })
+                        }
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Save Changes */}
