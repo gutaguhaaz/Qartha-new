@@ -100,8 +100,9 @@ export default function Navbar() {
               href={currentPath}
               className={`nav-link ${isDirectoryActive ? "active" : ""}`}
               data-testid="link-directory"
+              title="Directory"
             >
-              <i className="fas fa-list mr-2"></i>Directory
+              <i className="fas fa-list"></i>
             </Link>
             <button
               onClick={() => setIsAdminOpen(true)}
@@ -109,8 +110,7 @@ export default function Navbar() {
               data-testid="button-admin"
               title="Admin Panel"
             >
-              <Settings className="w-4 h-4 mr-2" />
-              Admin
+              <Settings className="w-4 h-4 animate-spin" />
             </button>
             <ThemeToggle />
           </div>

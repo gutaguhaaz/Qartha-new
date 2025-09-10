@@ -125,6 +125,20 @@
   .tab-button.active {
     @apply bg-primary text-primary-foreground;
   }
+
+  /* Custom spinning animation for admin gear */
+  .animate-spin {
+    animation: spin 2s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
 }
 
 a.bg-card.border.rounded-lg {
