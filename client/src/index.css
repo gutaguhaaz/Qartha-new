@@ -336,6 +336,13 @@ svg.logo-svg.logoqartha {
   font-size: 9px;
 }
 
+.status-cell {
+  background: white;
+  padding: 4px;
+  text-align: center;
+  vertical-align: middle;
+}
+
 /* Dark mode adjustments for ODF */
 .dark .odf-container {
   background: #1a1a1a;
@@ -345,4 +352,8 @@ svg.logo-svg.logoqartha {
 .dark .port-cell {
   background: #2d2d2d;
   color: white;
+}
+
+.dark .status-cell {
+  background: #2d2d2d;
 }

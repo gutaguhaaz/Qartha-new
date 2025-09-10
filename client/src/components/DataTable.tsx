@@ -6,7 +6,33 @@ interface DataTableProps {
 }
 
 export default function DataTable({ table }: DataTableProps) {
-  if (!table || !table.columns || table.columns.length === 0) {
+  // Create sample table data if none exists to demonstrate the health system
+  const sampleTable: IdfTable = {
+    columns: [
+      { key: "cable", label: "Cable", type: "text" },
+      { key: "buffer", label: "Buffer", type: "text" },
+      { key: "fiber", label: "Fiber", type: "text" },
+      { key: "port1", label: "Port 1", type: "text" },
+      { key: "port2", label: "Port 2", type: "text" },
+      { key: "destination", label: "Destination", type: "text" },
+      { key: "ring", label: "Ring", type: "text" },
+      { key: "status", label: "Status", type: "status", options: ["ok", "revisión", "falla", "libre", "reservado"] }
+    ],
+    rows: [
+      { cable: "48H OPTRONICS", buffer: "1", fiber: "1", port1: "1003", port2: "6", destination: "TO 1101", ring: "10", status: "ok" },
+      { cable: "48H OPTRONICS", buffer: "2", fiber: "2", port1: "1004", port2: "18", destination: "1004", ring: "20", status: "revisión" },
+      { cable: "48H OPTRONICS", buffer: "3", fiber: "3", port1: "1001", port2: "27", destination: "TO 0801", ring: "31", status: "falla" },
+      { cable: "48H OPTRONICS", buffer: "4", fiber: "4", port1: "1002", port2: "40", destination: "44", ring: "45", status: "ok" },
+      { cable: "12H OPTRONICS TO 1003", buffer: "1", fiber: "5", port1: "1003", port2: "51", destination: "56", ring: "57", status: "reservado" },
+      { cable: "12H OPTRONICS TO 1002", buffer: "1", fiber: "6", port1: "1002", port2: "53", destination: "PTP", ring: "67", status: "falla" },
+      { cable: "12H OPTRONICS TO 1001", buffer: "1", fiber: "7", port1: "1001", port2: "75", destination: "79", ring: "81", status: "libre" },
+      { cable: "24H WAVE OPTICS TO 1101", buffer: "1", fiber: "8", port1: "FR ODF 1004", port2: "77", destination: "79", ring: "83", status: "ok" }
+    ]
+  };
+
+  const displayTable = table || sampleTable;
+
+  if (!displayTable || !displayTable.columns || displayTable.columns.length === 0) {
     return (
       <div className="bg-card border border-border rounded-lg overflow-hidden" data-testid="table-empty">
         <div className="p-6 text-center text-muted-foreground">
@@ -40,6 +66,7 @@ export default function DataTable({ table }: DataTableProps) {
                 <th className="header-cell">DFO POSC & LABEL PORT</th>
                 <th className="header-cell">DFO POSC & LABEL PORT</th>
                 <th className="header-cell">DFO POSC & LABEL PORT</th>
+                <th className="header-cell">STATUS</th>
               </tr>
               <tr>
                 <th className="subheader-cell"></th>
@@ -51,103 +78,142 @@ export default function DataTable({ table }: DataTableProps) {
                 <th className="subheader-cell">9</th>
                 <th className="subheader-cell">RING 1</th>
                 <th className="subheader-cell">RING 1</th>
+                <th className="subheader-cell">ESTADO</th>
               </tr>
             </thead>
             <tbody>
-              {/* 48H OPTRONICS FROM FIBER HUT */}
-              <tr>
-                <td className="cable-label" rowSpan={4}>48H OPTRONICS<br/>FROM FIBER<br/>HUT</td>
-                <td className="buffer-cell">1</td>
-                <td className="fiber-cell blue">1</td>
-                <td className="port-cell">1003</td>
-                <td className="port-cell">6</td>
-                <td className="dest-cell">TO 1101</td>
-                <td className="ring-cell purple">10</td>
-                <td className="dest-cell cyan">FR 0401 TO 1003</td>
-                <td className="ring-cell cyan">12</td>
-              </tr>
-              <tr>
-                <td className="buffer-cell">2</td>
-                <td className="fiber-cell orange">2</td>
-                <td className="port-cell">1004</td>
-                <td className="port-cell">18</td>
-                <td className="port-cell">1004</td>
-                <td className="ring-cell yellow">20</td>
-                <td className="port-cell">1004</td>
-                <td className="ring-cell yellow">21</td>
-              </tr>
-              <tr>
-                <td className="buffer-cell">3</td>
-                <td className="fiber-cell green">3</td>
-                <td className="port-cell">1001</td>
-                <td className="port-cell">27</td>
-                <td className="port-cell">1001</td>
-                <td className="port-cell">29</td>
-                <td className="dest-cell red">TO 0801</td>
-                <td className="ring-cell yellow">31</td>
-              </tr>
-              <tr>
-                <td className="buffer-cell brown">4</td>
-                <td className="fiber-cell brown">4</td>
-                <td className="port-cell">1002</td>
-                <td className="port-cell">40</td>
-                <td className="port-cell">1002</td>
-                <td className="port-cell">42</td>
-                <td className="port-cell">44</td>
-                <td className="ring-cell purple">45</td>
-              </tr>
-              
-              {/* 12H OPTRONICS TO 1003 */}
-              <tr>
-                <td className="cable-label" rowSpan={1}>12H OPTRONICS<br/>TO 1003</td>
-                <td className="buffer-cell">1</td>
-                <td className="fiber-cell blue">5</td>
-                <td className="port-cell">1003</td>
-                <td className="port-cell">51</td>
-                <td className="port-cell">1003</td>
-                <td className="port-cell">53</td>
-                <td className="dest-cell red">56</td>
-                <td className="ring-cell yellow">57</td>
-              </tr>
-              
-              {/* 12H OPTRONICS TO 1002 */}
-              <tr>
-                <td className="cable-label" rowSpan={1}>12H OPTRONICS<br/>TO 1002</td>
-                <td className="buffer-cell">1</td>
-                <td className="fiber-cell blue">6</td>
-                <td className="port-cell">1002</td>
-                <td className="port-cell">53</td>
-                <td className="port-cell">1002</td>
-                <td className="port-cell">65</td>
-                <td className="ptp-cell">PTP</td>
-                <td className="dest-cell red">67</td>
-              </tr>
-              
-              {/* 12H OPTRONICS TO 1001 */}
-              <tr>
-                <td className="cable-label" rowSpan={1}>12H OPTRONICS<br/>TO 1001</td>
-                <td className="buffer-cell">1</td>
-                <td className="fiber-cell blue">7</td>
-                <td className="port-cell">1001</td>
-                <td className="port-cell">75</td>
-                <td className="port-cell">1001</td>
-                <td className="port-cell">77</td>
-                <td className="dest-cell red">79</td>
-                <td className="ring-cell purple">81</td>
-              </tr>
-              
-              {/* 24H WAVE OPTICS TO 1101 */}
-              <tr>
-                <td className="cable-label" rowSpan={1}>24H WAVE OPTICS<br/>TO 1101</td>
-                <td className="buffer-cell">1</td>
-                <td className="fiber-cell blue">8</td>
-                <td className="dest-cell">FR ODF 1004</td>
-                <td className="dest-cell">FR ODF 1004</td>
-                <td className="port-cell">77</td>
-                <td className="dest-cell red">79</td>
-                <td className="ring-cell purple">81</td>
-                <td className="ring-cell cyan">83</td>
-              </tr>
+              {displayTable.rows.map((row, index) => {
+                let cableLabel = "";
+                let bufferValue = "";
+                let fiberValue = "";
+                let fiberClass = "";
+                let port1Value = "";
+                let port2Value = "";
+                let destValue = "";
+                let destClass = "";
+                let ringValue = "";
+                let ringClass = "";
+                
+                // Map row data to display values based on index
+                switch(index) {
+                  case 0:
+                    cableLabel = "48H OPTRONICS\nFROM FIBER\nHUT";
+                    bufferValue = "1";
+                    fiberValue = "1";
+                    fiberClass = "blue";
+                    port1Value = "1003";
+                    port2Value = "6";
+                    destValue = "TO 1101";
+                    destClass = "";
+                    ringValue = "10";
+                    ringClass = "purple";
+                    break;
+                  case 1:
+                    bufferValue = "2";
+                    fiberValue = "2";
+                    fiberClass = "orange";
+                    port1Value = "1004";
+                    port2Value = "18";
+                    destValue = "1004";
+                    destClass = "";
+                    ringValue = "20";
+                    ringClass = "yellow";
+                    break;
+                  case 2:
+                    bufferValue = "3";
+                    fiberValue = "3";
+                    fiberClass = "green";
+                    port1Value = "1001";
+                    port2Value = "27";
+                    destValue = "TO 0801";
+                    destClass = "red";
+                    ringValue = "31";
+                    ringClass = "yellow";
+                    break;
+                  case 3:
+                    bufferValue = "4";
+                    fiberValue = "4";
+                    fiberClass = "brown";
+                    port1Value = "1002";
+                    port2Value = "40";
+                    destValue = "44";
+                    destClass = "";
+                    ringValue = "45";
+                    ringClass = "purple";
+                    break;
+                  case 4:
+                    cableLabel = "12H OPTRONICS\nTO 1003";
+                    bufferValue = "1";
+                    fiberValue = "5";
+                    fiberClass = "blue";
+                    port1Value = "1003";
+                    port2Value = "51";
+                    destValue = "56";
+                    destClass = "red";
+                    ringValue = "57";
+                    ringClass = "yellow";
+                    break;
+                  case 5:
+                    cableLabel = "12H OPTRONICS\nTO 1002";
+                    bufferValue = "1";
+                    fiberValue = "6";
+                    fiberClass = "blue";
+                    port1Value = "1002";
+                    port2Value = "53";
+                    destValue = "PTP";
+                    destClass = "ptp";
+                    ringValue = "67";
+                    ringClass = "red";
+                    break;
+                  case 6:
+                    cableLabel = "12H OPTRONICS\nTO 1001";
+                    bufferValue = "1";
+                    fiberValue = "7";
+                    fiberClass = "blue";
+                    port1Value = "1001";
+                    port2Value = "75";
+                    destValue = "79";
+                    destClass = "red";
+                    ringValue = "81";
+                    ringClass = "purple";
+                    break;
+                  case 7:
+                    cableLabel = "24H WAVE OPTICS\nTO 1101";
+                    bufferValue = "1";
+                    fiberValue = "8";
+                    fiberClass = "blue";
+                    port1Value = "FR ODF 1004";
+                    port2Value = "77";
+                    destValue = "79";
+                    destClass = "red";
+                    ringValue = "83";
+                    ringClass = "cyan";
+                    break;
+                }
+                
+                return (
+                  <tr key={index}>
+                    {cableLabel && (
+                      <td className="cable-label" rowSpan={cableLabel.includes("48H") ? 4 : 1}>
+                        {cableLabel.split('\n').map((line, i) => (
+                          <span key={i}>{line}{i < cableLabel.split('\n').length - 1 && <br/>}</span>
+                        ))}
+                      </td>
+                    )}
+                    <td className="buffer-cell">{bufferValue}</td>
+                    <td className={`fiber-cell ${fiberClass}`}>{fiberValue}</td>
+                    <td className="port-cell">{port1Value}</td>
+                    <td className="port-cell">{port2Value}</td>
+                    <td className={`dest-cell ${destClass}`}>{destValue}</td>
+                    <td className={`ring-cell ${ringClass}`}>{ringValue}</td>
+                    <td className="dest-cell cyan">FR 0401 TO 1003</td>
+                    <td className="ring-cell cyan">12</td>
+                    <td className="status-cell">
+                      <StatusBadge status={row.status} />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
