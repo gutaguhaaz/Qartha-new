@@ -12,13 +12,13 @@ app.use('/static', express.static(path.resolve(process.cwd(), 'static')));
 // Proxy API requests to FastAPI backend
 app.use('/api', async (req, res) => {
   try {
-    const proxyUrl = `http://localhost:8000${req.originalUrl}`;
+    const proxyUrl = `http://0.0.0.0:8000${req.originalUrl}`;
     
     const response = await fetch(proxyUrl, {
       method: req.method,
       headers: {
         ...req.headers,
-        'host': 'localhost:8000'
+        'host': '0.0.0.0:8000'
       },
       body: req.method === 'GET' || req.method === 'HEAD' ? undefined : JSON.stringify(req.body)
     });

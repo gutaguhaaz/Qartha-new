@@ -1,7 +1,7 @@
 import { apiRequest } from "./queryClient";
 
-// Base URL for API requests
-const API_BASE = import.meta.env.VITE_API_BASE_URL || window.location.origin;
+// Base URL for API requests - use relative paths to leverage proxy
+const API_BASE = "";
 
 export interface IdfSearchParams {
   q?: string;

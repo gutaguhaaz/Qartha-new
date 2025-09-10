@@ -21,14 +21,14 @@ def verify_admin_token(authorization: Optional[str] = None):
     """Verify admin bearer token"""
     if not authorization:
         raise HTTPException(status_code=401, detail="Authorization header required")
-    
+
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid authorization format")
-    
+
     token = authorization.replace("Bearer ", "")
     if token != settings.ADMIN_TOKEN:
         raise HTTPException(status_code=401, detail=f"Invalid token. Expected: {settings.ADMIN_TOKEN}, Got: {token}")
-    
+
     return token
 
 
@@ -36,12 +36,12 @@ async def save_file(file: UploadFile, file_path: str) -> str:
     """Save uploaded file and return URL"""
     # Ensure directory exists
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    
+
     # Save file
     with open(file_path, "wb") as buffer:
         content = await file.read()
         buffer.write(content)
-    
+
     # Return relative URL
     relative_path = file_path.replace(settings.STATIC_DIR, "")
     return f"/static{relative_path}"
@@ -57,23 +57,23 @@ async def upload_image(
 ):
     """Upload image for IDF"""
     verify_admin_token(authorization)
-    
+
     # Validate file type
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
-    
+
     # Check if IDF exists
     idf = await database.fetch_one(
         "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
         {"cluster": cluster, "project": project, "code": code}
     )
-    
+
     if not idf:
         raise HTTPException(status_code=404, detail="IDF not found")
-    
+
     # Parse current gallery
     gallery = json.loads(idf["gallery"]) if isinstance(idf["gallery"], str) else idf["gallery"]
-    
+
     # Save file
     file_extension = os.path.splitext(file.filename or "image.jpg")[1]
     file_path = os.path.join(
@@ -83,23 +83,23 @@ async def upload_image(
         "images",
         f"{code}_{len(gallery)}{file_extension}"
     )
-    
+
     url = await save_file(file, file_path)
-    
+
     # Update IDF gallery
     media_item = {
         "url": url,
         "name": file.filename,
         "kind": "image"
     }
-    
+
     gallery.append(media_item)
-    
+
     await database.execute(
         "UPDATE idfs SET gallery = :gallery WHERE cluster = :cluster AND project = :project AND code = :code",
         {"gallery": json.dumps(gallery), "cluster": cluster, "project": project, "code": code}
     )
-    
+
     return {"url": url, "message": "Image uploaded successfully"}
 
 
@@ -113,19 +113,19 @@ async def upload_document(
 ):
     """Upload document for IDF"""
     verify_admin_token(authorization)
-    
+
     # Check if IDF exists
     idf = await database.fetch_one(
         "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
         {"cluster": cluster, "project": project, "code": code}
     )
-    
+
     if not idf:
         raise HTTPException(status_code=404, detail="IDF not found")
-    
+
     # Parse current documents
     documents = json.loads(idf["documents"]) if isinstance(idf["documents"], str) else idf["documents"]
-    
+
     # Save file
     file_extension = os.path.splitext(file.filename or "document.pdf")[1]
     file_path = os.path.join(
@@ -135,23 +135,23 @@ async def upload_document(
         "documents",
         f"{code}_{len(documents)}{file_extension}"
     )
-    
+
     url = await save_file(file, file_path)
-    
+
     # Update IDF documents
     media_item = {
         "url": url,
         "name": file.filename,
         "kind": "document"
     }
-    
+
     documents.append(media_item)
-    
+
     await database.execute(
         "UPDATE idfs SET documents = :documents WHERE cluster = :cluster AND project = :project AND code = :code",
         {"documents": json.dumps(documents), "cluster": cluster, "project": project, "code": code}
     )
-    
+
     return {"url": url, "message": "Document uploaded successfully"}
 
 
@@ -165,16 +165,16 @@ async def upload_diagram(
 ):
     """Upload diagram for IDF"""
     verify_admin_token(authorization)
-    
+
     # Check if IDF exists
     idf = await database.fetch_one(
         "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
         {"cluster": cluster, "project": project, "code": code}
     )
-    
+
     if not idf:
         raise HTTPException(status_code=404, detail="IDF not found")
-    
+
     # Save file
     file_extension = os.path.splitext(file.filename or "diagram.pdf")[1]
     file_path = os.path.join(
@@ -184,16 +184,16 @@ async def upload_diagram(
         "diagrams",
         f"{code}_diagram{file_extension}"
     )
-    
+
     url = await save_file(file, file_path)
-    
+
     # Update IDF diagram
     media_item = {
         "url": url,
         "name": file.filename,
         "kind": "diagram"
     }
-    
+
     await database.execute(
         "UPDATE idfs SET diagram = :diagram WHERE cluster = :cluster AND project = :project AND code = :code",
         {"diagram": json.dumps(media_item), "cluster": cluster, "project": project, "code": code}
@@ -235,22 +235,14 @@ async def upload_logo(
 
 
 @router.get("/{cluster}/{project}/logo")
-async def get_logo(cluster: str = Depends(validate_cluster), project: str = ""):
-    """Get cluster logo URL"""
-    # Check both project-specific and cluster-level logos
-    logo_paths = [
-        os.path.join(settings.STATIC_DIR, cluster, project, "logo.*"),
-        os.path.join(settings.STATIC_DIR, cluster, "logo.*")
-    ]
-    
-    matches = []
-    for path_pattern in logo_paths:
-        matches.extend(glob.glob(path_pattern))
-        if matches:
-            break
-    
-    if not matches:
-        raise HTTPException(status_code=404, detail="Logo not found")
+async def get_logo(cluster: str, project: str):
+    """Get project logo"""
+    logo_dir = os.path.join(settings.STATIC_DIR, cluster, project)
 
-    relative_path = matches[0].replace(settings.STATIC_DIR, "")
-    return {"url": f"/static{relative_path}"}
+    # Look for common image formats
+    for ext in ['png', 'jpg', 'jpeg', 'gif', 'svg']:
+        logo_path = os.path.join(logo_dir, f"logo.{ext}")
+        if os.path.exists(logo_path):
+            return {"url": f"/static/{cluster}/{project}/logo.{ext}"}
+
+    raise HTTPException(status_code=404, detail="Logo not found")
