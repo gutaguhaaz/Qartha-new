@@ -75,17 +75,17 @@ async def get_idfs(
     """Get list of IDFs for a cluster/project"""
     
     # Build SQL query
-    base_query = "SELECT * FROM idfs WHERE cluster = $1 AND project = $2"
-    params = [cluster, project]
+    base_query = "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project"
+    params = {"cluster": cluster, "project": project}
     
     if q:
-        base_query += " AND (code ILIKE $3 OR title ILIKE $3 OR site ILIKE $3 OR room ILIKE $3)"
-        params.append(f"%{q}%")
+        base_query += " AND (code ILIKE :q OR title ILIKE :q OR site ILIKE :q OR room ILIKE :q)"
+        params["q"] = f"%{q}%"
     
-    base_query += f" ORDER BY title OFFSET ${len(params)+1} LIMIT ${len(params)+2}"
-    params.extend([skip, limit])
+    base_query += " ORDER BY title OFFSET :skip LIMIT :limit"
+    params.update({"skip": skip, "limit": limit})
     
-    rows = await database.fetch_all(base_query, *params)
+    rows = await database.fetch_all(base_query, params)
     
     result = []
     for row in rows:
@@ -114,8 +114,8 @@ async def get_idf(
     code: str = ""
 ):
     """Get detailed IDF information"""
-    query = "SELECT * FROM idfs WHERE cluster = $1 AND project = $2 AND code = $3"
-    row = await database.fetch_one(query, cluster, project, code)
+    query = "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code"
+    row = await database.fetch_one(query, {"cluster": cluster, "project": project, "code": code})
     
     if not row:
         raise HTTPException(status_code=404, detail="IDF not found")
