@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { getIdfs, getLogo } from "@/lib/api";
 import { IdfIndex } from "@shared/schema";
+import AddIdfDialog from "@/components/AddIdfDialog";
 
 interface PublicListProps {
   cluster: string;
@@ -12,6 +13,7 @@ interface PublicListProps {
 export default function PublicList({ params }: { params: PublicListProps }) {
   const { cluster, project } = params;
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAddIdfDialogOpen, setIsAddIdfDialogOpen] = useState(false);
 
   const { data: idfs = [], isLoading, error } = useQuery({
     queryKey: ['idfs', cluster, project, 'list'],
@@ -107,13 +109,24 @@ export default function PublicList({ params }: { params: PublicListProps }) {
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
             )}
-            <div>
-              <h2 className="text-2xl font-bold text-foreground" data-testid="page-title">
-                IDF Directory
-              </h2>
-              <p className="text-muted-foreground mt-1" data-testid="page-subtitle">
-                {cluster.toUpperCase()} Cluster • {project.charAt(0).toUpperCase() + project.slice(1)} Project
-              </p>
+            <div className="flex items-center space-x-4">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground" data-testid="page-title">
+                  IDF Directory
+                </h2>
+                <p className="text-muted-foreground mt-1" data-testid="page-subtitle">
+                  {cluster.toUpperCase()} Cluster • {project.charAt(0).toUpperCase() + project.slice(1)} Project
+                </p>
+              </div>
+              <button
+                onClick={() => setIsAddIdfDialogOpen(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                data-testid="button-add-idf"
+                title="Add new IDF"
+              >
+                <i className="fas fa-plus"></i>
+                <span>Add IDF</span>
+              </button>
             </div>
           </div>
 
@@ -234,6 +247,18 @@ export default function PublicList({ params }: { params: PublicListProps }) {
           ))}
         </div>
       )}
+      
+      {/* Add IDF Dialog */}
+      <AddIdfDialog
+        cluster={cluster}
+        project={project}
+        open={isAddIdfDialogOpen}
+        onOpenChange={setIsAddIdfDialogOpen}
+        onCreated={() => {
+          setIsAddIdfDialogOpen(false);
+          window.location.reload(); // Refresh to show new IDF
+        }}
+      />
     </div>
   );
 }

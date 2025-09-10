@@ -22,6 +22,8 @@ interface AddIdfDialogProps {
   project: string;
   token?: string;
   disabled?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onCreated?: (idf: any) => void;
 }
 
@@ -30,9 +32,15 @@ export default function AddIdfDialog({
   project,
   token,
   disabled,
+  open: externalOpen,
+  onOpenChange: externalOnOpenChange,
   onCreated,
 }: AddIdfDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  // Use external state if provided, otherwise use internal state
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = externalOnOpenChange || setInternalOpen;
   const [code, setCode] = useState("");
   const [title, setTitle] = useState("");
   const [site, setSite] = useState("");
@@ -83,11 +91,13 @@ export default function AddIdfDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" disabled={disabled}>
-          <Plus className="h-4 w-4 mr-2" /> Add IDF
-        </Button>
-      </DialogTrigger>
+      {externalOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button size="sm" disabled={disabled}>
+            <Plus className="h-4 w-4 mr-2" /> Add IDF
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add IDF</DialogTitle>

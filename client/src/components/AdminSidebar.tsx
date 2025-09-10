@@ -48,7 +48,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
       setSelectedCluster(preloadIdf.cluster);
       setSelectedProject(preloadIdf.project);
       setSelectedIdf(preloadIdf.code);
-      
+
       // Fetch IDFs for this cluster/project to populate the dropdown
       getIdfs(preloadIdf.cluster, preloadIdf.project, { limit: 100 })
         .then(data => {
@@ -224,17 +224,17 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
     try {
       // Update the editingIdf immediately for UI feedback
       const updatedIdf = { ...editingIdf };
-      
+
       for (let i = 0; i < files.length; i++) {
         const result = await uploadAsset(selectedCluster || "", selectedProject || "", selectedIdf, files[i], type, adminToken);
-        
+
         // Add to local state immediately
         const mediaItem = {
           url: result.url,
           name: files[i].name,
           kind: type === 'diagram' ? 'diagram' : type.slice(0, -1) // Remove 's' from 'images'/'documents'
         };
-        
+
         if (type === 'images') {
           if (!updatedIdf.gallery) updatedIdf.gallery = [];
           updatedIdf.gallery.push(mediaItem);
@@ -244,16 +244,16 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
         } else if (type === 'diagram') {
           updatedIdf.diagram = mediaItem;
         }
-        
+
         toast({
           title: "Success",
           description: `${files[i].name} uploaded successfully`,
         });
       }
-      
+
       // Update local state
       setEditingIdf(updatedIdf);
-      
+
       // Refresh from server to get the absolute URLs
       setTimeout(() => {
         refetchIdf();
@@ -364,13 +364,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium">Select IDF to Edit</h3>
-                <AddIdfDialog
-                  cluster={selectedCluster}
-                  project={selectedProject}
-                  token={adminToken}
-                  disabled={!selectedCluster || !selectedProject}
-                  onCreated={(idf) => setIdfs((prev) => [...prev, idf])}
-                />
+                {/* Add IDF Button Removed */}
               </div>
 
               <div className="space-y-3">

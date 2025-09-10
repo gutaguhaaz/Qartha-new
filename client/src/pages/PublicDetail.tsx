@@ -8,6 +8,7 @@ import DocList from "@/components/DocList";
 import PdfOrImage from "@/components/PdfOrImage";
 import DataTable from "@/components/DataTable";
 import AdminSidebar from "@/components/AdminSidebar";
+import AddIdfDialog from "@/components/AddIdfDialog";
 
 interface PublicDetailProps {
   cluster: string;
@@ -19,6 +20,7 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
   const { cluster, project, code } = params;
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isAddIdfDialogOpen, setIsAddIdfDialogOpen] = useState(false);
 
   // Listen for admin panel open events
   useEffect(() => {
@@ -101,14 +103,25 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <Link 
-            href={`/${cluster}/${project}`} 
-            className="flex items-center space-x-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
-            data-testid="back-button"
-          >
-            <i className="fas fa-arrow-left"></i>
-            <span>Back to Directory</span>
-          </Link>
+          <div className="flex items-center space-x-4">
+            <Link 
+              href={`/${cluster}/${project}`} 
+              className="flex items-center space-x-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
+              data-testid="back-button"
+            >
+              <i className="fas fa-arrow-left"></i>
+              <span>Back to Directory</span>
+            </Link>
+            <button
+              onClick={() => setIsAddIdfDialogOpen(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+              data-testid="button-add-idf"
+              title="Add new IDF"
+            >
+              <i className="fas fa-plus"></i>
+              <span>Add IDF</span>
+            </button>
+          </div>
           
           <nav className="text-sm" data-testid="breadcrumb">
             <Link href={`/${cluster}/${project}`} className="text-muted-foreground hover:text-foreground">
@@ -374,6 +387,19 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
           </div>
         )}
       </div>
+      
+      {/* Add IDF Dialog */}
+      <AddIdfDialog
+        cluster={cluster}
+        project={project}
+        open={isAddIdfDialogOpen}
+        onOpenChange={setIsAddIdfDialogOpen}
+        onCreated={(newIdf) => {
+          setIsAddIdfDialogOpen(false);
+          // Navigate to the new IDF
+          window.location.href = `/${cluster}/${project}/idf/${newIdf.code}`;
+        }}
+      />
       
       {/* Admin Sidebar */}
       <AdminSidebar
