@@ -84,8 +84,8 @@ export async function uploadLogo(cluster: string, project: string, file: File, t
   return response.json();
 }
 
-export async function getLogo(cluster: string) {
-  const url = `${API_BASE}/api/${cluster}/logo`;
+export async function getLogo(cluster: string, project: string = 'trinity') {
+  const url = `${API_BASE}/api/${cluster}/${project}/logo`;
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Failed to fetch logo: ${response.statusText}`);
   return response.json();

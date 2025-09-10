@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     ALLOWED_CLUSTERS: list[str] = os.getenv("ALLOWED_CLUSTERS",
                                             "trk,lab,alpha").split(",")
     DEFAULT_PROJECT: str = os.getenv("DEFAULT_PROJECT", "trinity")
-    PUBLIC_BASE_URL: str | None = os.getenv("PUBLIC_BASE_URL")
+    PUBLIC_BASE_URL: str | None = os.getenv("PUBLIC_BASE_URL", "https://65906d3e-61df-4f08-a529-69b0151d25b5-00-2xvkklizfouhp.riker.replit.dev")
 
 
 settings = Settings()
