@@ -164,8 +164,17 @@ async def get_idf(
         idf_dict["documents"] = json.loads(idf_dict["documents"])
     if isinstance(idf_dict["diagram"], str) and idf_dict["diagram"]:
         idf_dict["diagram"] = json.loads(idf_dict["diagram"])
-    if isinstance(idf_dict["devices"], str):
-        idf_dict["devices"] = json.loads(idf_dict["devices"])
+
+    # Parse table data
+    if isinstance(idf_dict.get("table_data"), str) and idf_dict["table_data"]:
+        idf_dict["table"] = json.loads(idf_dict["table_data"])
+    else:
+        idf_dict["table"] = idf_dict.get("table_data")
+
+    # Compute health if table exists
+    health = None
+    if idf_dict.get("table"):
+        health = compute_health(idf_dict["table"])
 
     # Convert relative URLs to absolute URLs
     idf_dict["gallery"] = convert_relative_urls_to_absolute(idf_dict["gallery"])
@@ -174,18 +183,16 @@ async def get_idf(
         idf_dict["diagram"] = convert_relative_urls_to_absolute(idf_dict["diagram"])
 
     return IdfPublic(
-        id=idf_dict["id"],
         cluster=idf_dict["cluster"],
         project=idf_dict["project"],
         code=idf_dict["code"],
-        name=idf_dict["name"],
-        description=idf_dict["description"],
-        status=idf_dict["status"],
-        health=idf_dict["health"],
+        title=idf_dict.get("title", idf_dict.get("name", "")),
+        description=idf_dict.get("description"),
+        site=idf_dict.get("site"),
+        room=idf_dict.get("room"),
         gallery=idf_dict["gallery"],
         documents=idf_dict["documents"],
         diagram=idf_dict["diagram"],
-        devices=idf_dict["devices"],
-        created_at=idf_dict["created_at"],
-        updated_at=idf_dict["updated_at"]
+        table=idf_dict.get("table"),
+        health=health
     )
