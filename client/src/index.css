@@ -204,6 +204,7 @@ svg.logo-svg.logoqartha {
   background: white;
   color: black;
   min-width: 1200px;
+  overflow-x: auto;
 }
 
 .odf-header {
@@ -218,72 +219,47 @@ svg.logo-svg.logoqartha {
 
 .odf-table {
   border: 2px solid black;
+  border-collapse: collapse;
+  width: 100%;
 }
 
-.odf-headers {
-  display: grid;
-  grid-template-columns: 200px 60px 80px repeat(6, 150px);
-  background: #f0f0f0;
-  border-bottom: 2px solid black;
+.odf-table table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.odf-table th,
+.odf-table td {
+  border: 1px solid black;
+  padding: 4px;
+  text-align: center;
+  font-weight: bold;
 }
 
 .header-cell {
-  border: 1px solid black;
-  padding: 4px;
-  text-align: center;
-  font-weight: bold;
+  background: #f0f0f0;
   font-size: 10px;
-}
-
-.odf-subheaders {
-  display: grid;
-  grid-template-columns: 200px 60px 80px repeat(6, 150px);
-  background: #f8f8f8;
-  border-bottom: 1px solid black;
+  padding: 4px;
 }
 
 .subheader-cell {
-  border: 1px solid black;
-  padding: 2px;
-  text-align: center;
+  background: #f8f8f8;
   font-size: 9px;
-  font-weight: bold;
-}
-
-.cable-section {
-  display: contents;
+  padding: 2px;
 }
 
 .cable-label {
-  grid-column: 1;
   background: #e0e0e0;
-  border: 1px solid black;
-  padding: 8px;
-  font-weight: bold;
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: 10px;
-}
-
-.buffer-sections {
-  display: contents;
-}
-
-.buffer-row {
-  display: grid;
-  grid-template-columns: 200px 60px 80px repeat(6, 150px);
-  grid-column: 1 / -1;
+  padding: 8px 4px;
+  vertical-align: middle;
 }
 
 .buffer-cell {
-  border: 1px solid black;
-  padding: 4px;
-  text-align: center;
-  font-weight: bold;
   background: #f0f0f0;
+  font-size: 10px;
 }
 
 .buffer-cell.brown {
@@ -291,16 +267,9 @@ svg.logo-svg.logoqartha {
   color: white;
 }
 
-.fiber-cells {
-  display: contents;
-}
-
 .fiber-cell {
-  border: 1px solid black;
-  padding: 4px;
-  text-align: center;
-  font-weight: bold;
   color: white;
+  font-size: 10px;
 }
 
 .fiber-cell.blue {
@@ -320,19 +289,12 @@ svg.logo-svg.logoqartha {
 }
 
 .port-cell {
-  border: 1px solid black;
-  padding: 4px;
-  text-align: center;
   background: white;
-  font-weight: bold;
+  font-size: 10px;
 }
 
 .dest-cell {
-  border: 1px solid black;
-  padding: 4px;
-  text-align: center;
   font-size: 9px;
-  font-weight: bold;
 }
 
 .dest-cell.red {
@@ -346,11 +308,8 @@ svg.logo-svg.logoqartha {
 }
 
 .ring-cell {
-  border: 1px solid black;
-  padding: 4px;
-  text-align: center;
-  font-weight: bold;
   color: white;
+  font-size: 10px;
 }
 
 .ring-cell.purple {
@@ -372,12 +331,8 @@ svg.logo-svg.logoqartha {
 }
 
 .ptp-cell {
-  border: 1px solid black;
-  padding: 4px;
-  text-align: center;
   background: #808080;
   color: white;
-  font-weight: bold;
   font-size: 9px;
 }
 
