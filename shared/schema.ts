@@ -36,6 +36,17 @@ export const idfHealthSchema = z.object({
   counts: healthCountsSchema,
 });
 
+// Media Logo Schema
+export const mediaLogoSchema = z.object({
+  name: z.string(),
+  url: z.string().url(),
+});
+
+// IDF Media Schema
+export const idfMediaSchema = z.object({
+  logo: mediaLogoSchema.optional(),
+});
+
 // IDF Index Schema (for list view)
 export const idfIndexSchema = z.object({
   cluster: z.string(),
@@ -45,6 +56,7 @@ export const idfIndexSchema = z.object({
   site: z.string().optional(),
   room: z.string().optional(),
   health: idfHealthSchema.optional(),
+  media: idfMediaSchema.optional(),
 });
 
 // IDF Public Schema (for detail view)
@@ -61,6 +73,7 @@ export const idfPublicSchema = z.object({
   diagram: mediaItemSchema.optional(),
   table: idfTableSchema.optional(),
   health: idfHealthSchema.optional(),
+  media: idfMediaSchema.optional(),
 });
 
 // IDF Upsert Schema (for create/update)
@@ -87,6 +100,8 @@ export const deviceSchema = z.object({
 
 // Type exports
 export type MediaItem = z.infer<typeof mediaItemSchema>;
+export type MediaLogo = z.infer<typeof mediaLogoSchema>;
+export type IdfMedia = z.infer<typeof idfMediaSchema>;
 export type TableColumn = z.infer<typeof tableColumnSchema>;
 export type IdfTable = z.infer<typeof idfTableSchema>;
 export type HealthCounts = z.infer<typeof healthCountsSchema>;

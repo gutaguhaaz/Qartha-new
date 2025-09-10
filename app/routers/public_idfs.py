@@ -109,6 +109,15 @@ async def get_idfs(
         if idf_data.get("devices") and isinstance(idf_data["devices"], str):
             idf_data["devices"] = json.loads(idf_data["devices"])
 
+        # Parse media field
+        media = None
+        if idf_data.get("media"):
+            media_data = json.loads(idf_data["media"]) if isinstance(idf_data["media"], str) else idf_data["media"]
+            media_data = convert_relative_urls_to_absolute(media_data)
+            if media_data.get("logo"):
+                from app.models.idf_models import IdfMedia, MediaLogo
+                media = IdfMedia(logo=MediaLogo(**media_data["logo"]))
+
         # Convert relative URLs to absolute URLs
         idf_data["gallery"] = convert_relative_urls_to_absolute(idf_data["gallery"])
         idf_data["documents"] = convert_relative_urls_to_absolute(idf_data["documents"])
@@ -122,7 +131,8 @@ async def get_idfs(
             title=idf_data["title"],
             site=idf_data["site"],
             room=idf_data["room"],
-            health=health
+            health=health,
+            media=media
         ))
 
     return result
@@ -177,6 +187,15 @@ async def get_idf(
     if idf_dict.get("table"):
         health = compute_health(idf_dict["table"])
 
+    # Parse media field
+    media = None
+    if idf_dict.get("media"):
+        media_data = json.loads(idf_dict["media"]) if isinstance(idf_dict["media"], str) else idf_dict["media"]
+        media_data = convert_relative_urls_to_absolute(media_data)
+        if media_data.get("logo"):
+            from app.models.idf_models import IdfMedia, MediaLogo
+            media = IdfMedia(logo=MediaLogo(**media_data["logo"]))
+
     # Convert relative URLs to absolute URLs
     idf_dict["gallery"] = convert_relative_urls_to_absolute(idf_dict["gallery"])
     idf_dict["documents"] = convert_relative_urls_to_absolute(idf_dict["documents"])
@@ -195,5 +214,6 @@ async def get_idf(
         documents=idf_dict["documents"],
         diagram=idf_dict["diagram"],
         table=idf_dict.get("table"),
-        health=health
+        health=health,
+        media=media
     )

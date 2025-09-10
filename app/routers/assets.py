@@ -267,3 +267,73 @@ async def get_logo(cluster: str, project: str):
 
     # Return a default or placeholder response instead of 404
     return {"url": None, "message": "No logo found"}
+
+
+@router.post("/{cluster}/{project}/assets/{code}/logo")
+async def upload_idf_logo(
+    code: str,
+    file: UploadFile = File(...),
+    cluster: str = Depends(validate_cluster),
+    project: str = "",
+    authorization: Optional[str] = Header(None)
+):
+    """Upload logo for specific IDF"""
+    verify_admin_token(authorization)
+
+    # Validate file type
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    # Check if file is PNG or JPG
+    allowed_types = ["image/png", "image/jpeg", "image/jpg"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Only PNG and JPG files are allowed")
+
+    # Check if IDF exists
+    idf = await database.fetch_one(
+        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": project, "code": code}
+    )
+
+    if not idf:
+        raise HTTPException(status_code=404, detail="IDF not found")
+
+    # Remove existing logo for this IDF
+    logo_dir = os.path.join(settings.STATIC_DIR, cluster, project, "logos")
+    for existing in glob.glob(os.path.join(logo_dir, f"{code}-logo.*")):
+        try:
+            os.remove(existing)
+        except OSError:
+            pass
+
+    # Save new logo
+    file_extension = os.path.splitext(file.filename or "logo.png")[1]
+    if not file_extension:
+        file_extension = ".png" if file.content_type == "image/png" else ".jpg"
+    
+    file_path = os.path.join(
+        settings.STATIC_DIR,
+        cluster,
+        project,
+        "logos",
+        f"{code}-logo{file_extension}"
+    )
+
+    url = await save_file(file, file_path)
+
+    # Update IDF media.logo
+    media_item = {
+        "name": file.filename or f"{code}-logo{file_extension}",
+        "url": url
+    }
+
+    # Parse current media or create new
+    media = json.loads(idf["media"]) if isinstance(idf["media"], str) and idf["media"] else {}
+    media["logo"] = media_item
+
+    await database.execute(
+        "UPDATE idfs SET media = :media WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"media": json.dumps(media), "cluster": cluster, "project": project, "code": code}
+    )
+
+    return {"name": media_item["name"], "url": url}

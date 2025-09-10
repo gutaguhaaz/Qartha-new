@@ -247,7 +247,7 @@ export default function PublicList({ params }: { params: PublicListProps }) {
           ))}
         </div>
       )}
-      
+
       {/* Add IDF Dialog */}
       <AddIdfDialog
         cluster={cluster}

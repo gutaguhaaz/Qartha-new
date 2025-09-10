@@ -5,6 +5,7 @@ import { X, Upload, Trash2, Edit3, Save, ArrowUp, ArrowDown, Maximize, Minimize,
 import { getIdfs, getIdf, uploadAsset } from "@/lib/api";
 import EditableDataTable from "./EditableDataTable";
 import AddIdfDialog from "./AddIdfDialog";
+import LogoWidget from "./LogoWidget"; // Assuming LogoWidget is in this path
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -28,6 +29,9 @@ interface IdfData {
   documents: any[];
   diagram?: any;
   table?: any;
+  media?: { // Added media property
+    logo?: { name: string; url: string };
+  };
 }
 
 export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSidebarProps) {
@@ -151,7 +155,8 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
         gallery: Array.isArray(idfData.gallery) ? idfData.gallery : [],
         documents: Array.isArray(idfData.documents) ? idfData.documents : [],
         diagram: idfData.diagram || null,
-        table: idfData.table || null // Keep as single table, not array
+        table: idfData.table || null, // Keep as single table, not array
+        media: idfData.media || {} // Ensure media object exists
       };
       setEditingIdf(initialData);
     } else if (!selectedIdf) {
@@ -603,7 +608,20 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                   )}
                 </div>
 
-                {/* Device Table */}
+                {/* Logo Widget Section */}
+                {selectedIdf && adminToken && (
+                  <div className="space-y-3">
+                    <LogoWidget
+                      cluster={selectedCluster || ""}
+                      project={selectedProject || ""}
+                      code={selectedIdf}
+                      currentLogo={editingIdf?.media?.logo}
+                      adminToken={adminToken}
+                    />
+                  </div>
+                )}
+
+                {/* Device Table Section */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium">Device Table</h4>
                   <EditableDataTable

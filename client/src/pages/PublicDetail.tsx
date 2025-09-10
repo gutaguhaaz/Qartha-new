@@ -122,7 +122,7 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
               <span>Add IDF</span>
             </button>
           </div>
-          
+
           <nav className="text-sm" data-testid="breadcrumb">
             <Link href={`/${cluster}/${project}`} className="text-muted-foreground hover:text-foreground">
               Directory
@@ -387,7 +387,7 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
           </div>
         )}
       </div>
-      
+
       {/* Add IDF Dialog */}
       <AddIdfDialog
         cluster={cluster}
@@ -400,7 +400,7 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
           window.location.href = `/${cluster}/${project}/idf/${newIdf.code}`;
         }}
       />
-      
+
       {/* Admin Sidebar */}
       <AdminSidebar
         isOpen={isAdminOpen}

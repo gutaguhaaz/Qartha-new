@@ -35,6 +35,15 @@ class IdfHealth(BaseModel):
     counts: HealthCounts
 
 
+class MediaLogo(BaseModel):
+    name: str
+    url: Union[HttpUrl, str]
+
+
+class IdfMedia(BaseModel):
+    logo: Optional[MediaLogo] = None
+
+
 class IdfIndex(BaseModel):
     cluster: str
     project: str
@@ -43,6 +52,7 @@ class IdfIndex(BaseModel):
     site: Optional[str] = None
     room: Optional[str] = None
     health: Optional[IdfHealth] = None
+    media: Optional[IdfMedia] = None
 
 
 class IdfPublic(BaseModel):
@@ -58,6 +68,7 @@ class IdfPublic(BaseModel):
     diagram: Optional[MediaItem] = None
     table: Optional[IdfTable] = None
     health: Optional[IdfHealth] = None
+    media: Optional[IdfMedia] = None
 
 
 class IdfUpsert(BaseModel):
