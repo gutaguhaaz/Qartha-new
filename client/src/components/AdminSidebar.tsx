@@ -125,7 +125,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         gallery: Array.isArray(idfData.gallery) ? idfData.gallery : [],
         documents: Array.isArray(idfData.documents) ? idfData.documents : [],
         diagram: idfData.diagram || null,
-        tables: Array.isArray(idfData.table) ? idfData.table : [] // Assuming table maps to tables
+        table: idfData.table || null // Keep as single table, not array
       };
       setEditingIdf(initialData);
     } else if (!selectedIdf) {
@@ -146,7 +146,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         gallery: Array.isArray(data.gallery) ? data.gallery : [],
         documents: Array.isArray(data.documents) ? data.documents : [],
         diagram: data.diagram || null,
-        table: Array.isArray(data.tables) ? data.tables : [] // Assuming tables maps to table
+        table: data.table || null // Keep as single table object
       };
 
       const response = await fetch(`/api/${selectedCluster}/${selectedProject}/idfs/${selectedIdf}`, {
@@ -556,9 +556,9 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium">Device Table</h4>
                   <EditableDataTable
-                    table={editingIdf.tables || undefined}
+                    table={editingIdf.table || undefined}
                     onChange={(newTable) =>
-                      setEditingIdf({ ...editingIdf, tables: newTable })
+                      setEditingIdf({ ...editingIdf, table: newTable })
                     }
                   />
                 </div>
