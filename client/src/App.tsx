@@ -16,7 +16,7 @@ function Router() {
       <Route path="/" component={() => <PublicList params={{ cluster: "trk", project: "trinity" }} />} />
       <Route path="/:cluster/:project" component={({ params }: any) => <PublicList params={params} />} />
       <Route path="/:cluster/:project/idf/:code" component={({ params }: any) => <PublicDetail params={params} />} />
-      <Route path="/:cluster/:project/cms" component={({ params }: any) => <CmsUpload params={params} />} />
+      <Route path="/:cluster/:project/admin" component={({ params }: any) => <CmsUpload params={params} />} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -1,6 +1,8 @@
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import ThemeToggle from "./ThemeToggle";
+import AdminSidebar from "./AdminSidebar";
+import { Settings } from "lucide-react";
 
 const CLUSTERS = import.meta.env.VITE_CLUSTERS?.split(',') || ['trk', 'lab'];
 const DEFAULT_CLUSTER = import.meta.env.VITE_DEFAULT_CLUSTER || 'trk';
@@ -15,6 +17,7 @@ export default function Navbar() {
   const [location] = useLocation();
   const [selectedCluster, setSelectedCluster] = useState(DEFAULT_CLUSTER);
   const [selectedProject, setSelectedProject] = useState(DEFAULT_PROJECT);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
   
   // Parse current route to update selectors
   useEffect(() => {
@@ -43,6 +46,7 @@ export default function Navbar() {
   const isCmsActive = location.includes('/cms');
 
   return (
+    <>
     <nav className="bg-card border-b border-border px-6 py-4">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <div className="flex items-center space-x-8">
@@ -93,16 +97,24 @@ export default function Navbar() {
           >
             <i className="fas fa-list mr-2"></i>Directory
           </Link>
-          <Link 
-            href={`${currentPath}/cms`} 
-            className={`nav-link ${isCmsActive ? 'active' : ''}`}
-            data-testid="link-cms"
+          <button
+            onClick={() => setIsAdminOpen(true)}
+            className="nav-link"
+            data-testid="button-admin"
+            title="Admin Panel"
           >
-            <i className="fas fa-upload mr-2"></i>Admin
-          </Link>
+            <Settings className="w-4 h-4 mr-2" />
+            Admin
+          </button>
           <ThemeToggle />
         </div>
       </div>
     </nav>
+    
+    <AdminSidebar 
+      isOpen={isAdminOpen} 
+      onClose={() => setIsAdminOpen(false)} 
+    />
+    </>
   );
 }
