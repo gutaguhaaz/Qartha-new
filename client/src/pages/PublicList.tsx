@@ -1,0 +1,222 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
+import { getIdfs } from "@/lib/api";
+import { IdfIndex } from "@shared/schema";
+
+interface PublicListProps {
+  cluster: string;
+  project: string;
+}
+
+export default function PublicList({ params }: { params: PublicListProps }) {
+  const { cluster, project } = params;
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const { data: idfs = [], isLoading, error } = useQuery({
+    queryKey: ['/api', cluster, project, 'idfs', 'list'],
+    queryFn: () => getIdfs(cluster, project, { include_health: 1, limit: 50 })
+  });
+
+  // Client-side search filtering
+  const filteredIdfs = idfs.filter((idf: IdfIndex) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      idf.code.toLowerCase().includes(query) ||
+      idf.title.toLowerCase().includes(query) ||
+      idf.site?.toLowerCase().includes(query) ||
+      idf.room?.toLowerCase().includes(query)
+    );
+  });
+
+  const getHealthIndicatorClass = (level?: string) => {
+    switch (level) {
+      case 'green': return 'bg-green-500';
+      case 'yellow': return 'bg-yellow-500';
+      case 'red': return 'bg-red-500';
+      case 'gray': return 'bg-gray-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getHealthTitle = (level?: string) => {
+    switch (level) {
+      case 'green': return 'Operativo';
+      case 'yellow': return 'En revisión';
+      case 'red': return 'Falla crítica';
+      case 'gray': return 'Sin datos';
+      default: return 'Sin datos';
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-card border border-border rounded-lg p-6">
+                <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-muted rounded w-1/2 mb-4"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-muted rounded w-full"></div>
+                  <div className="h-4 bg-muted rounded w-2/3"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="text-center py-12">
+          <i className="fas fa-exclamation-triangle text-4xl text-destructive mb-4"></i>
+          <h2 className="text-xl font-semibold mb-2">Error al cargar IDFs</h2>
+          <p className="text-muted-foreground">
+            {error instanceof Error ? error.message : 'Error desconocido'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-6 py-8" data-testid="public-list">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground" data-testid="page-title">
+              Directorio de IDFs
+            </h2>
+            <p className="text-muted-foreground mt-1" data-testid="page-subtitle">
+              {cluster.toUpperCase()} Cluster • {project.charAt(0).toUpperCase() + project.slice(1)} Project
+            </p>
+          </div>
+
+          {/* Search */}
+          <div className="relative w-96">
+            <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"></i>
+            <input
+              type="text"
+              placeholder="Buscar IDFs por código, título o ubicación..."
+              className="w-full bg-input border border-border rounded-lg pl-10 pr-4 py-3 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              data-testid="input-search"
+            />
+          </div>
+        </div>
+
+        {/* Health Legend */}
+        <div className="flex items-center space-x-6 text-sm" data-testid="health-legend">
+          <span className="text-muted-foreground">Estado de salud:</span>
+          <div className="flex items-center space-x-2">
+            <div className="health-indicator bg-green-500"></div>
+            <span>Operativo</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="health-indicator bg-yellow-500"></div>
+            <span>Revisión</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="health-indicator bg-red-500"></div>
+            <span>Falla</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="health-indicator bg-gray-500"></div>
+            <span>Sin datos</span>
+          </div>
+        </div>
+      </div>
+
+      {/* IDF Cards Grid */}
+      {filteredIdfs.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground" data-testid="empty-state">
+          <i className="fas fa-search text-4xl mb-4"></i>
+          <h3 className="text-lg font-semibold mb-2">No se encontraron IDFs</h3>
+          <p>Intenta ajustar los términos de búsqueda</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="idf-grid">
+          {filteredIdfs.map((idf: IdfIndex) => (
+            <Link
+              key={`${idf.cluster}-${idf.project}-${idf.code}`}
+              href={`/${cluster}/${project}/idf/${idf.code}`}
+              className="bg-card border border-border rounded-lg p-6 card-hover"
+              data-testid={`card-${idf.code}`}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="font-semibold text-foreground" data-testid={`title-${idf.code}`}>
+                    {idf.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1" data-testid={`code-${idf.code}`}>
+                    {idf.code}
+                  </p>
+                </div>
+                <div
+                  className={`health-indicator ${getHealthIndicatorClass(idf.health?.level)}`}
+                  title={getHealthTitle(idf.health?.level)}
+                  data-testid={`health-${idf.code}`}
+                ></div>
+              </div>
+
+              <div className="space-y-2 mb-4">
+                {idf.site && (
+                  <div className="flex items-center text-sm">
+                    <i className="fas fa-building w-4 text-muted-foreground mr-2"></i>
+                    <span data-testid={`site-${idf.code}`}>{idf.site}</span>
+                  </div>
+                )}
+                {idf.room && (
+                  <div className="flex items-center text-sm">
+                    <i className="fas fa-door-open w-4 text-muted-foreground mr-2"></i>
+                    <span data-testid={`room-${idf.code}`}>{idf.room}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Health Summary */}
+              {idf.health && (
+                <div className="flex items-center space-x-4 text-xs" data-testid={`health-summary-${idf.code}`}>
+                  {idf.health.counts.ok > 0 && (
+                    <span className="px-2 py-1 bg-green-500/10 text-green-400 rounded-full">
+                      {idf.health.counts.ok} OK
+                    </span>
+                  )}
+                  {idf.health.counts.revision > 0 && (
+                    <span className="px-2 py-1 bg-yellow-500/10 text-yellow-400 rounded-full">
+                      {idf.health.counts.revision} Revisión
+                    </span>
+                  )}
+                  {idf.health.counts.falla > 0 && (
+                    <span className="px-2 py-1 bg-red-500/10 text-red-400 rounded-full">
+                      {idf.health.counts.falla} Falla
+                    </span>
+                  )}
+                  {idf.health.counts.libre > 0 && (
+                    <span className="px-2 py-1 bg-gray-500/10 text-gray-400 rounded-full">
+                      {idf.health.counts.libre} Libre
+                    </span>
+                  )}
+                  {idf.health.counts.reservado > 0 && (
+                    <span className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded-full">
+                      {idf.health.counts.reservado} Reservado
+                    </span>
+                  )}
+                </div>
+              )}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
