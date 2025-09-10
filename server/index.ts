@@ -10,39 +10,48 @@ const app = express();
 app.use('/static', express.static(path.resolve(process.cwd(), 'static')));
 
 // Proxy API requests to FastAPI backend
-app.use('/api', (req, res) => {
-  const proxyUrl = `http://localhost:8000${req.originalUrl}`;
-  
-  fetch(proxyUrl, {
-    method: req.method,
-    headers: req.headers as HeadersInit,
-    body: req.method === 'GET' || req.method === 'HEAD' ? undefined : JSON.stringify(req.body)
-  })
-  .then(response => {
+app.use('/api', async (req, res) => {
+  try {
+    const proxyUrl = `http://localhost:8000${req.originalUrl}`;
+    
+    const response = await fetch(proxyUrl, {
+      method: req.method,
+      headers: {
+        ...req.headers,
+        'host': 'localhost:8000'
+      },
+      body: req.method === 'GET' || req.method === 'HEAD' ? undefined : JSON.stringify(req.body)
+    });
+
+    // Copy status and headers
     res.status(response.status);
     response.headers.forEach((value, key) => {
-      res.setHeader(key, value);
+      if (key.toLowerCase() !== 'content-encoding') {
+        res.setHeader(key, value);
+      }
     });
-    return response.body;
-  })
-  .then(body => {
-    if (body) {
-      body.pipeTo(new WritableStream({
-        write(chunk) {
-          res.write(chunk);
-        },
-        close() {
-          res.end();
+
+    // Stream the response
+    if (response.body) {
+      const reader = response.body.getReader();
+      
+      const pump = async () => {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          res.write(Buffer.from(value));
         }
-      }));
+        res.end();
+      };
+      
+      await pump();
     } else {
       res.end();
     }
-  })
-  .catch(error => {
+  } catch (error) {
     log(`Proxy error: ${error.message}`);
     res.status(500).json({ error: 'Proxy error' });
-  });
+  }
 });
 
 const server = createServer(app);

@@ -1,10 +1,6 @@
 import { apiRequest } from "./queryClient";
 
-// Base URL for backend API
-// Falls back to current origin or "/api" for browser/server environments
-const API_BASE =
-  import.meta.env.VITE_API_BASE_URL ||
-  (typeof window !== "undefined" ? window.location.origin : "/api");
+const API_BASE = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5000');
 
 export interface IdfSearchParams {
   q?: string;
@@ -36,10 +32,9 @@ export async function getIdf(cluster: string, project: string, code: string) {
 
 export async function uploadCsv(cluster: string, project: string, code: string, file: File, token: string) {
   const formData = new FormData();
-  formData.append("file", file);
-  formData.append("code", code);
+  formData.append('file', file);
 
-  const url = `${API_BASE}/api/${cluster}/${project}/devices/upload_csv`;
+  const url = `${API_BASE}/api/${cluster}/${project}/devices/upload_csv?code=${code}`;
   const response = await fetch(url, {
     method: 'POST',
     headers: {
