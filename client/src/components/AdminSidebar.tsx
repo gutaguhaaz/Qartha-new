@@ -141,12 +141,9 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       const cleanData = {
         title: data.basic_info?.title || data.title || "",
         description: data.basic_info?.description || data.description || "",
-        site: data.basic_info?.location || data.site || "", // Assuming location maps to site
-        room: data.room || "", // Assuming room is directly available
-        gallery: Array.isArray(data.gallery) ? data.gallery : [],
-        documents: Array.isArray(data.documents) ? data.documents : [],
-        diagram: data.diagram || null,
-        table: data.table || null // Keep as single table object
+        site: data.basic_info?.location || data.site || "",
+        room: data.room || "",
+        table: data.table || undefined
       };
 
       const response = await fetch(`/api/${selectedCluster}/${selectedProject}/idfs/${selectedIdf}`, {

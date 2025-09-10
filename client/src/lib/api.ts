@@ -1,6 +1,7 @@
 import { apiRequest } from "./queryClient";
 
-const API_BASE = import.meta.env.VITE_API_BASE || '';
+// Base URL for API requests
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
 export interface IdfSearchParams {
   q?: string;
@@ -33,8 +34,9 @@ export async function getIdf(cluster: string, project: string, code: string) {
 export async function uploadCsv(cluster: string, project: string, code: string, file: File, token: string) {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('code', code);
 
-  const url = `${API_BASE}/api/${cluster}/${project}/devices/upload_csv?code=${code}`;
+  const url = `${API_BASE}/api/${cluster}/${project}/devices/upload_csv`;
   const response = await fetch(url, {
     method: 'POST',
     headers: {
