@@ -652,7 +652,7 @@ export default function Navbar() {
               >
                 {getProjectsForCluster(selectedCluster).map((project) => (
                   <option key={project} value={project}>
-                    {project.charAt0).toUpperCase() + project.slice(1)} Project
+                    {project.charAt(0).toUpperCase() + project.slice(1)} Project
                   </option>
                 ))}
               </select>
