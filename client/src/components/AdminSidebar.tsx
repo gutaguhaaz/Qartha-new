@@ -146,7 +146,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_ADMIN_TOKEN || 'changeme-demo-token'}`
+          'Authorization': `Bearer ${adminToken}`
         },
         body: JSON.stringify({
           title: editingIdf.title,
