@@ -7,7 +7,7 @@ from app.models.idf_models import Device
 from app.core.config import settings
 
 
-router = APIRouter(prefix="/api", tags=["devices"])
+router = APIRouter(tags=["devices"])
 
 
 def validate_cluster(cluster: str):

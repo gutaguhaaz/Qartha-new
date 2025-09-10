@@ -6,7 +6,7 @@ from app.core.config import settings
 from app.db.mongo import database
 
 
-router = APIRouter(prefix="/api", tags=["assets"])
+router = APIRouter(tags=["assets"])
 
 
 def validate_cluster(cluster: str):

@@ -5,7 +5,7 @@ from app.db.mongo import database
 from app.core.config import settings
 
 
-router = APIRouter(prefix="/api", tags=["qr"])
+router = APIRouter(tags=["qr"])
 
 
 def _absolute_frontend_url(request: Request, cluster: str, project: str, code: str) -> str:
