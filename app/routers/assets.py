@@ -96,8 +96,8 @@ async def upload_image(
     gallery.append(media_item)
     
     await database.execute(
-        "UPDATE idfs SET gallery = $1 WHERE cluster = $2 AND project = $3 AND code = $4",
-        json.dumps(gallery), cluster, project, code
+        "UPDATE idfs SET gallery = :gallery WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"gallery": json.dumps(gallery), "cluster": cluster, "project": project, "code": code}
     )
     
     return {"url": url, "message": "Image uploaded successfully"}
@@ -148,8 +148,8 @@ async def upload_document(
     documents.append(media_item)
     
     await database.execute(
-        "UPDATE idfs SET documents = $1 WHERE cluster = $2 AND project = $3 AND code = $4",
-        json.dumps(documents), cluster, project, code
+        "UPDATE idfs SET documents = :documents WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"documents": json.dumps(documents), "cluster": cluster, "project": project, "code": code}
     )
     
     return {"url": url, "message": "Document uploaded successfully"}
@@ -195,8 +195,8 @@ async def upload_diagram(
     }
     
     await database.execute(
-        "UPDATE idfs SET diagram = $1 WHERE cluster = $2 AND project = $3 AND code = $4",
-        json.dumps(media_item), cluster, project, code
+        "UPDATE idfs SET diagram = :diagram WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"diagram": json.dumps(media_item), "cluster": cluster, "project": project, "code": code}
     )
 
     return {"url": url, "message": "Diagram uploaded successfully"}
@@ -237,7 +237,18 @@ async def upload_logo(
 @router.get("/{cluster}/{project}/logo")
 async def get_logo(cluster: str = Depends(validate_cluster), project: str = ""):
     """Get cluster logo URL"""
-    matches = glob.glob(os.path.join(settings.STATIC_DIR, cluster, "logo.*"))
+    # Check both project-specific and cluster-level logos
+    logo_paths = [
+        os.path.join(settings.STATIC_DIR, cluster, project, "logo.*"),
+        os.path.join(settings.STATIC_DIR, cluster, "logo.*")
+    ]
+    
+    matches = []
+    for path_pattern in logo_paths:
+        matches.extend(glob.glob(path_pattern))
+        if matches:
+            break
+    
     if not matches:
         raise HTTPException(status_code=404, detail="Logo not found")
 
