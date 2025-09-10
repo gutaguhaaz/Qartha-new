@@ -55,12 +55,12 @@ export default function Navbar() {
           {/* Brand */}
           <Link
             href={currentPath}
-            className="flex items-center space-x-3"
+            className="flex items-center"
             data-testid="link-home"
           >
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center logo-container">
+            <div className="logo-container">
               <svg 
-                className="w-5 h-5 logo-svg" 
+                className="w-8 h-8 logo-svg" 
                 viewBox="0 0 24 24" 
                 fill="none" 
                 xmlns="http://www.w3.org/2000/svg"
@@ -69,7 +69,6 @@ export default function Navbar() {
                 <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <h1 className="text-xl font-bold text-foreground">Qartha</h1>
           </Link>
 
           {/* Desktop selectors */}
