@@ -196,3 +196,198 @@ svg.logo-svg.logoqartha {
   -webkit-filter: brightness(0) invert(1);
   filter: brightness(0) invert(1);
 }
+
+/* ODF Table Styles */
+.odf-container {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  background: white;
+  color: black;
+  min-width: 1200px;
+}
+
+.odf-header {
+  background: black;
+  color: white;
+  text-align: center;
+  padding: 8px;
+  font-weight: bold;
+  font-size: 14px;
+  letter-spacing: 4px;
+}
+
+.odf-table {
+  border: 2px solid black;
+}
+
+.odf-headers {
+  display: grid;
+  grid-template-columns: 200px 60px 80px repeat(6, 150px);
+  background: #f0f0f0;
+  border-bottom: 2px solid black;
+}
+
+.header-cell {
+  border: 1px solid black;
+  padding: 4px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 10px;
+}
+
+.odf-subheaders {
+  display: grid;
+  grid-template-columns: 200px 60px 80px repeat(6, 150px);
+  background: #f8f8f8;
+  border-bottom: 1px solid black;
+}
+
+.subheader-cell {
+  border: 1px solid black;
+  padding: 2px;
+  text-align: center;
+  font-size: 9px;
+  font-weight: bold;
+}
+
+.cable-section {
+  display: contents;
+}
+
+.cable-label {
+  grid-column: 1;
+  background: #e0e0e0;
+  border: 1px solid black;
+  padding: 8px;
+  font-weight: bold;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+.buffer-sections {
+  display: contents;
+}
+
+.buffer-row {
+  display: grid;
+  grid-template-columns: 200px 60px 80px repeat(6, 150px);
+  grid-column: 1 / -1;
+}
+
+.buffer-cell {
+  border: 1px solid black;
+  padding: 4px;
+  text-align: center;
+  font-weight: bold;
+  background: #f0f0f0;
+}
+
+.buffer-cell.brown {
+  background: #8B4513;
+  color: white;
+}
+
+.fiber-cells {
+  display: contents;
+}
+
+.fiber-cell {
+  border: 1px solid black;
+  padding: 4px;
+  text-align: center;
+  font-weight: bold;
+  color: white;
+}
+
+.fiber-cell.blue {
+  background: #0066CC;
+}
+
+.fiber-cell.orange {
+  background: #FF6600;
+}
+
+.fiber-cell.green {
+  background: #009900;
+}
+
+.fiber-cell.brown {
+  background: #8B4513;
+}
+
+.port-cell {
+  border: 1px solid black;
+  padding: 4px;
+  text-align: center;
+  background: white;
+  font-weight: bold;
+}
+
+.dest-cell {
+  border: 1px solid black;
+  padding: 4px;
+  text-align: center;
+  font-size: 9px;
+  font-weight: bold;
+}
+
+.dest-cell.red {
+  background: #FF0000;
+  color: white;
+}
+
+.dest-cell.cyan {
+  background: #00CCCC;
+  color: black;
+}
+
+.ring-cell {
+  border: 1px solid black;
+  padding: 4px;
+  text-align: center;
+  font-weight: bold;
+  color: white;
+}
+
+.ring-cell.purple {
+  background: #6600CC;
+}
+
+.ring-cell.yellow {
+  background: #FFCC00;
+  color: black;
+}
+
+.ring-cell.magenta {
+  background: #CC00CC;
+}
+
+.ring-cell.cyan {
+  background: #00CCCC;
+  color: black;
+}
+
+.ptp-cell {
+  border: 1px solid black;
+  padding: 4px;
+  text-align: center;
+  background: #808080;
+  color: white;
+  font-weight: bold;
+  font-size: 9px;
+}
+
+/* Dark mode adjustments for ODF */
+.dark .odf-container {
+  background: #1a1a1a;
+  color: white;
+}
+
+.dark .port-cell {
+  background: #2d2d2d;
+  color: white;
+}
