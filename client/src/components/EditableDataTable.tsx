@@ -23,19 +23,19 @@ export default function EditableDataTable({ table, onChange }: EditableDataTable
       <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="p-6 text-center text-muted-foreground">
           <i className="fas fa-table text-4xl mb-4"></i>
-          <p>No table data available</p>
+          <p>No hay datos de tabla disponibles</p>
           <Button 
             onClick={() => {
               const newTable: IdfTable = {
                 columns: [
-                  { key: 'tray', label: 'Tray', type: 'text' },
-                  { key: 'panel', label: 'Patch Panel', type: 'text' },
-                  { key: 'port', label: 'Port', type: 'number' },
-                  { key: 'fiber_id', label: 'Fiber ID', type: 'text' },
-                  { key: 'to_room', label: 'Destination (Room)', type: 'text' },
-                  { key: 'to_panel', label: 'Destination (Panel)', type: 'text' },
-                  { key: 'to_port', label: 'Destination Port', type: 'number' },
-                  { key: 'status', label: 'Status', type: 'status' }
+                  { key: 'charola', label: 'Charola', type: 'text' },
+                  { key: 'patch_panel', label: 'Patch Panel', type: 'text' },
+                  { key: 'puerto', label: 'Puerto', type: 'number' },
+                  { key: 'fibra', label: 'Fibra', type: 'text' },
+                  { key: 'destino_cuarto', label: 'Destino (Cuarto)', type: 'text' },
+                  { key: 'destino_panel', label: 'Destino (Panel)', type: 'text' },
+                  { key: 'puerto_destino', label: 'Puerto Destino', type: 'number' },
+                  { key: 'estado', label: 'Estado', type: 'status' }
                 ],
                 rows: []
               };
@@ -45,7 +45,7 @@ export default function EditableDataTable({ table, onChange }: EditableDataTable
             className="mt-4"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Create Table
+            Crear Tabla
           </Button>
         </div>
       </div>
@@ -128,7 +128,7 @@ export default function EditableDataTable({ table, onChange }: EditableDataTable
         value={value || ''}
         onChange={(e) => updateCell(rowIndex, column.key, e.target.value)}
         className="w-full"
-        placeholder={`Enter ${column.label.toLowerCase()}`}
+        placeholder={`Ingrese ${column.label.toLowerCase()}`}
       />
     );
   };
@@ -138,9 +138,9 @@ export default function EditableDataTable({ table, onChange }: EditableDataTable
       <div className="p-6 border-b border-border">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold">Device Table</h3>
+            <h3 className="text-lg font-semibold">Tabla de Conexiones</h3>
             <p className="text-muted-foreground mt-1">
-              {(table.rows && Array.isArray(table.rows) ? table.rows.length : 0)} devices • {isEditing ? 'Editing Mode' : 'View Mode'}
+              {(table.rows && Array.isArray(table.rows) ? table.rows.length : 0)} conexiones • {isEditing ? 'Modo Edición' : 'Modo Vista'}
             </p>
           </div>
           <div className="flex space-x-2">
@@ -148,12 +148,12 @@ export default function EditableDataTable({ table, onChange }: EditableDataTable
               variant={isEditing ? "default" : "outline"}
               onClick={() => setIsEditing(!isEditing)}
             >
-              {isEditing ? 'Done Editing' : 'Edit Table'}
+              {isEditing ? 'Finalizar Edición' : 'Editar Tabla'}
             </Button>
             {isEditing && (
               <Button onClick={addRow} size="sm">
                 <Plus className="w-4 h-4 mr-2" />
-                Add Row
+                Agregar Fila
               </Button>
             )}
           </div>
@@ -174,7 +174,7 @@ export default function EditableDataTable({ table, onChange }: EditableDataTable
               ))}
               {isEditing && (
                 <th className="text-left p-4 font-medium text-sm w-16">
-                  Actions
+                  Acciones
                 </th>
               )}
             </tr>
