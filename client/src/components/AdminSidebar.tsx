@@ -173,7 +173,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       console.error("Save error:", error);
       toast({
         title: "Error",
-        description: `Failed to save: ${error.message}`,
+        description: error instanceof Error ? error.message : "Failed to save: ${error}",
         variant: "destructive",
       });
     },
@@ -556,7 +556,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium">Device Table</h4>
                   <EditableDataTable
-                    table={editingIdf.tables} // Assuming table data is in 'tables'
+                    table={editingIdf.tables || undefined}
                     onChange={(newTable) =>
                       setEditingIdf({ ...editingIdf, tables: newTable })
                     }

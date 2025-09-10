@@ -14,8 +14,11 @@ interface EditableDataTableProps {
 
 export default function EditableDataTable({ table, onChange }: EditableDataTableProps) {
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Debug logging
+  console.log('EditableDataTable received table:', table);
 
-  if (!table || !table.columns || table.columns.length === 0) {
+  if (!table || !table.columns || table.columns.length === 0 || !table.rows) {
     return (
       <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="p-6 text-center text-muted-foreground">
@@ -25,11 +28,14 @@ export default function EditableDataTable({ table, onChange }: EditableDataTable
             onClick={() => {
               const newTable: IdfTable = {
                 columns: [
-                  { key: 'name', label: 'Device Name', type: 'text' },
-                  { key: 'model', label: 'Model', type: 'text' },
-                  { key: 'serial', label: 'Serial', type: 'text' },
-                  { key: 'status', label: 'Status', type: 'status' },
-                  { key: 'location', label: 'Location', type: 'text' }
+                  { key: 'tray', label: 'Charola', type: 'text' },
+                  { key: 'panel', label: 'Patch Panel', type: 'text' },
+                  { key: 'port', label: 'Puerto', type: 'number' },
+                  { key: 'fiber_id', label: 'Fibra', type: 'text' },
+                  { key: 'to_room', label: 'Destino (Cuarto)', type: 'text' },
+                  { key: 'to_panel', label: 'Destino (Panel)', type: 'text' },
+                  { key: 'to_port', label: 'Puerto Destino', type: 'number' },
+                  { key: 'status', label: 'Estado', type: 'status' }
                 ],
                 rows: []
               };
@@ -126,7 +132,7 @@ export default function EditableDataTable({ table, onChange }: EditableDataTable
           <div>
             <h3 className="text-lg font-semibold">Device Table</h3>
             <p className="text-muted-foreground mt-1">
-              {table.rows?.length || 0} devices • {isEditing ? 'Editing Mode' : 'View Mode'}
+              {(table.rows && Array.isArray(table.rows) ? table.rows.length : 0)} devices • {isEditing ? 'Editing Mode' : 'View Mode'}
             </p>
           </div>
           <div className="flex space-x-2">
@@ -166,7 +172,7 @@ export default function EditableDataTable({ table, onChange }: EditableDataTable
             </tr>
           </thead>
           <tbody>
-            {table.rows.map((row, rowIndex) => (
+            {(table.rows || []).map((row, rowIndex) => (
               <tr
                 key={rowIndex}
                 className="border-t border-border hover:bg-accent/50"
