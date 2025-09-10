@@ -121,13 +121,20 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     }
   };
 
-  const removeMedia = (item: any, type: 'images' | 'documents' | 'diagram') => {
+  const removeMedia = (
+    item: any,
+    type: 'images' | 'documents' | 'diagram'
+  ) => {
+    if (!editingIdf) return;
+
     if (type === 'diagram') {
-      setEditingIdf({...editingIdf, diagram: null});
+      setEditingIdf({ ...editingIdf, diagram: null });
     } else {
-      const currentItems = editingIdf[type] || [];
+      const key: 'gallery' | 'documents' =
+        type === 'images' ? 'gallery' : 'documents';
+      const currentItems = editingIdf[key] || [];
       const updatedItems = currentItems.filter((i: any) => i.url !== item.url);
-      setEditingIdf({...editingIdf, [type]: updatedItems});
+      setEditingIdf({ ...editingIdf, [key]: updatedItems });
     }
   };
 
@@ -411,10 +418,11 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 {/* Device Table */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium">Device Table</h4>
-                  <EditableDataTable 
-                    data={editingIdf.table?.data || []} 
-                    columns={editingIdf.table?.columns || []} 
-                    onDataChange={(newData) => setEditingIdf({...editingIdf, table: {...editingIdf.table, data: newData}})}
+                  <EditableDataTable
+                    table={editingIdf.table}
+                    onChange={(newTable) =>
+                      setEditingIdf({ ...editingIdf, table: newTable })
+                    }
                   />
                 </div>
 
