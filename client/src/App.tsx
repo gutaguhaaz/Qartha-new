@@ -33,6 +33,15 @@ function App() {
               <Router />
             </main>
           </div>
+
+          {/* Copyright Footer */}
+          <footer className="mt-auto border-t border-border bg-card">
+            <div className="max-w-7xl mx-auto px-6 py-4">
+              <div className="text-center text-sm text-muted-foreground">
+                © {new Date().getFullYear()} RKSquared, Cox e Inpro Telecom. All rights reserved.
+              </div>
+            </div>
+          </footer>
           <Toaster />
         </TooltipProvider>
       </QueryClientProvider>
