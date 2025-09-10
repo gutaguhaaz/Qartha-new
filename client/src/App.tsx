@@ -12,10 +12,10 @@ import Navbar from "@/components/Navbar";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={() => <PublicList cluster="trk" project="trinity" />} />
-      <Route path="/:cluster/:project" component={PublicList} />
-      <Route path="/:cluster/:project/idf/:code" component={PublicDetail} />
-      <Route path="/:cluster/:project/cms" component={CmsUpload} />
+      <Route path="/" component={() => <PublicList params={{ cluster: "trk", project: "trinity" }} />} />
+      <Route path="/:cluster/:project" component={({ params }: any) => <PublicList params={params} />} />
+      <Route path="/:cluster/:project/idf/:code" component={({ params }: any) => <PublicDetail params={params} />} />
+      <Route path="/:cluster/:project/cms" component={({ params }: any) => <CmsUpload params={params} />} />
       <Route component={NotFound} />
     </Switch>
   );

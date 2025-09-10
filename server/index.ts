@@ -58,12 +58,14 @@ fastapi.on('error', (error) => {
 });
 
 // Setup frontend serving
-if (app.get("env") === "development") {
-  const { setupVite } = await import("./vite");
-  await setupVite(app, server);
-} else {
-  serveStatic(app);
-}
+(async () => {
+  if (app.get("env") === "development") {
+    const { setupVite } = await import("./vite");
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+})();
 
 const port = parseInt(process.env.PORT || '5000', 10);
 server.listen({

@@ -61,7 +61,7 @@ export default function Navbar() {
               className="bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
               data-testid="select-cluster"
             >
-              {CLUSTERS.map(cluster => (
+              {CLUSTERS.map((cluster: string) => (
                 <option key={cluster} value={cluster}>
                   {cluster.toUpperCase()} Cluster
                 </option>
