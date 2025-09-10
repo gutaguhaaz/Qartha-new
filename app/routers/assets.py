@@ -1,7 +1,7 @@
 import os
 import json
 import glob
-from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form
+from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form, Header
 from typing import Optional
 from app.core.config import settings
 from app.db.mongo import database
@@ -27,7 +27,7 @@ def verify_admin_token(authorization: Optional[str] = None):
     
     token = authorization.replace("Bearer ", "")
     if token != settings.ADMIN_TOKEN:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail=f"Invalid token. Expected: {settings.ADMIN_TOKEN}, Got: {token}")
     
     return token
 
@@ -53,7 +53,7 @@ async def upload_image(
     code: str = Form(...),
     cluster: str = Depends(validate_cluster),
     project: str = "",
-    authorization: Optional[str] = None
+    authorization: Optional[str] = Header(None)
 ):
     """Upload image for IDF"""
     verify_admin_token(authorization)
@@ -109,7 +109,7 @@ async def upload_document(
     code: str = Form(...),
     cluster: str = Depends(validate_cluster),
     project: str = "",
-    authorization: Optional[str] = None
+    authorization: Optional[str] = Header(None)
 ):
     """Upload document for IDF"""
     verify_admin_token(authorization)
@@ -161,7 +161,7 @@ async def upload_diagram(
     code: str = Form(...),
     cluster: str = Depends(validate_cluster),
     project: str = "",
-    authorization: Optional[str] = None
+    authorization: Optional[str] = Header(None)
 ):
     """Upload diagram for IDF"""
     verify_admin_token(authorization)
@@ -207,7 +207,7 @@ async def upload_logo(
     file: UploadFile = File(...),
     cluster: str = Depends(validate_cluster),
     project: str = "",
-    authorization: Optional[str] = None,
+    authorization: Optional[str] = Header(None),
 ):
     """Upload cluster logo"""
     verify_admin_token(authorization)
@@ -234,8 +234,8 @@ async def upload_logo(
     return {"url": url, "message": "Logo uploaded successfully"}
 
 
-@router.get("/{cluster}/logo")
-async def get_logo(cluster: str = Depends(validate_cluster)):
+@router.get("/{cluster}/{project}/logo")
+async def get_logo(cluster: str = Depends(validate_cluster), project: str = ""):
     """Get cluster logo URL"""
     matches = glob.glob(os.path.join(settings.STATIC_DIR, cluster, "logo.*"))
     if not matches:
