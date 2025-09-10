@@ -37,9 +37,9 @@
 
 .dark {
   /* Dark theme */
-  --background: hsl(224, 71%, 4%);
+  --background: hsl(223, 100%, 30%);
   --foreground: hsl(213, 31%, 91%);
-  --card: hsl(224, 71%, 4%);
+  --card: hsl(223, 100%, 30%);
   --card-foreground: hsl(213, 31%, 91%);
   --popover: hsl(224, 71%, 4%);
   --popover-foreground: hsl(213, 31%, 91%);
@@ -71,7 +71,7 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
-  
+
   #root {
     @apply min-h-screen flex flex-col;
   }
@@ -162,6 +162,14 @@
 
 a.bg-card.border.rounded-lg {
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
-  background: #e6f9ff;
-  background: linear-gradient(90deg, rgb(249 254 255) 0%, rgb(214 236 255) 100%);
+
+}
+
+svg.logo-svg.logoqartha {
+  height: 45px !important;
+  width: auto !important;
+}
+
+.dark svg.logoqartha.logo-svg * {
+  fill: white;
 }

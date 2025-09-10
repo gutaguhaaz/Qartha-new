@@ -59,7 +59,7 @@ export default function Navbar() {
           >
             <div className="logo-container">
               <svg
-                className="w-8 h-8 logo-svg"
+                className="logoqartha logo-svg"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 2200.2 831.7"
               >
