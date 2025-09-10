@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { X, Upload, Trash2, Edit3, Save, ArrowUp, ArrowDown, Maximize, Minimize } from "lucide-react";
+import { X, Upload, Trash2, Edit3, Save, ArrowUp, ArrowDown, Maximize, Minimize, Plus } from "lucide-react";
 import { getIdfs, getIdf, uploadAsset } from "@/lib/api";
 import EditableDataTable from "./EditableDataTable";
 import AddIdfDialog from "./AddIdfDialog";
