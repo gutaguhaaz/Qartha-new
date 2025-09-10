@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { getIdf } from "@/lib/api";
+import { getIdf, getLogo } from "@/lib/api";
 import { IdfPublic } from "@shared/schema";
 import Gallery from "@/components/Gallery";
 import DocList from "@/components/DocList";
@@ -22,6 +22,13 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
     queryKey: ['/api', cluster, project, 'idfs', code],
     queryFn: () => getIdf(cluster, project, code)
   });
+
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+    const { data: logo } = useQuery({
+      queryKey: ['logo', cluster],
+      queryFn: () => getLogo(cluster),
+      retry: false,
+    });
 
   const getHealthIndicatorClass = (level?: string) => {
     switch (level) {
@@ -73,8 +80,7 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
     );
   }
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-  const qrUrl = `${API_BASE}/api/${cluster}/${project}/idfs/${code}/qr.png`;
+    const qrUrl = `${API_BASE}/api/${cluster}/${project}/idfs/${code}/qr.png`;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8" data-testid="public-detail">
@@ -89,50 +95,60 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
         </nav>
 
         <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2" data-testid="idf-title">
-              {idf.title}
-            </h1>
-            <p className="text-muted-foreground mb-4" data-testid="idf-metadata">
-              {idf.code} • {idf.site} • {idf.room}
-            </p>
-
-            {/* Global Health Status */}
-            {idf.health && (
-              <div className="flex items-center space-x-4" data-testid="health-status">
-                <div className="flex items-center space-x-2">
-                  <div className={`health-indicator ${getHealthIndicatorClass(idf.health.level)}`}></div>
-                  <span className="font-medium">{getHealthLabel(idf.health.level)}</span>
-                </div>
-                <div className="flex items-center space-x-4 text-sm">
-                  {idf.health.counts.ok > 0 && (
-                    <span className="px-2 py-1 bg-green-500/10 text-green-400 rounded-full">
-                      {idf.health.counts.ok} OK
-                    </span>
-                  )}
-                  {idf.health.counts.revision > 0 && (
-                    <span className="px-2 py-1 bg-yellow-500/10 text-yellow-400 rounded-full">
-                      {idf.health.counts.revision} Review
-                    </span>
-                  )}
-                  {idf.health.counts.falla > 0 && (
-                    <span className="px-2 py-1 bg-red-500/10 text-red-400 rounded-full">
-                      {idf.health.counts.falla} Critical
-                    </span>
-                  )}
-                  {idf.health.counts.libre > 0 && (
-                    <span className="px-2 py-1 bg-gray-500/10 text-gray-400 rounded-full">
-                      {idf.health.counts.libre} Available
-                    </span>
-                  )}
-                  {idf.health.counts.reservado > 0 && (
-                    <span className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded-full">
-                      {idf.health.counts.reservado} Reserved
-                    </span>
-                  )}
-                </div>
-              </div>
+          <div className="flex items-start space-x-4">
+            {logo && (
+              <img
+                src={`${API_BASE}${logo.url}`}
+                alt={`${cluster} logo`}
+                className="h-12 w-auto mt-1"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
             )}
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2" data-testid="idf-title">
+                {idf.title}
+              </h1>
+              <p className="text-muted-foreground mb-4" data-testid="idf-metadata">
+                {idf.code} • {idf.site} • {idf.room}
+              </p>
+
+              {/* Global Health Status */}
+              {idf.health && (
+                <div className="flex items-center space-x-4" data-testid="health-status">
+                  <div className="flex items-center space-x-2">
+                    <div className={`health-indicator ${getHealthIndicatorClass(idf.health.level)}`}></div>
+                    <span className="font-medium">{getHealthLabel(idf.health.level)}</span>
+                  </div>
+                  <div className="flex items-center space-x-4 text-sm">
+                    {idf.health.counts.ok > 0 && (
+                      <span className="px-2 py-1 bg-green-500/10 text-green-400 rounded-full">
+                        {idf.health.counts.ok} OK
+                      </span>
+                    )}
+                    {idf.health.counts.revision > 0 && (
+                      <span className="px-2 py-1 bg-yellow-500/10 text-yellow-400 rounded-full">
+                        {idf.health.counts.revision} Review
+                      </span>
+                    )}
+                    {idf.health.counts.falla > 0 && (
+                      <span className="px-2 py-1 bg-red-500/10 text-red-400 rounded-full">
+                        {idf.health.counts.falla} Critical
+                      </span>
+                    )}
+                    {idf.health.counts.libre > 0 && (
+                      <span className="px-2 py-1 bg-gray-500/10 text-gray-400 rounded-full">
+                        {idf.health.counts.libre} Available
+                      </span>
+                    )}
+                    {idf.health.counts.reservado > 0 && (
+                      <span className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded-full">
+                        {idf.health.counts.reservado} Reserved
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* QR Code */}

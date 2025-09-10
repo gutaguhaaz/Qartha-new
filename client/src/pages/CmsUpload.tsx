@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { uploadCsv, uploadAsset, downloadCsvTemplate } from "@/lib/api";
+import { uploadCsv, uploadAsset, downloadCsvTemplate, uploadLogo } from "@/lib/api";
 
 interface CmsUploadProps {
   cluster: string;
@@ -53,6 +53,44 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleLogoUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+
+    try {
+      const result = await uploadLogo(cluster, project, files[0], adminToken);
+      toast({
+        title: "Success",
+        description: result.message || "Logo uploaded successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error uploading logo",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleLogoDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    handleLogoUpload(e.dataTransfer.files);
+  };
+
+  const handleLogoSelect = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.jpg,.jpeg,.png,.gif';
+    input.onchange = (e) => {
+      const target = e.target as HTMLInputElement;
+      handleLogoUpload(target.files);
+    };
+    input.click();
   };
 
   const handleDrop = (e: React.DragEvent, type: 'csv' | 'images' | 'documents' | 'diagram') => {
@@ -255,6 +293,29 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
               data-testid="button-select-diagram"
             >
               {uploading ? 'Uploading...' : 'Select Diagram'}
+            </button>
+          </div>
+        </div>
+
+        {/* Logo Upload */}
+        <div className="bg-card border border-border rounded-lg p-6">
+          <h3 className="text-lg font-semibold mb-4">Cluster Logo</h3>
+          <div
+            className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-ring transition-colors"
+            onDrop={handleLogoDrop}
+            onDragOver={(e) => e.preventDefault()}
+            data-testid="dropzone-logo"
+          >
+            <i className="fas fa-image text-3xl text-muted-foreground mb-4"></i>
+            <p className="text-lg font-medium mb-2">Drag your logo here</p>
+            <p className="text-muted-foreground mb-4">PNG, JPG, GIF up to 10MB</p>
+            <button
+              onClick={handleLogoSelect}
+              disabled={uploading}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
+              data-testid="button-select-logo"
+            >
+              {uploading ? 'Uploading...' : 'Select Logo'}
             </button>
           </div>
         </div>

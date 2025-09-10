@@ -1,5 +1,6 @@
 import os
 import json
+import glob
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form
 from typing import Optional
 from app.core.config import settings
@@ -197,5 +198,48 @@ async def upload_diagram(
         "UPDATE idfs SET diagram = $1 WHERE cluster = $2 AND project = $3 AND code = $4",
         json.dumps(media_item), cluster, project, code
     )
-    
+
     return {"url": url, "message": "Diagram uploaded successfully"}
+
+
+@router.post("/{cluster}/{project}/assets/logo")
+async def upload_logo(
+    file: UploadFile = File(...),
+    cluster: str = Depends(validate_cluster),
+    project: str = "",
+    authorization: Optional[str] = None,
+):
+    """Upload cluster logo"""
+    verify_admin_token(authorization)
+
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+
+    # Remove existing logos for this cluster
+    for existing in glob.glob(os.path.join(settings.STATIC_DIR, cluster, "logo.*")):
+        try:
+            os.remove(existing)
+        except OSError:
+            pass
+
+    file_extension = os.path.splitext(file.filename or "logo.png")[1]
+    file_path = os.path.join(
+        settings.STATIC_DIR,
+        cluster,
+        f"logo{file_extension}"
+    )
+
+    url = await save_file(file, file_path)
+
+    return {"url": url, "message": "Logo uploaded successfully"}
+
+
+@router.get("/{cluster}/logo")
+async def get_logo(cluster: str = Depends(validate_cluster)):
+    """Get cluster logo URL"""
+    matches = glob.glob(os.path.join(settings.STATIC_DIR, cluster, "logo.*"))
+    if not matches:
+        raise HTTPException(status_code=404, detail="Logo not found")
+
+    relative_path = matches[0].replace(settings.STATIC_DIR, "")
+    return {"url": f"/static{relative_path}"}
