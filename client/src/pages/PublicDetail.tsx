@@ -265,7 +265,7 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
             onClick={() => setActiveTab('table')}
             data-testid="tab-table"
           >
-            <i className="fas fa-table mr-2"></i>Device Table
+            <i className="fas fa-table mr-2"></i>Fiber Allocation Table
           </button>
         </div>
       </div>

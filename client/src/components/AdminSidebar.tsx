@@ -622,19 +622,17 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                   </div>
                 )}
 
-                {/* Device Table Section */}
+                {/* Fiber Allocation Table Section */}
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium">Device Table</h4>
+                  <h4 className="text-sm font-medium">Fiber Allocation Table</h4>
                   <div className="bg-card border border-border rounded-lg overflow-hidden">
-                    <DataTable table={editingIdf.table || undefined} />
-                    <div className="p-4 border-t border-border">
-                      <EditableDataTable
-                        table={editingIdf.table || undefined}
-                        onChange={(newTable) =>
-                          setEditingIdf({ ...editingIdf, table: newTable })
-                        }
-                      />
-                    </div>
+                    <DataTable 
+                      table={editingIdf.table || undefined}
+                      isEditable={true}
+                      onChange={(newTable) =>
+                        setEditingIdf({ ...editingIdf, table: newTable })
+                      }
+                    />
                   </div>
                 </div>
 

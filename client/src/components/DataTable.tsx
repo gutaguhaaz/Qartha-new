@@ -1,11 +1,19 @@
 import { IdfTable } from "@shared/schema";
 import StatusBadge from "./StatusBadge";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Edit3 } from "lucide-react";
 
 interface DataTableProps {
   table?: IdfTable;
+  isEditable?: boolean;
+  onChange?: (table: IdfTable) => void;
 }
 
-export default function DataTable({ table }: DataTableProps) {
+export default function DataTable({ table, isEditable = false, onChange }: DataTableProps) {
+  const [isEditing, setIsEditing] = useState(false);
   // Create sample table data if none exists to demonstrate the health system
   const sampleTable: IdfTable = {
     columns: [
@@ -31,6 +39,68 @@ export default function DataTable({ table }: DataTableProps) {
   };
 
   const displayTable = table || sampleTable;
+
+  const addRow = () => {
+    if (!displayTable || !onChange) return;
+    
+    const newRow: any = {};
+    displayTable.columns.forEach(col => {
+      newRow[col.key] = '';
+    });
+    
+    const updatedTable = {
+      ...displayTable,
+      rows: [...(displayTable.rows || []), newRow]
+    };
+    onChange(updatedTable);
+  };
+
+  const updateCell = (rowIndex: number, columnKey: string, value: string) => {
+    if (!displayTable || !onChange) return;
+    
+    const updatedRows = [...displayTable.rows];
+    updatedRows[rowIndex] = {
+      ...updatedRows[rowIndex],
+      [columnKey]: value
+    };
+    
+    const updatedTable = {
+      ...displayTable,
+      rows: updatedRows
+    };
+    onChange(updatedTable);
+  };
+
+  const renderEditableCell = (column: any, value: any, rowIndex: number) => {
+    if (column.type === 'status') {
+      return (
+        <Select
+          value={value || ''}
+          onValueChange={(newValue) => updateCell(rowIndex, column.key, newValue)}
+        >
+          <SelectTrigger className="w-full h-8 text-xs">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ok">OK</SelectItem>
+            <SelectItem value="revisión">Under Review</SelectItem>
+            <SelectItem value="falla">Critical Failure</SelectItem>
+            <SelectItem value="libre">Available</SelectItem>
+            <SelectItem value="reservado">Reserved</SelectItem>
+          </SelectContent>
+        </Select>
+      );
+    }
+
+    return (
+      <Input
+        value={value || ''}
+        onChange={(e) => updateCell(rowIndex, column.key, e.target.value)}
+        className="w-full h-8 text-xs"
+        placeholder=""
+      />
+    );
+  };
 
   if (!displayTable || !displayTable.columns || displayTable.columns.length === 0) {
     return (
@@ -209,7 +279,10 @@ export default function DataTable({ table }: DataTableProps) {
                     <td className="dest-cell cyan">FR 0401 TO 1003</td>
                     <td className="ring-cell cyan">12</td>
                     <td className="status-cell">
-                      <StatusBadge status={row.status} />
+                      {isEditable && isEditing ? 
+                        renderEditableCell({key: 'status', type: 'status'}, row.status, index) :
+                        <StatusBadge status={row.status} />
+                      }
                     </td>
                   </tr>
                 );
@@ -224,8 +297,30 @@ export default function DataTable({ table }: DataTableProps) {
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden" data-testid="data-table">
       <div className="p-6 border-b border-border">
-        <h3 className="text-lg font-semibold">Sabinas Project - ODF Layout</h3>
-        <p className="text-muted-foreground mt-1">Distribución óptica detallada del frame</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">Sabinas Project - ODF Layout</h3>
+            <p className="text-muted-foreground mt-1">Distribución óptica detallada del frame</p>
+          </div>
+          {isEditable && (
+            <div className="flex space-x-2">
+              <Button
+                variant={isEditing ? "default" : "outline"}
+                onClick={() => setIsEditing(!isEditing)}
+                size="sm"
+              >
+                <Edit3 className="w-4 h-4 mr-2" />
+                {isEditing ? 'Finalizar Edición' : 'Editar'}
+              </Button>
+              {isEditing && (
+                <Button onClick={addRow} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Agregar Fila
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="overflow-x-auto p-4">
