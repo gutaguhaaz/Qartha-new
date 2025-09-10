@@ -27,8 +27,8 @@ interface IdfData {
 export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const [selectedCluster, setSelectedCluster] = useState("");
   const [selectedProject, setSelectedProject] = useState("");
-  const [selectedIdf, setSelectedIdf] = useState("");
-  const [editingIdf, setEditingIdf] = useState<IdfData | null>(null);
+  const [selectedIdf, setSelectedIdf] = useState<string>("");
+  const [editingIdf, setEditingIdf] = useState<any>(null);
   const [idfs, setIdfs] = useState<any[]>([]); // State to hold the list of IDFs
   const [adminToken, setAdminToken] = useState(import.meta.env.VITE_ADMIN_TOKEN || "changeme-demo-token");
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -100,7 +100,8 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     setSelectedIdf('');
   }, [selectedProject]);
 
-  const { data: idfDetails } = useQuery({
+  // Get selected IDF data
+  const { data: idfData, refetch: refetchIdf } = useQuery({
     queryKey: ['admin', 'idf-details', selectedCluster, selectedProject, selectedIdf],
     queryFn: async () => {
       if (!selectedCluster || !selectedProject || !selectedIdf) return null;
@@ -111,48 +112,110 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     enabled: !!selectedCluster && !!selectedProject && !!selectedIdf
   });
 
-  // Update editing data when IDF details change
+  // Initialize editingIdf and map data to the expected structure
   useEffect(() => {
-    if (idfDetails) {
-      setEditingIdf(idfDetails);
+    if (idfData && selectedIdf) {
+      const initialData = {
+        ...idfData,
+        basic_info: idfData.basic_info || {
+          title: idfData.title || "",
+          location: idfData.site || "", // Assuming site maps to location
+          description: idfData.description || ""
+        },
+        gallery: Array.isArray(idfData.gallery) ? idfData.gallery : [],
+        documents: Array.isArray(idfData.documents) ? idfData.documents : [],
+        diagram: idfData.diagram || null,
+        tables: Array.isArray(idfData.table) ? idfData.table : [] // Assuming table maps to tables
+      };
+      setEditingIdf(initialData);
+    } else if (!selectedIdf) {
+      setEditingIdf(null); // Clear editingIdf when no IDF is selected
     }
-  }, [idfDetails]);
+  }, [idfData, selectedIdf]);
+
+
+  // Save IDF mutation
+  const saveIdfMutation = useMutation({
+    mutationFn: async (data: any) => {
+      // Ensure data format matches backend expectations
+      const cleanData = {
+        title: data.basic_info?.title || data.title || "",
+        description: data.basic_info?.description || data.description || "",
+        site: data.basic_info?.location || data.site || "", // Assuming location maps to site
+        room: data.room || "", // Assuming room is directly available
+        gallery: Array.isArray(data.gallery) ? data.gallery : [],
+        documents: Array.isArray(data.documents) ? data.documents : [],
+        diagram: data.diagram || null,
+        table: Array.isArray(data.tables) ? data.tables : [] // Assuming tables maps to table
+      };
+
+      const response = await fetch(`/api/${selectedCluster}/${selectedProject}/idfs/${selectedIdf}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify(cleanData)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to save IDF: ${response.status} - ${errorText}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Success", description: "IDF saved successfully" });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'idf-details', selectedCluster, selectedProject, selectedIdf] });
+      refetchIdf(); // Refetch to get the latest data
+    },
+    onError: (error) => {
+      console.error("Save error:", error);
+      toast({
+        title: "Error",
+        description: `Failed to save: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleFileUpload = async (files: FileList | null, type: 'images' | 'documents' | 'diagram') => {
-    if (!files || files.length === 0 || !selectedIdf) return;
+    if (!files || files.length === 0 || !selectedIdf) {
+      toast({
+        title: "Error",
+        description: "Please select an IDF first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!adminToken || adminToken === "changeme-demo-token") {
+      toast({
+        title: "Error",
+        description: "Please set a valid admin token",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       for (let i = 0; i < files.length; i++) {
-        const formData = new FormData();
-        formData.append('file', files[i]);
-        formData.append('code', selectedIdf);
-
-        const response = await fetch(`/api/${selectedCluster}/${selectedProject}/assets/${type}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${adminToken}`
-          },
-          body: formData
+        const result = await uploadAsset(selectedCluster || "", selectedProject || "", selectedIdf, files[i], type, adminToken);
+        toast({
+          title: "Success",
+          description: `${files[i].name} uploaded successfully`,
         });
-
-        if (!response.ok) throw new Error(`Failed to upload ${files[i].name}`);
       }
-
-      toast({
-        title: "Success",
-        description: `${files.length} file(s) uploaded successfully`
-      });
-
-      // Refresh IDF details
-      queryClient.invalidateQueries({
-        queryKey: ['admin', 'idf-details', selectedCluster, selectedProject, selectedIdf]
-      });
-
+      // Refresh the IDF data after upload
+      setTimeout(() => {
+        refetchIdf();
+      }, 1000);
     } catch (error) {
+      console.error("Upload error:", error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Upload failed",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -174,46 +237,36 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     }
   };
 
-  const handleSaveChanges = async () => {
-    if (!selectedCluster || !selectedProject || !selectedIdf || !editingIdf) return;
-
-    try {
-      const response = await fetch(`/api/${selectedCluster}/${selectedProject}/idfs/${selectedIdf}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
-        },
-        body: JSON.stringify({
-          title: editingIdf.title,
-          description: editingIdf.description,
-          site: editingIdf.site,
-          room: editingIdf.room,
-          table: editingIdf.table
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save changes');
-      }
-
-      // Refresh IDF details after saving
-      queryClient.invalidateQueries({
-        queryKey: ['admin', 'idf-details', selectedCluster, selectedProject, selectedIdf]
-      });
-      toast({
-        title: "Success",
-        description: "Changes saved successfully"
-      });
-
-    } catch (error) {
-      console.error('Error saving changes:', error);
+  const handleSave = () => {
+    if (!editingIdf) {
       toast({
         title: "Error",
-        description: "Failed to save changes. Please try again.",
-        variant: "destructive"
+        description: "No data to save",
+        variant: "destructive",
       });
+      return;
     }
+
+    if (!adminToken || adminToken === "changeme-demo-token") {
+      toast({
+        title: "Error",
+        description: "Please set a valid admin token",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate required fields
+    if (!editingIdf.basic_info?.title?.trim()) {
+      toast({
+        title: "Error",
+        description: "Title is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    saveIdfMutation.mutate(editingIdf);
   };
 
   if (!isOpen) return null;
@@ -337,7 +390,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             {/* IDF Editor */}
             {editingIdf && (
               <div className="space-y-6 border-t border-border pt-6">
-                <h3 className="font-medium">Editing: {editingIdf.title}</h3>
+                <h3 className="font-medium">Editing: {editingIdf?.basic_info?.title || editingIdf?.title || 'Untitled'}</h3>
 
                 {/* Basic Info */}
                 <div className="space-y-3">
@@ -345,31 +398,54 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                   <div className="grid grid-cols-1 gap-3">
                     <input
                       type="text"
-                      value={editingIdf.title}
-                      onChange={(e) => setEditingIdf({...editingIdf, title: e.target.value})}
-                      placeholder="Title"
+                      value={editingIdf?.basic_info?.title || ""}
+                      onChange={(e) =>
+                        setEditingIdf((prev: any) => ({
+                          ...prev,
+                          basic_info: { 
+                            ...prev.basic_info, 
+                            title: e.target.value 
+                          },
+                        }))
+                      }
                       className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm"
+                      placeholder="IDF Title"
                     />
                     <input
                       type="text"
-                      value={editingIdf.site || ""}
-                      onChange={(e) => setEditingIdf({...editingIdf, site: e.target.value})}
-                      placeholder="Site"
+                      value={editingIdf?.basic_info?.location || ""}
+                      onChange={(e) =>
+                        setEditingIdf((prev: any) => ({
+                          ...prev,
+                          basic_info: { 
+                            ...prev.basic_info, 
+                            location: e.target.value 
+                          },
+                        }))
+                      }
                       className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm"
+                      placeholder="Location"
                     />
                     <input
                       type="text"
-                      value={editingIdf.room || ""}
-                      onChange={(e) => setEditingIdf({...editingIdf, room: e.target.value})}
+                      value={editingIdf?.room || ""}
+                      onChange={(e) => setEditingIdf((prev:any) => ({...prev, room: e.target.value}))}
                       placeholder="Room"
                       className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm"
                     />
                     <textarea
-                      value={editingIdf.description || ""}
-                      onChange={(e) => setEditingIdf({...editingIdf, description: e.target.value})}
+                      value={editingIdf?.basic_info?.description || ""}
+                      onChange={(e) =>
+                        setEditingIdf((prev: any) => ({
+                          ...prev,
+                          basic_info: { 
+                            ...prev.basic_info, 
+                            description: e.target.value 
+                          },
+                        }))
+                      }
+                      className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm min-h-[100px]"
                       placeholder="Description"
-                      rows={3}
-                      className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm"
                     />
                   </div>
                 </div>
@@ -480,9 +556,9 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium">Device Table</h4>
                   <EditableDataTable
-                    table={editingIdf.table}
+                    table={editingIdf.tables} // Assuming table data is in 'tables'
                     onChange={(newTable) =>
-                      setEditingIdf({ ...editingIdf, table: newTable })
+                      setEditingIdf({ ...editingIdf, tables: newTable })
                     }
                   />
                 </div>
@@ -490,7 +566,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 {/* Save Changes */}
                 <div className="pt-4 border-t border-border">
                   <button 
-                    onClick={handleSaveChanges} 
+                    onClick={handleSave} 
                     className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors flex items-center justify-center space-x-2">
                     <Save className="w-4 h-4" />
                     <span>Save Changes</span>

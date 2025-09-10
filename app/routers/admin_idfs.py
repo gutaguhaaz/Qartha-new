@@ -16,18 +16,15 @@ def validate_cluster(cluster: str):
     return cluster
 
 
-def verify_admin_token(authorization: Optional[str] = Header(None)):
+def verify_admin_token(authorization: str = Header(...)):
     """Verify admin bearer token"""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Authorization header required")
-    
-    if not authorization.startswith("Bearer "):
+    if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid authorization format")
-    
+
     token = authorization.replace("Bearer ", "")
-    if token != settings.ADMIN_TOKEN:
+    if not token or token != settings.ADMIN_TOKEN:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
+
     return token
 
 
@@ -45,19 +42,19 @@ async def create_idf(
         "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
         {"cluster": cluster, "project": project, "code": code}
     )
-    
+
     if existing:
         raise HTTPException(status_code=409, detail="IDF already exists")
-    
+
     # Insert new IDF
     query = """
         INSERT INTO idfs (cluster, project, code, title, description, site, room, gallery, documents, diagram, table_data)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         RETURNING *
     """
-    
+
     table_json = json.dumps(idf_data.table.dict()) if idf_data.table else None
-    
+
     row = await database.fetch_one(query, 
         cluster, project, code,
         idf_data.title, idf_data.description,
@@ -65,13 +62,13 @@ async def create_idf(
         json.dumps([]), json.dumps([]),
         None, table_json
     )
-    
+
     # Parse JSON fields for response
     gallery = json.loads(row["gallery"]) if isinstance(row["gallery"], str) else row["gallery"]
     documents = json.loads(row["documents"]) if isinstance(row["documents"], str) else row["documents"]
     diagram = json.loads(row["diagram"]) if row["diagram"] and isinstance(row["diagram"], str) else row["diagram"]
     table_data = json.loads(row["table_data"]) if row["table_data"] and isinstance(row["table_data"], str) else row["table_data"]
-    
+
     return IdfPublic(
         cluster=row["cluster"],
         project=row["project"],
@@ -101,32 +98,32 @@ async def update_idf(
         "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
         {"cluster": cluster, "project": project, "code": code}
     )
-    
+
     if not existing:
         raise HTTPException(status_code=404, detail="IDF not found")
-    
+
     # Build update query
     table_json = json.dumps(idf_data.table.dict()) if idf_data.table else None
-    
+
     query = """
         UPDATE idfs 
         SET title = $4, description = $5, site = $6, room = $7, table_data = $8
         WHERE cluster = $1 AND project = $2 AND code = $3
         RETURNING *
     """
-    
+
     row = await database.fetch_one(query,
         cluster, project, code,
         idf_data.title, idf_data.description,
         idf_data.site, idf_data.room, table_json
     )
-    
+
     # Parse JSON fields for response
     gallery = json.loads(row["gallery"]) if isinstance(row["gallery"], str) else row["gallery"]
     documents = json.loads(row["documents"]) if isinstance(row["documents"], str) else row["documents"]
     diagram = json.loads(row["diagram"]) if row["diagram"] and isinstance(row["diagram"], str) else row["diagram"]
     table_data = json.loads(row["table_data"]) if row["table_data"] and isinstance(row["table_data"], str) else row["table_data"]
-    
+
     return IdfPublic(
         cluster=row["cluster"],
         project=row["project"],
@@ -153,8 +150,8 @@ async def delete_idf(
     # Delete IDF
     query = "DELETE FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code"
     result = await database.execute(query, {"cluster": cluster, "project": project, "code": code})
-    
+
     if result == 0:
         raise HTTPException(status_code=404, detail="IDF not found")
-    
+
     return {"message": "IDF deleted successfully"}
