@@ -67,6 +67,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
@@ -76,48 +77,58 @@
   .status-green {
     @apply bg-green-500 bg-opacity-10 text-green-400 border-green-500 border-opacity-20;
   }
+
   .status-yellow {
     @apply bg-yellow-500 bg-opacity-10 text-yellow-400 border-yellow-500 border-opacity-20;
   }
+
   .status-red {
     @apply bg-red-500 bg-opacity-10 text-red-400 border-red-500 border-opacity-20;
   }
+
   .status-gray {
     @apply bg-gray-500 bg-opacity-10 text-gray-400 border-gray-500 border-opacity-20;
   }
+
   .status-blue {
     @apply bg-blue-500 bg-opacity-10 text-blue-400 border-blue-500 border-opacity-20;
   }
-  
+
   .health-indicator {
     @apply w-3 h-3 rounded-full;
   }
-  
+
   .nav-link {
     @apply px-3 py-2 rounded-md text-sm font-medium transition-colors;
   }
-  
+
   .nav-link:hover {
     @apply bg-accent text-accent-foreground;
   }
-  
+
   .nav-link.active {
     @apply bg-primary text-primary-foreground;
   }
-  
+
   .card-hover {
     @apply transition-all duration-200 hover:bg-accent hover:bg-opacity-50 hover:scale-[1.01] cursor-pointer;
   }
-  
+
   .tab-button {
     @apply px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200;
   }
-  
+
   .tab-button:hover {
     @apply bg-accent text-accent-foreground;
   }
-  
+
   .tab-button.active {
     @apply bg-primary text-primary-foreground;
   }
+}
+
+a.bg-card.border.border-border.rounded-lg {
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+  background: #e6f9ff;
+  background: linear-gradient(90deg, rgb(249 254 255) 0%, rgb(214 236 255) 100%);
 }
