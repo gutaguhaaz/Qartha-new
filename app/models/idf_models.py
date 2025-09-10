@@ -1,9 +1,11 @@
-from pydantic import BaseModel, HttpUrl
-from typing import Optional, List, Dict, Any
+from pydantic import BaseModel, Field, HttpUrl
+from pydantic_core import ValidationError
+from typing import Optional, List, Dict, Any, Union
+from datetime import datetime
 
 
 class MediaItem(BaseModel):
-    url: HttpUrl
+    url: Union[HttpUrl, str]  # Allow both absolute URLs and relative paths
     name: Optional[str] = None
     kind: str  # "image" | "document" | "diagram"
 

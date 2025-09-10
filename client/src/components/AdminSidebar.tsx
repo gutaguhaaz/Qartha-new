@@ -196,17 +196,42 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     }
 
     try {
+      // Update the editingIdf immediately for UI feedback
+      const updatedIdf = { ...editingIdf };
+      
       for (let i = 0; i < files.length; i++) {
         const result = await uploadAsset(selectedCluster || "", selectedProject || "", selectedIdf, files[i], type, adminToken);
+        
+        // Add to local state immediately
+        const mediaItem = {
+          url: result.url,
+          name: files[i].name,
+          kind: type === 'diagram' ? 'diagram' : type.slice(0, -1) // Remove 's' from 'images'/'documents'
+        };
+        
+        if (type === 'images') {
+          if (!updatedIdf.gallery) updatedIdf.gallery = [];
+          updatedIdf.gallery.push(mediaItem);
+        } else if (type === 'documents') {
+          if (!updatedIdf.documents) updatedIdf.documents = [];
+          updatedIdf.documents.push(mediaItem);
+        } else if (type === 'diagram') {
+          updatedIdf.diagram = mediaItem;
+        }
+        
         toast({
           title: "Success",
           description: `${files[i].name} uploaded successfully`,
         });
       }
-      // Refresh the IDF data after upload
+      
+      // Update local state
+      setEditingIdf(updatedIdf);
+      
+      // Refresh from server to get the absolute URLs
       setTimeout(() => {
         refetchIdf();
-      }, 1000);
+      }, 500);
     } catch (error) {
       console.error("Upload error:", error);
       toast({
