@@ -1,9 +1,21 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { X, Upload, Trash2, Plus, Edit3, Save, ArrowUp, ArrowDown, Maximize, Minimize } from "lucide-react";
+import {
+  X,
+  Upload,
+  Trash2,
+  Edit3,
+  Save,
+  ArrowUp,
+  ArrowDown,
+  Maximize,
+  Minimize,
+  Plus,
+} from "lucide-react";
 import { getIdfs, getIdf, uploadAsset } from "@/lib/api";
 import EditableDataTable from "./EditableDataTable";
+import AddIdfDialog from "./AddIdfDialog";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -336,7 +348,16 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           <div className="flex-1 overflow-y-auto p-4 space-y-6">
             {/* Selection */}
             <div className="space-y-4">
-              <h3 className="font-medium">Select IDF to Edit</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium">Select IDF to Edit</h3>
+                <AddIdfDialog
+                  cluster={selectedCluster}
+                  project={selectedProject}
+                  token={adminToken}
+                  disabled={!selectedCluster || !selectedProject}
+                  onCreated={(idf) => setIdfs((prev) => [...prev, idf])}
+                />
+              </div>
 
               <div className="space-y-3">
                 <div>

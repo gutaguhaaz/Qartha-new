@@ -31,6 +31,32 @@ export async function getIdf(cluster: string, project: string, code: string) {
   return response.json();
 }
 
+export async function createIdf({
+  cluster,
+  project,
+  body,
+  token,
+}: {
+  cluster: string;
+  project: string;
+  body: { code: string; title: string; site: string; room?: string };
+  token?: string;
+}) {
+  const url = `${API_BASE}/api/${cluster}/${project}/idfs`;
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || 'Failed to create IDF');
+  }
+  return response.json();
+}
+
 export async function uploadCsv(cluster: string, project: string, code: string, file: File, token: string) {
   const formData = new FormData();
   formData.append('file', file);
