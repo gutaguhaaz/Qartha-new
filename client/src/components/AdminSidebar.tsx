@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { X, Upload, Trash2, Plus, Edit3, Save, ArrowUp, ArrowDown } from "lucide-react";
+import { X, Upload, Trash2, Plus, Edit3, Save, ArrowUp, ArrowDown, Maximize, Minimize } from "lucide-react";
 import { getIdfs, getIdf, uploadAsset } from "@/lib/api";
 import EditableDataTable from "./EditableDataTable";
 
@@ -31,6 +31,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const [editingIdf, setEditingIdf] = useState<IdfData | null>(null);
   const [idfs, setIdfs] = useState<any[]>([]); // State to hold the list of IDFs
   const [adminToken, setAdminToken] = useState(import.meta.env.VITE_ADMIN_TOKEN || "changeme-demo-token");
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -226,20 +227,34 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       />
 
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full w-96 bg-card border-r border-border z-50 transform transition-transform duration-300 ${
+      <div className={`fixed left-0 top-0 h-full bg-card border-r border-border z-50 transform transition-all duration-300 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      } ${isFullscreen ? 'w-full' : 'w-96'}`}>
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-border">
             <h2 className="text-lg font-semibold">Admin Panel</h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-accent rounded-md transition-colors"
-              data-testid="button-close-admin"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setIsFullscreen(!isFullscreen)}
+                className="p-2 hover:bg-accent rounded-md transition-colors"
+                data-testid="button-toggle-fullscreen"
+                title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+              >
+                {isFullscreen ? (
+                  <Minimize className="w-5 h-5" />
+                ) : (
+                  <Maximize className="w-5 h-5" />
+                )}
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-accent rounded-md transition-colors"
+                data-testid="button-close-admin"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Content */}
