@@ -105,6 +105,7 @@ async def seed_data():
             VALUES (:cluster, :project, :code, :title, :description, :site, :room, :gallery, :documents, :diagram, :table_data)
         """
         
+        # TRK Trinity project - 5 IDFs
         await database.execute(query, {
             "cluster": "trk", "project": "trinity", "code": "IDF-1004", "title": "IDF 1004", 
             "description": "IDF principal para el área de oficinas administrativas y centro de datos primario.",
@@ -113,10 +114,68 @@ async def seed_data():
         })
         
         await database.execute(query, {
+            "cluster": "trk", "project": "trinity", "code": "IDF-1005", "title": "IDF 1005", 
+            "description": "IDF secundario para el área de producción y manufactura.",
+            "site": "TrinityRail HQ", "room": "Rack B", "gallery": json.dumps([]), 
+            "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(trk_trinity_table)
+        })
+        
+        await database.execute(query, {
+            "cluster": "trk", "project": "trinity", "code": "IDF-1006", "title": "IDF 1006", 
+            "description": "IDF para el área de desarrollo y testing.",
+            "site": "TrinityRail HQ", "room": "Rack C", "gallery": json.dumps([]), 
+            "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(trk_trinity_table)
+        })
+        
+        await database.execute(query, {
+            "cluster": "trk", "project": "trinity", "code": "IDF-1007", "title": "IDF 1007", 
+            "description": "IDF para sala de servidores principal.",
+            "site": "TrinityRail HQ", "room": "Server Room A", "gallery": json.dumps([]), 
+            "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(trk_trinity_table)
+        })
+        
+        await database.execute(query, {
+            "cluster": "trk", "project": "trinity", "code": "IDF-1008", "title": "IDF 1008", 
+            "description": "IDF de respaldo para contingencias.",
+            "site": "TrinityRail HQ", "room": "Backup Room", "gallery": json.dumps([]), 
+            "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(trk_trinity_table)
+        })
+        
+        # LAB Demo project - 2 IDFs
+        await database.execute(query, {
             "cluster": "lab", "project": "demo", "code": "IDF-0001", "title": "IDF Demo 001",
             "description": "Demostración de IDF en ambiente de laboratorio.",
             "site": "Lab Facility", "room": "Room B-1", "gallery": json.dumps([]), 
             "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(lab_demo_table)
+        })
+        
+        await database.execute(query, {
+            "cluster": "lab", "project": "demo", "code": "IDF-0002", "title": "IDF Demo 002",
+            "description": "Segundo IDF de demostración para pruebas avanzadas.",
+            "site": "Lab Facility", "room": "Room B-2", "gallery": json.dumps([]), 
+            "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(lab_demo_table)
+        })
+        
+        # TRK Alpha project - 3 IDFs
+        await database.execute(query, {
+            "cluster": "trk", "project": "alpha", "code": "IDF-2001", "title": "IDF Alpha 001",
+            "description": "IDF principal del proyecto Alpha.",
+            "site": "Alpha Site", "room": "Room Alpha-1", "gallery": json.dumps([]), 
+            "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(trk_trinity_table)
+        })
+        
+        await database.execute(query, {
+            "cluster": "trk", "project": "alpha", "code": "IDF-2002", "title": "IDF Alpha 002",
+            "description": "IDF secundario del proyecto Alpha.",
+            "site": "Alpha Site", "room": "Room Alpha-2", "gallery": json.dumps([]), 
+            "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(trk_trinity_table)
+        })
+        
+        await database.execute(query, {
+            "cluster": "trk", "project": "alpha", "code": "IDF-2003", "title": "IDF Alpha 003",
+            "description": "IDF de desarrollo del proyecto Alpha.",
+            "site": "Alpha Site", "room": "Room Alpha-3", "gallery": json.dumps([]), 
+            "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(trk_trinity_table)
         })
 
 
