@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
+import ThemeToggle from "./ThemeToggle";
 
 const CLUSTERS = import.meta.env.VITE_CLUSTERS?.split(',') || ['trk', 'lab'];
 const DEFAULT_CLUSTER = import.meta.env.VITE_DEFAULT_CLUSTER || 'trk';
@@ -90,15 +91,16 @@ export default function Navbar() {
             className={`nav-link ${isDirectoryActive ? 'active' : ''}`}
             data-testid="link-directory"
           >
-            <i className="fas fa-list mr-2"></i>Directorio
+            <i className="fas fa-list mr-2"></i>Directory
           </Link>
           <Link 
             href={`${currentPath}/cms`} 
             className={`nav-link ${isCmsActive ? 'active' : ''}`}
             data-testid="link-cms"
           >
-            <i className="fas fa-upload mr-2"></i>CMS
+            <i className="fas fa-upload mr-2"></i>Admin
           </Link>
+          <ThemeToggle />
         </div>
       </div>
     </nav>
