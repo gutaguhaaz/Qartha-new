@@ -132,7 +132,7 @@
 
   /* Custom spinning animation for admin gear */
   .animate-spin {
-    animation: spin 3s linear infinite;
+    animation: spin 3s linear infinite !important;
   }
 
   @keyframes spin {
