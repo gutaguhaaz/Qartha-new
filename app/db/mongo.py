@@ -100,19 +100,24 @@ async def seed_data():
         }
         
         # Insert seed data
-        await database.execute("""
+        query = """
             INSERT INTO idfs (cluster, project, code, title, description, site, room, gallery, documents, diagram, table_data)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        """, "trk", "trinity", "IDF-1004", "IDF 1004", 
-            "IDF principal para el área de oficinas administrativas y centro de datos primario.",
-            "TrinityRail HQ", "Rack A", json.dumps([]), json.dumps([]), None, json.dumps(trk_trinity_table))
+            VALUES (:cluster, :project, :code, :title, :description, :site, :room, :gallery, :documents, :diagram, :table_data)
+        """
         
-        await database.execute("""
-            INSERT INTO idfs (cluster, project, code, title, description, site, room, gallery, documents, diagram, table_data)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        """, "lab", "demo", "IDF-0001", "IDF Demo 001",
-            "Demostración de IDF en ambiente de laboratorio.",
-            "Lab Facility", "Room B-1", json.dumps([]), json.dumps([]), None, json.dumps(lab_demo_table))
+        await database.execute(query, {
+            "cluster": "trk", "project": "trinity", "code": "IDF-1004", "title": "IDF 1004", 
+            "description": "IDF principal para el área de oficinas administrativas y centro de datos primario.",
+            "site": "TrinityRail HQ", "room": "Rack A", "gallery": json.dumps([]), 
+            "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(trk_trinity_table)
+        })
+        
+        await database.execute(query, {
+            "cluster": "lab", "project": "demo", "code": "IDF-0001", "title": "IDF Demo 001",
+            "description": "Demostración de IDF en ambiente de laboratorio.",
+            "site": "Lab Facility", "room": "Room B-1", "gallery": json.dumps([]), 
+            "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(lab_demo_table)
+        })
 
 
 async def close_database():

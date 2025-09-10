@@ -1,5 +1,6 @@
 import io
 import qrcode
+from qrcode import QRCode
 from fastapi import APIRouter, Response, HTTPException, Request
 from app.db.mongo import database
 from app.core.config import settings
@@ -33,7 +34,7 @@ async def get_idf_qr_png(cluster: str, project: str, code: str, request: Request
 
     url = _absolute_frontend_url(request, cluster, project, code)
 
-    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr = QRCode(version=1, box_size=10, border=4)
     qr.add_data(url)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
