@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { uploadCsv, uploadAsset, downloadCsvTemplate, uploadLogo } from "@/lib/api";
+import AddIdfDialog from "@/components/AddIdfDialog";
 
 interface CmsUploadProps {
   cluster: string;
@@ -128,11 +129,14 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8" data-testid="cms-upload">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-foreground mb-2" data-testid="page-title">
-          Content Management System
-        </h2>
-        <p className="text-muted-foreground">Upload and manage files for IDFs</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground mb-2" data-testid="page-title">
+            Content Management System
+          </h2>
+          <p className="text-muted-foreground">Upload and manage files for IDFs</p>
+        </div>
+        <AddIdfDialog cluster={cluster} project={project} token={adminToken} />
       </div>
 
       {/* Configuration */}
