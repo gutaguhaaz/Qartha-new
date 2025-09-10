@@ -7,24 +7,35 @@ interface StatusBadgeProps {
 
 export default function StatusBadge({ status, className }: StatusBadgeProps) {
   const normalizedStatus = status.toLowerCase();
-  
-  const getStatusClass = () => {
-    switch (normalizedStatus) {
-      case 'ok':
-        return 'status-green';
-      case 'revisión':
-      case 'revision':
-        return 'status-yellow';
-      case 'falla':
-        return 'status-red';
-      case 'libre':
-        return 'status-gray';
-      case 'reservado':
-        return 'status-blue';
-      default:
-        return 'status-gray';
-    }
+
+  const statusClassMap: Record<string, string> = {
+    ok: 'status-green',
+    "revisión": 'status-yellow',
+    revision: 'status-yellow',
+    review: 'status-yellow',
+    falla: 'status-red',
+    fault: 'status-red',
+    libre: 'status-gray',
+    available: 'status-gray',
+    reservado: 'status-blue',
+    reserved: 'status-blue'
   };
+
+  const statusTextMap: Record<string, string> = {
+    ok: 'OK',
+    "revisión": 'Under Review',
+    revision: 'Under Review',
+    review: 'Under Review',
+    falla: 'Critical Failure',
+    fault: 'Critical Failure',
+    libre: 'Available',
+    available: 'Available',
+    reservado: 'Reserved',
+    reserved: 'Reserved'
+  };
+
+  const getStatusClass = () => statusClassMap[normalizedStatus] || 'status-gray';
+  const displayStatus = statusTextMap[normalizedStatus] || status;
 
   return (
     <span 
@@ -35,7 +46,7 @@ export default function StatusBadge({ status, className }: StatusBadgeProps) {
       )}
       data-testid={`status-${normalizedStatus}`}
     >
-      {status}
+      {displayStatus}
     </span>
   );
 }

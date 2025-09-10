@@ -14,7 +14,7 @@ interface EditableDataTableProps {
 
 export default function EditableDataTable({ table, onChange }: EditableDataTableProps) {
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // Debug logging
   console.log('EditableDataTable received table:', table);
 
@@ -28,14 +28,14 @@ export default function EditableDataTable({ table, onChange }: EditableDataTable
             onClick={() => {
               const newTable: IdfTable = {
                 columns: [
-                  { key: 'tray', label: 'Charola', type: 'text' },
+                  { key: 'tray', label: 'Tray', type: 'text' },
                   { key: 'panel', label: 'Patch Panel', type: 'text' },
-                  { key: 'port', label: 'Puerto', type: 'number' },
-                  { key: 'fiber_id', label: 'Fibra', type: 'text' },
-                  { key: 'to_room', label: 'Destino (Cuarto)', type: 'text' },
-                  { key: 'to_panel', label: 'Destino (Panel)', type: 'text' },
-                  { key: 'to_port', label: 'Puerto Destino', type: 'number' },
-                  { key: 'status', label: 'Estado', type: 'status' }
+                  { key: 'port', label: 'Port', type: 'number' },
+                  { key: 'fiber_id', label: 'Fiber ID', type: 'text' },
+                  { key: 'to_room', label: 'Destination (Room)', type: 'text' },
+                  { key: 'to_panel', label: 'Destination (Panel)', type: 'text' },
+                  { key: 'to_port', label: 'Destination Port', type: 'number' },
+                  { key: 'status', label: 'Status', type: 'status' }
                 ],
                 rows: []
               };
@@ -96,9 +96,17 @@ export default function EditableDataTable({ table, onChange }: EditableDataTable
     }
 
     if (column.type === 'status') {
+      const statusValueMap: Record<string, string> = {
+        "revisión": "review",
+        revision: "review",
+        falla: "fault",
+        libre: "available",
+        reservado: "reserved",
+      };
+
       return (
-        <Select 
-          value={value || ''} 
+        <Select
+          value={statusValueMap[value] || value || ''}
           onValueChange={(newValue) => updateCell(rowIndex, column.key, newValue)}
         >
           <SelectTrigger className="w-full">
@@ -106,10 +114,10 @@ export default function EditableDataTable({ table, onChange }: EditableDataTable
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ok">OK</SelectItem>
-            <SelectItem value="revisión">Under Review</SelectItem>
-            <SelectItem value="falla">Critical Failure</SelectItem>
-            <SelectItem value="libre">Available</SelectItem>
-            <SelectItem value="reservado">Reserved</SelectItem>
+            <SelectItem value="review">Under Review</SelectItem>
+            <SelectItem value="fault">Critical Failure</SelectItem>
+            <SelectItem value="available">Available</SelectItem>
+            <SelectItem value="reserved">Reserved</SelectItem>
           </SelectContent>
         </Select>
       );

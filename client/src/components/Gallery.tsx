@@ -24,7 +24,7 @@ export default function Gallery({ images }: GalleryProps) {
     return (
       <div className="text-center py-12 text-muted-foreground" data-testid="gallery-empty">
         <i className="fas fa-images text-4xl mb-4"></i>
-        <p>No hay imágenes disponibles</p>
+        <p>No images available</p>
       </div>
     );
   }

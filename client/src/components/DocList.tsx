@@ -9,7 +9,7 @@ export default function DocList({ documents }: DocListProps) {
     return (
       <div className="text-center py-12 text-muted-foreground" data-testid="doclist-empty">
         <i className="fas fa-file-alt text-4xl mb-4"></i>
-        <p>No hay documentos disponibles</p>
+        <p>No documents available</p>
       </div>
     );
   }
