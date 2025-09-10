@@ -1,11 +1,11 @@
-from pydantic import BaseModel, Field, HttpUrl
-from pydantic_core import ValidationError
 from typing import Optional, List, Dict, Any, Union
 from datetime import datetime
 
+from pydantic import BaseModel, Field, HttpUrl
+
 
 class MediaItem(BaseModel):
-    url: Union[HttpUrl, str]  # Allow both absolute URLs and relative paths
+    url: Union[HttpUrl, str]
     name: Optional[str] = None
     kind: str  # "image" | "document" | "diagram"
 
@@ -68,6 +68,11 @@ class IdfUpsert(BaseModel):
     table: Optional[IdfTable] = None
 
 
+class IdfCreate(IdfUpsert):
+    code: str
+    site: str
+
+
 class Device(BaseModel):
     cluster: str
     project: str
@@ -78,3 +83,4 @@ class Device(BaseModel):
     rack: Optional[str] = None
     site: Optional[str] = None
     notes: Optional[str] = None
+
