@@ -8,22 +8,10 @@ const CLUSTERS = import.meta.env.VITE_CLUSTERS?.split(",") || ["trk", "lab"];
 const DEFAULT_CLUSTER = import.meta.env.VITE_DEFAULT_CLUSTER || "trk";
 const DEFAULT_PROJECT = import.meta.env.VITE_DEFAULT_PROJECT || "trinity";
 
-const projectOptions = {
-    trk: [
-      { value: "trinity", label: "Trinity Project" },
-      { value: "alpha", label: "Alpha Project" }
-    ],
-    lab: [
-      { value: "demo", label: "Demo Project" },
-      { value: "research", label: "Research Project" }
-    ],
-    alpha: [
-      { value: "prototype", label: "Prototype Project" }
-    ]
-  };
 
 function getProjectsForCluster(cluster: string): string[] {
-  return projectOptions[cluster]?.map(p => p.value) || [DEFAULT_PROJECT];
+  const projectsEnvVar = (import.meta.env as any)[`VITE_PROJECTS_${cluster}`];
+  return projectsEnvVar?.split(',') || [DEFAULT_PROJECT];
 }
 
 export default function Navbar() {
