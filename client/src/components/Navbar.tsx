@@ -72,8 +72,8 @@ export default function Navbar() {
                     y2="233.94"
                     gradientUnits="userSpaceOnUse"
                   >
-                    <stop offset="0" stop-color="#0364b9" />
-                    <stop offset="1" stop-color="#0b9ac9" />
+                    <stop offset="0" stopColor="#0364b9" />
+                    <stop offset="1" stopColor="#0b9ac9" />
                   </linearGradient>
                 </defs>
                 <title>QARTHA-1</title>
