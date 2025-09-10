@@ -104,7 +104,9 @@ async def get_idfs(
             idf_data["documents"] = json.loads(idf_data["documents"])
         if isinstance(idf_data["diagram"], str) and idf_data["diagram"]:
             idf_data["diagram"] = json.loads(idf_data["diagram"])
-        if isinstance(idf_data["devices"], str):
+        
+        # Parse devices field if it exists and is a string
+        if idf_data.get("devices") and isinstance(idf_data["devices"], str):
             idf_data["devices"] = json.loads(idf_data["devices"])
 
         # Convert relative URLs to absolute URLs
@@ -112,7 +114,6 @@ async def get_idfs(
         idf_data["documents"] = convert_relative_urls_to_absolute(idf_data["documents"])
         if idf_data["diagram"]:
             idf_data["diagram"] = convert_relative_urls_to_absolute(idf_data["diagram"])
-
 
         result.append(IdfIndex(
             cluster=idf_data["cluster"],

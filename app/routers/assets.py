@@ -234,15 +234,36 @@ async def upload_logo(
     return {"url": url, "message": "Logo uploaded successfully"}
 
 
-@router.get("/{cluster}/{project}/logo")
-async def get_logo(cluster: str, project: str):
-    """Get project logo"""
-    logo_dir = os.path.join(settings.STATIC_DIR, cluster, project)
+@router.get("/{cluster}/logo")
+async def get_cluster_logo(cluster: str):
+    """Get cluster logo"""
+    logo_dir = os.path.join(settings.STATIC_DIR, cluster)
 
     # Look for common image formats
     for ext in ['png', 'jpg', 'jpeg', 'gif', 'svg']:
         logo_path = os.path.join(logo_dir, f"logo.{ext}")
         if os.path.exists(logo_path):
-            return {"url": f"/static/{cluster}/{project}/logo.{ext}"}
+            return {"url": f"/static/{cluster}/logo.{ext}"}
 
-    raise HTTPException(status_code=404, detail="Logo not found")
+    return {"url": None, "message": "No logo found"}
+
+
+@router.get("/{cluster}/{project}/logo")
+async def get_logo(cluster: str, project: str):
+    """Get project logo"""
+    # Check both cluster-level and project-level logo locations
+    logo_locations = [
+        os.path.join(settings.STATIC_DIR, cluster, project),
+        os.path.join(settings.STATIC_DIR, cluster)
+    ]
+
+    # Look for common image formats in both locations
+    for logo_dir in logo_locations:
+        for ext in ['png', 'jpg', 'jpeg', 'gif', 'svg']:
+            logo_path = os.path.join(logo_dir, f"logo.{ext}")
+            if os.path.exists(logo_path):
+                relative_path = logo_path.replace(settings.STATIC_DIR, "")
+                return {"url": f"/static{relative_path}"}
+
+    # Return a default or placeholder response instead of 404
+    return {"url": None, "message": "No logo found"}
