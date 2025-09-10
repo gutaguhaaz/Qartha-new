@@ -86,13 +86,24 @@ export default function PublicDetail({ params }: { params: PublicDetailProps }) 
     <div className="max-w-7xl mx-auto px-6 py-8" data-testid="public-detail">
       {/* Header */}
       <div className="mb-8">
-        <nav className="text-sm mb-4" data-testid="breadcrumb">
-          <Link href={`/${cluster}/${project}`} className="text-muted-foreground hover:text-foreground">
-            Directory
+        <div className="flex items-center justify-between mb-4">
+          <Link 
+            href={`/${cluster}/${project}`} 
+            className="flex items-center space-x-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
+            data-testid="back-button"
+          >
+            <i className="fas fa-arrow-left"></i>
+            <span>Back to Directory</span>
           </Link>
-          <span className="mx-2 text-muted-foreground">/</span>
-          <span className="text-foreground">{idf.title}</span>
-        </nav>
+          
+          <nav className="text-sm" data-testid="breadcrumb">
+            <Link href={`/${cluster}/${project}`} className="text-muted-foreground hover:text-foreground">
+              Directory
+            </Link>
+            <span className="mx-2 text-muted-foreground">/</span>
+            <span className="text-foreground">{idf.title}</span>
+          </nav>
+        </div>
 
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-4">
