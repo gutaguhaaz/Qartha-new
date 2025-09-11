@@ -158,7 +158,7 @@ export default function PublicList() {
                     ? "Trinity Project"
                     : cluster.toUpperCase() + " Cluster"}{" "}
                   •{" "}
-                  {project === "sabinas"
+                  {project === "Sabinas"
                     ? "Sabinas Project"
                     : project.charAt(0).toUpperCase() +
                       project.slice(1) +

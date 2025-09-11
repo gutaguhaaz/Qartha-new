@@ -143,7 +143,7 @@ export default function Navbar() {
                     key={project}
                     value={project}
                   >
-                    {project === "Sabinas Project"
+                    {project === "Sabinas"
                       ? "Sabinas Project"
                       : project.charAt(0).toUpperCase() +
                         project.slice(1) +
@@ -225,7 +225,7 @@ export default function Navbar() {
                     key={project}
                     value={project}
                   >
-                    {project === "Sabinas Project"
+                    {project === "Sabinas"
                       ? "Sabinas Project"
                       : project.charAt(0).toUpperCase() +
                         project.slice(1) +
