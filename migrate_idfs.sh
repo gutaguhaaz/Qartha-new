@@ -3,6 +3,7 @@
 set -euo pipefail
 
 # Replace these with your actual connection strings from the Database panel
+# Example format: postgresql://username:password@host:port/database
 DEV_URL="<paste Development connection string here>"
 PROD_URL="<paste Production connection string here>"
 
