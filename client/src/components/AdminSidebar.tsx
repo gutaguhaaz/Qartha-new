@@ -574,13 +574,13 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 {activeTab === "location" && (
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Location images - All gallery images are shown here
+                      Location images - Specific location photos
                     </p>
-                    {editingIdf?.gallery && editingIdf.gallery.length > 0 && (
+                    {editingIdf?.location && editingIdf.location.length > 0 ? (
                       <div className="space-y-2">
                         <h4 className="font-medium">Location Images:</h4>
                         <div className="grid grid-cols-2 gap-2">
-                          {editingIdf.gallery.map((item, index) => (
+                          {editingIdf.location.map((item, index) => (
                             <div key={index} className="relative">
                               <img
                                 src={item.url}
@@ -593,6 +593,11 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                             </div>
                           ))}
                         </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <i className="fas fa-map-marker-alt text-2xl mb-2"></i>
+                        <p className="text-sm">No location images available</p>
                       </div>
                     )}
                   </div>

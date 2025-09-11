@@ -354,7 +354,14 @@ export default function PublicDetail({
 
         {activeTab === "location" && (
           <div data-testid="tab-content-location">
-            <Gallery images={idf.gallery || []} />
+            {idf.location && idf.location.length > 0 ? (
+              <Gallery images={idf.location} />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <i className="fas fa-map-marker-alt text-4xl mb-4"></i>
+                <p>No location available</p>
+              </div>
+            )}
           </div>
         )}
 
