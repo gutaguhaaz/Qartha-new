@@ -75,7 +75,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
     queryFn: async () => {
       // Using predefined clusters for now
       return [
-        { value: "trk", label: "Trinity" }, // Changed label from TRK to Trinity
+        { value: "Trinity", label: "Trinity" },
         { value: "lab", label: "LAB" },
         { value: "alpha", label: "ALPHA" }
       ];
@@ -84,9 +84,8 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
 
   // Define projects based on cluster selection
   const projectsByCluster = {
-    trk: [
-      { value: "trinity", label: "Trinity" }, // Corrected value to match cluster value
-      { value: "alpha", label: "Alpha" }
+    Trinity: [
+      { value: "Sabinas Project", label: "Sabinas Project" }
     ],
     lab: [
       { value: "demo", label: "Demo" },
@@ -123,7 +122,16 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
 
   // Reset dependent fields when cluster changes
   useEffect(() => {
-    setSelectedProject('');
+    if (selectedCluster) {
+      const projects = projectsByCluster[selectedCluster as keyof typeof projectsByCluster] || [];
+      if (projects.length > 0) {
+        setSelectedProject(projects[0].value);
+      } else {
+        setSelectedProject('');
+      }
+    } else {
+      setSelectedProject('');
+    }
     setSelectedIdf('');
     setIdfs([]);
   }, [selectedCluster]);
