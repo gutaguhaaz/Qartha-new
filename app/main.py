@@ -54,8 +54,9 @@ if os.path.exists("dist"):
     from fastapi.staticfiles import StaticFiles
     from fastapi.responses import FileResponse
     
-    # Mount static assets
-    app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
+    # Mount static assets only if the assets directory exists
+    if os.path.exists("dist/assets"):
+        app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
     
     # Catch-all route for SPA - must be last
     @app.get("/{full_path:path}")
