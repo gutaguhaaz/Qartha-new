@@ -209,14 +209,14 @@ async def get_idf(
             elif parsed_diagram:
                 diagrams_data = [parsed_diagram]
         elif isinstance(idf_dict["diagram"], list):
-            diagrams_data = idf_data["diagram"]
+            diagrams_data = idf_dict["diagram"]
         elif idf_dict["diagram"]:
             diagrams_data = [idf_dict["diagram"]]
     elif "diagrams" in idf_dict and idf_dict["diagrams"]:
-        if isinstance(idf_data["diagrams"], str):
-            diagrams_data = json.loads(idf_data["diagrams"])
-        elif isinstance(idf_data["diagrams"], list):
-            diagrams_data = idf_data["diagrams"]
+        if isinstance(idf_dict["diagrams"], str):
+            diagrams_data = json.loads(idf_dict["diagrams"])
+        elif isinstance(idf_dict["diagrams"], list):
+            diagrams_data = idf_dict["diagrams"]
 
     idf_dict["diagrams"] = diagrams_data
 
@@ -224,7 +224,7 @@ async def get_idf(
     if isinstance(idf_dict.get("table_data"), str) and idf_dict["table_data"]:
         idf_dict["table"] = json.loads(idf_dict["table_data"])
     else:
-        idf_dict["table"] = idf_data.get("table_data")
+        idf_dict["table"] = idf_dict.get("table_data")
 
     # Compute health if table exists
     health = None
@@ -244,8 +244,8 @@ async def get_idf(
 
     # Parse media field
     media = None
-    if idf_data.get("media"):
-        media_data = json.loads(idf_data["media"]) if isinstance(idf_data["media"], str) else idf_data["media"]
+    if idf_dict.get("media"):
+        media_data = json.loads(idf_dict["media"]) if isinstance(idf_dict["media"], str) else idf_dict["media"]
         media_data = convert_relative_urls_to_absolute(media_data)
         if media_data.get("logo"):
             from app.models.idf_models import IdfMedia, MediaLogo
