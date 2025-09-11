@@ -16,6 +16,15 @@ def validate_cluster(cluster: str):
     return cluster
 
 
+def map_url_project_to_db_project(project: str) -> str:
+    """Map URL project name to database project name"""
+    project_mapping = {
+        "sabinas": "Sabinas Project",
+        # Add more mappings as needed
+    }
+    return project_mapping.get(project, project)
+
+
 def compute_health(table_data: dict) -> Optional[IdfHealth]:
     """Compute health status from table rows"""
     if not table_data or not table_data.get("rows"):
@@ -73,11 +82,13 @@ async def list_idfs(
     include_health: int = Query(0, description="Include health computation")
 ):
     """Get list of IDFs for a cluster/project"""
-    print(f"Listing IDFs for cluster: {cluster}, project: {project}")
+    # Map URL project to database project
+    db_project = map_url_project_to_db_project(project)
+    print(f"Listing IDFs for cluster: {cluster}, project: {project} (db_project: {db_project})")
 
     # Build SQL query
     base_query = "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project"
-    params = {"cluster": cluster, "project": project}
+    params = {"cluster": cluster, "project": db_project}
 
     if q:
         base_query += " AND (code ILIKE :q OR title ILIKE :q OR site ILIKE :q OR room ILIKE :q)"
@@ -183,9 +194,12 @@ async def get_idf(
     project: str = ""
 ):
     """Get a specific IDF by code"""
+    # Map URL project to database project
+    db_project = map_url_project_to_db_project(project)
+    
     idf = await database.fetch_one(
         "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"cluster": cluster, "project": project, "code": code}
+        {"cluster": cluster, "project": db_project, "code": code}
     )
 
     if not idf:
