@@ -155,17 +155,14 @@ export default function Navbar() {
             >
               <i className="fas fa-list"></i>
             </Link>
-            {/* Only show admin button in CMS routes */}
-            {location.includes('/admin') && (
-              <button
-                onClick={() => setIsAdminOpen(true)}
-                className="nav-link"
-                data-testid="button-admin"
-                title="Admin Panel"
-              >
-                <Settings className="w-4 h-4 animate-spin" />
-              </button>
-            )}
+            <button
+              onClick={() => setIsAdminOpen(true)}
+              className="nav-link"
+              data-testid="button-admin"
+              title="Admin Panel"
+            >
+              <Settings className="w-4 h-4 animate-spin" />
+            </button>
             <ThemeToggle />
           </div>
 
@@ -228,20 +225,17 @@ export default function Navbar() {
             >
               <i className="fas fa-list"></i>
             </Link>
-            {/* Only show admin button in CMS routes */}
-            {location.includes('/admin') && (
-              <button
-                onClick={() => {
-                  setIsAdminOpen(true);
-                  setIsMenuOpen(false);
-                }}
-                className="nav-link"
-                data-testid="button-admin-mobile"
-                title="Admin Panel"
-              >
-                <Settings className="w-4 h-4 animate-spin" />
-              </button>
-            )}
+            <button
+              onClick={() => {
+                setIsAdminOpen(true);
+                setIsMenuOpen(false);
+              }}
+              className="nav-link"
+              data-testid="button-admin-mobile"
+              title="Admin Panel"
+            >
+              <Settings className="w-4 h-4 animate-spin" />
+            </button>
             <ThemeToggle />
           </div>
         </div>

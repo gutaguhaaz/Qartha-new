@@ -331,7 +331,7 @@ export default function PublicDetail({
       {/* Tab Content */}
       <div className="flex-1">
         {/* Overview Tab - Hidden */}
-        {false && activeTab === "overview" && (
+        {activeTab === "overview" && (
           <div className="hidden space-y-6">
             {/* Basic Info */}
             <div className="bg-card border border-border rounded-lg p-6">
