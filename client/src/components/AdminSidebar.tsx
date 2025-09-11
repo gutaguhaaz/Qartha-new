@@ -903,17 +903,76 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                   </div>
                 )}
 
-                {/* Fiber Allocation Table Section (moved from table tab content) */}
+                {/* Fiber Optic Information (DFO) Section */}
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium">Fiber Allocation Table</h4>
-                  <div className="bg-card border border-border rounded-lg overflow-hidden">
-                    <DataTable
-                      table={editingIdf.table || undefined}
-                      isEditable={true}
-                      onChange={(newTable) =>
-                        setEditingIdf({ ...editingIdf, table: newTable })
-                      }
-                    />
+                  <h4 className="text-sm font-medium">Fiber Optic Information (DFO)</h4>
+                  <div className="bg-card border border-border rounded-lg p-4">
+                    {editingIdf.table?.dfo_image ? (
+                      <div className="space-y-2">
+                        <img 
+                          src={editingIdf.table.dfo_image} 
+                          alt="DFO Diagram" 
+                          className="w-full h-auto rounded border"
+                        />
+                        <button
+                          onClick={() => setEditingIdf({
+                            ...editingIdf,
+                            table: { ...editingIdf.table, dfo_image: undefined }
+                          })}
+                          className="text-red-500 text-sm hover:text-red-700"
+                        >
+                          Remove DFO Image
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium">
+                          Upload DFO Diagram
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file && selectedIdf && adminToken) {
+                              try {
+                                const formData = new FormData();
+                                formData.append('file', file);
+                                formData.append('code', selectedIdf);
+                                
+                                const response = await fetch(
+                                  `/api/${selectedCluster}/${selectedProject}/assets/dfo`,
+                                  {
+                                    method: 'POST',
+                                    headers: {
+                                      'Authorization': `Bearer ${adminToken}`,
+                                    },
+                                    body: formData,
+                                  }
+                                );
+                                
+                                if (response.ok) {
+                                  const result = await response.json();
+                                  setEditingIdf({
+                                    ...editingIdf,
+                                    table: { 
+                                      ...editingIdf.table,
+                                      dfo_image: result.url 
+                                    }
+                                  });
+                                }
+                              } catch (error) {
+                                console.error('Error uploading DFO image:', error);
+                              }
+                            }
+                          }}
+                          className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                        <p className="text-xs text-gray-500">
+                          Upload a diagram showing fiber optic distribution
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

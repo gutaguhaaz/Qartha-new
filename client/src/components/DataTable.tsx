@@ -43,12 +43,12 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
 
   const addRow = () => {
     if (!displayTable || !onChange) return;
-    
+
     const newRow: any = {};
     displayTable.columns.forEach(col => {
       newRow[col.key] = '';
     });
-    
+
     const updatedTable = {
       ...displayTable,
       rows: [...(displayTable.rows || []), newRow]
@@ -58,13 +58,13 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
 
   const updateCell = (rowIndex: number, columnKey: string, value: string) => {
     if (!displayTable || !onChange) return;
-    
+
     const updatedRows = [...displayTable.rows];
     updatedRows[rowIndex] = {
       ...updatedRows[rowIndex],
       [columnKey]: value
     };
-    
+
     const updatedTable = {
       ...displayTable,
       rows: updatedRows
@@ -109,6 +109,22 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
         <div className="p-6 text-center text-muted-foreground">
           <i className="fas fa-table text-4xl mb-4"></i>
           <p>No hay datos de tabla disponibles</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If DFO image exists and not in edit mode, show the image instead of table
+  if (displayTable.dfo_image && !isEditable) {
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Fiber Optic Information (DFO)</h3>
+        <div className="border rounded-lg overflow-hidden">
+          <img
+            src={displayTable.dfo_image}
+            alt="DFO Diagram"
+            className="w-full h-auto"
+          />
         </div>
       </div>
     );
@@ -324,41 +340,6 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
             </tbody>
           </table>
         </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden" data-testid="data-table">
-      <div className="p-6 border-b border-border">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold">Sabinas Project - ODF Layout</h3>
-            <p className="text-muted-foreground mt-1">Fiber Optic Distribution</p>
-          </div>
-          {isEditable && (
-            <div className="flex space-x-2">
-              <Button
-                variant={isEditing ? "default" : "outline"}
-                onClick={() => setIsEditing(!isEditing)}
-                size="sm"
-              >
-                <Edit3 className="w-4 h-4 mr-2" />
-                {isEditing ? 'Finalizar Edición' : 'Editar'}
-              </Button>
-              {isEditing && (
-                <Button onClick={() => {}} size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Agregar Fila
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="overflow-x-auto p-4">
-        {renderOdfTable()}
       </div>
     </div>
   );

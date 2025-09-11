@@ -19,6 +19,7 @@ export const tableColumnSchema = z.object({
 export const idfTableSchema = z.object({
   columns: z.array(tableColumnSchema),
   rows: z.array(z.record(z.any())),
+  dfo_image: z.string().optional(),
 });
 
 // Health Counts Schema
