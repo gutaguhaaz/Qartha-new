@@ -1,13 +1,9 @@
 import json
-import os
 from databases import Database
 from app.core.config import settings
 
-# SQLite database for development - override environment DATABASE_URL to force SQLite
-# The environment DATABASE_URL (probably PostgreSQL) conflicts with our SQLite setup
-DATABASE_URL = 'sqlite+aiosqlite:///./qartha.db'
-print(f"Using development database: {DATABASE_URL}")
-database = Database(DATABASE_URL)
+# PostgreSQL database
+database = Database(settings.DATABASE_URL)
 
 
 async def init_database():
@@ -17,7 +13,7 @@ async def init_database():
     # Create IDFs table
     await database.execute("""
         CREATE TABLE IF NOT EXISTS idfs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             cluster VARCHAR(50) NOT NULL,
             project VARCHAR(50) NOT NULL,
             code VARCHAR(50) NOT NULL,
@@ -25,10 +21,10 @@ async def init_database():
             description TEXT,
             site VARCHAR(255),
             room VARCHAR(255),
-            gallery TEXT DEFAULT '[]',
-            documents TEXT DEFAULT '[]',
-            diagram TEXT,
-            table_data TEXT,
+            gallery JSONB DEFAULT '[]',
+            documents JSONB DEFAULT '[]',
+            diagram JSONB,
+            table_data JSONB,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(cluster, project, code)
         )
@@ -37,7 +33,7 @@ async def init_database():
     # Create devices table
     await database.execute("""
         CREATE TABLE IF NOT EXISTS devices (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             cluster VARCHAR(50) NOT NULL,
             project VARCHAR(50) NOT NULL,
             idf_code VARCHAR(50) NOT NULL,
@@ -57,8 +53,7 @@ async def init_database():
 
 async def ensure_indexes():
     """Create database tables and indexes if they don't exist"""
-    # Tables and indexes are already created in init_database()
-    pass
+    await init_database()
 
 
 async def seed_data():

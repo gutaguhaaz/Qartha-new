@@ -1,55 +1,24 @@
 import os
-import traceback
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
-from app.db.mongo import ensure_indexes, seed_data, close_database, init_database, DATABASE_URL
-
-# Import routers with error handling
-try:
-    print(f"Starting app with DATABASE_URL: {DATABASE_URL[:50]}...")  # Mask sensitive parts
-    print("Importing routers...")
-    # from app.routers import assets, devices, qr, public_idfs, admin_idfs
-    # Temporarily disable router imports to isolate the issue
-    print("Routers temporarily disabled for debugging")
-except Exception as e:
-    print(f"Router import failed: {e}")
-    traceback.print_exc()
-    raise
+from app.db.mongo import ensure_indexes, seed_data, close_database, init_database # Assuming init_database is in mongo.py
+from app.routers import assets, devices, qr, public_idfs, admin_idfs
+from app.db.database import database # Assuming database is imported from app.db.database
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    try:
-        print("Starting database initialization...")
-        # Startup
-        await init_database() # Call init_database here
-        print("Database initialized successfully")
-        
-        await ensure_indexes()
-        print("Indexes ensured successfully")
-        
-        await seed_data()
-        print("Data seeded successfully")
-        
-        print("FastAPI startup completed successfully")
-    except Exception as e:
-        print(f"Startup failed: {e}")
-        traceback.print_exc()
-        raise
-    
+    # Startup
+    await init_database() # Call init_database here
+    await ensure_indexes()
+    await seed_data()
     yield
-    
-    try:
-        # Shutdown
-        await close_database()
-        print("Database closed successfully")
-    except Exception as e:
-        print(f"Shutdown error: {e}")
-        traceback.print_exc()
+    # Shutdown
+    await close_database()
 
 
 app = FastAPI(
@@ -74,18 +43,39 @@ os.makedirs(settings.STATIC_DIR, exist_ok=True)
 # Mount static files
 app.mount("/static", StaticFiles(directory=settings.STATIC_DIR), name="static")
 
-# Include routers with /api prefix - temporarily disabled for debugging
-print("Skipping router registration for debugging")
-# app.include_router(public_idfs.router, prefix="/api")
-# app.include_router(admin_idfs.router, prefix="/api/admin")
-# app.include_router(devices.router, prefix="/api")
-# app.include_router(assets.router, prefix="/api")
-# app.include_router(qr.router, prefix="/api")
+# Include routers with /api prefix
+app.include_router(public_idfs.router, prefix="/api")
+app.include_router(admin_idfs.router, prefix="/api/admin")
+app.include_router(assets.router, prefix="/api")
+app.include_router(qr.router, prefix="/api")
+app.include_router(devices.router, prefix="/api")
 
-# Mount frontend static files for deployment - DISABLED to prevent shadowing API routes
-# if os.path.exists("dist"):
-#     app.mount("/", StaticFiles(directory="dist", html=True), name="frontend")
-print("Static file mount at root disabled to prevent API route shadowing")
+# Debug endpoint to check available IDFs
+@app.get("/api/debug/idfs")
+async def debug_idfs():
+    """Debug endpoint to see all IDFs in database"""
+    rows = await database.fetch_all("SELECT cluster, project, code, title FROM idfs LIMIT 20")
+    return [dict(row) for row in rows]
+
+# Mount frontend static files for deployment
+if os.path.exists("dist"):
+    from fastapi.staticfiles import StaticFiles
+    from fastapi.responses import FileResponse
+
+    # Mount static assets only if the assets directory exists
+    if os.path.exists("dist/assets"):
+        app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
+
+    # Catch-all route for SPA - must be last
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # If it's an API route, let it 404 naturally
+        if full_path.startswith("api/"):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Not Found")
+
+        # For all other routes, serve the SPA
+        return FileResponse("dist/index.html")
 
 @app.get("/api")
 async def root():

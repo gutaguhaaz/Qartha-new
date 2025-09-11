@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useParams } from "wouter";
 import { getIdfs, getLogo } from "@/lib/api";
 import { IdfIndex } from "@shared/schema";
 import AddIdfDialog from "@/components/AddIdfDialog";
@@ -10,8 +10,21 @@ interface PublicListProps {
   project: string;
 }
 
-export default function PublicList({ params }: { params: PublicListProps }) {
-  const { cluster, project } = params;
+// Define default values for cluster and project if they are not provided in the URL
+const DEFAULT_CLUSTER = "trk"; // Example default cluster
+const DEFAULT_PROJECT = "sabinas"; // Example default project
+
+export default function PublicList() {
+  const params = useParams();
+  const cluster = params.cluster || DEFAULT_CLUSTER;
+  // Map URL project to the correct format for API calls
+  let project = params.project || DEFAULT_PROJECT;
+  
+  // Handle URL encoding and mapping
+  if (project === "Sabinas" || project === "sabinas") {
+    project = "Sabinas Project";
+  }
+
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddIdfDialogOpen, setIsAddIdfDialogOpen] = useState(false);
 
@@ -21,7 +34,11 @@ export default function PublicList({ params }: { params: PublicListProps }) {
     error,
   } = useQuery({
     queryKey: ["idfs", cluster, project, "list"],
-    queryFn: () => getIdfs(cluster, project, { include_health: 1, limit: 50 }),
+    queryFn: () => {
+      // Use "Sabinas" for the API call when project is "Sabinas Project"
+      const apiProject = project === "Sabinas Project" ? "Sabinas" : project;
+      return getIdfs(cluster, apiProject, { include_health: 1, limit: 50 });
+    },
   });
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
@@ -151,7 +168,7 @@ export default function PublicList({ params }: { params: PublicListProps }) {
                     ? "Trinity Project"
                     : cluster.toUpperCase() + " Cluster"}{" "}
                   •{" "}
-                  {project === "trinity"
+                  {project === "sabinas"
                     ? "Sabinas Project"
                     : project.charAt(0).toUpperCase() +
                       project.slice(1) +
@@ -228,7 +245,7 @@ export default function PublicList({ params }: { params: PublicListProps }) {
         >
           {filteredIdfs.map((idf: IdfIndex) => (
             <Link
-              key={`${idf.cluster}-${idf.project}-${idf.code}`}
+              key={idf.code}
               href={`/${cluster}/${project}/idf/${idf.code}`}
               className="bg-card border border-border rounded-lg p-6 card-hover"
               data-testid={`card-${idf.code}`}

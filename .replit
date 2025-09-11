@@ -1,10 +1,10 @@
-modules = ["nodejs-20", "web", "postgresql-16", "python-3.11", "python3"]
+modules = ["nodejs-20", "web", "postgresql-16", "python-3.11"]
 run = "uvicorn app.main:app --host 0.0.0.0 --port 8000"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["cacert", "cargo", "freetype", "glibcLocales", "lcms2", "libiconv", "libimagequant", "libjpeg", "libtiff", "libuv", "libwebp", "libxcrypt", "libyaml", "openjpeg", "postgresql", "rustc", "tcl", "tk", "zlib"]
+packages = ["libxcrypt", "postgresql"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -19,8 +19,9 @@ externalPort = 80
 localPort = 8000
 externalPort = 8000
 
+
 [workflows]
-runButton = "Start Backend"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -28,20 +29,13 @@ mode = "parallel"
 author = "agent"
 
 [[workflows.workflow.tasks]]
+# Backend FastAPI
 task = "shell.exec"
 args = "pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000"
 waitForPort = 8000
 
 [[workflows.workflow.tasks]]
+# Frontend (Vite/Next/etc.)
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
-
-[[workflows.workflow]]
-name = "Start Backend"
-author = 43274881
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
