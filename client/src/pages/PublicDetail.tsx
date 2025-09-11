@@ -140,7 +140,7 @@ export default function PublicDetail({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-4">
             <Link
-              href={`/${cluster}/${project === "Sabinas Project" ? "Sabinas" : project}`}
+              href={`/${cluster}/${project}`}
               className="flex items-center space-x-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
               data-testid="back-button"
             >
@@ -160,7 +160,7 @@ export default function PublicDetail({
 
           <nav className="text-sm" data-testid="breadcrumb">
             <Link
-              href={`/${cluster}/${project === "Sabinas Project" ? "Sabinas" : project}`}
+              href={`/${cluster}/${project}`}
               className="text-muted-foreground hover:text-foreground"
             >
               Directory

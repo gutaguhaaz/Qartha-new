@@ -146,7 +146,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
     queryKey: ['admin', 'idf-details', selectedCluster, selectedProject, selectedIdf],
     queryFn: async () => {
       if (!selectedCluster || !selectedProject || !selectedIdf) return null;
-      const response = await fetch(`/api/${selectedCluster}/${selectedProject === "Sabinas Project" ? "Sabinas" : selectedProject}/idfs/${selectedIdf}`);
+      const response = await fetch(`/api/${selectedCluster}/${selectedProject}/idfs/${selectedIdf}`);
       if (!response.ok) throw new Error('Failed to fetch IDF details');
       return response.json();
     },
@@ -188,7 +188,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
         table: data.table || undefined
       };
 
-      const response = await fetch(`/api/${selectedCluster}/${selectedProject === "Sabinas Project" ? "Sabinas" : selectedProject}/idfs/${selectedIdf}`, {
+      const response = await fetch(`/api/${selectedCluster}/${selectedProject}/idfs/${selectedIdf}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -242,7 +242,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
       const updatedIdf = { ...editingIdf };
 
       for (let i = 0; i < files.length; i++) {
-        const result = await uploadAsset(selectedCluster || "", selectedProject === "Sabinas Project" ? "Sabinas" : selectedProject, selectedIdf, files[i], type, adminToken);
+        const result = await uploadAsset(selectedCluster || "", selectedProject || "", selectedIdf, files[i], type, adminToken);
 
         // Add to local state immediately
         const mediaItem = {
@@ -645,14 +645,9 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                         <h4 className="font-medium">Current Documents:</h4>
                         <div className="space-y-2">
                           {editingIdf.documents?.filter(doc => doc.kind === 'document').map((doc, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 bg-accent rounded border">
-                              <span className="text-xs truncate">{doc.filename}</span>
-                              <button
-                                onClick={() => removeMedia(doc, 'documents')}
-                                className="text-destructive hover:bg-destructive/10 rounded p-1"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
+                            <div key={index} className="flex items-center space-x-2 p-2 border rounded">
+                              <i className="fas fa-file-alt text-muted-foreground"></i>
+                              <span className="text-sm">{doc.name || `Document ${index + 1}`}</span>
                             </div>
                           ))}
                           {editingIdf?.diagram && editingIdf.diagram.kind === 'document' && (

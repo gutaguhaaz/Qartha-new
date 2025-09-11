@@ -9,19 +9,9 @@ router = APIRouter(tags=["admin"])
 
 
 def validate_cluster(cluster: str):
-    """Validate that cluster is in allowed clusters"""
     if cluster not in settings.ALLOWED_CLUSTERS:
         raise HTTPException(status_code=404, detail="Cluster not found")
     return cluster
-
-
-def map_url_project_to_db_project(project: str) -> str:
-    """Map URL project name to database project name"""
-    project_mapping = {
-        "sabinas": "Sabinas Project",
-        # Add more mappings as needed
-    }
-    return project_mapping.get(project, project)
 
 
 def verify_admin_token(authorization: str = Header(...)):
@@ -34,10 +24,9 @@ def verify_admin_token(authorization: str = Header(...)):
 
 
 async def _create_idf_record(cluster: str, project: str, code: str, idf_data: IdfUpsert) -> IdfPublic:
-    db_project = map_url_project_to_db_project(project)
     existing = await database.fetch_one(
         "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"cluster": cluster, "project": db_project, "code": code},
+        {"cluster": cluster, "project": project, "code": code},
     )
     if existing:
         raise HTTPException(status_code=409, detail="IDF already exists")
@@ -50,7 +39,7 @@ async def _create_idf_record(cluster: str, project: str, code: str, idf_data: Id
     table_json = json.dumps(idf_data.table.model_dump()) if idf_data.table else None
     values = {
         "cluster": cluster,
-        "project": db_project,
+        "project": project,
         "code": code,
         "title": idf_data.title,
         "description": idf_data.description,
@@ -113,10 +102,9 @@ async def update_idf(
     code: str = "",
     token: str = Depends(verify_admin_token),
 ):
-    db_project = map_url_project_to_db_project(project)
     existing = await database.fetch_one(
         "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"cluster": cluster, "project": db_project, "code": code},
+        {"cluster": cluster, "project": project, "code": code},
     )
     if not existing:
         raise HTTPException(status_code=404, detail="IDF not found")
@@ -131,7 +119,7 @@ async def update_idf(
     row = await database.fetch_one(
         query,
         cluster,
-        db_project,
+        project,
         code,
         idf_data.title,
         idf_data.description,
@@ -167,9 +155,8 @@ async def delete_idf(
     code: str = "",
     token: str = Depends(verify_admin_token),
 ):
-    db_project = map_url_project_to_db_project(project)
     query = "DELETE FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code"
-    result = await database.execute(query, {"cluster": cluster, "project": db_project, "code": code})
+    result = await database.execute(query, {"cluster": cluster, "project": project, "code": code})
     if result == 0:
         raise HTTPException(status_code=404, detail="IDF not found")
     return {"message": "IDF deleted successfully"}

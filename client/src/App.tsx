@@ -1,64 +1,51 @@
-import { Route, Router, useLocation } from "wouter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { Toaster } from "./components/ui/toaster";
-import Navbar from "./components/Navbar";
-import PublicList from "./pages/PublicList";
-import PublicDetail from "./pages/PublicDetail";
-import CmsUpload from "./pages/CmsUpload";
-import NotFound from "./pages/not-found";
-import { useEffect } from "react";
+import { Switch, Route } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import NotFound from "@/pages/not-found";
+import PublicList from "@/pages/PublicList";
+import PublicDetail from "@/pages/PublicDetail";
+import CmsUpload from "@/pages/CmsUpload";
+import Navbar from "@/components/Navbar";
 
-const queryClient = new QueryClient();
-
-function RouteHandler() {
-  const [location, navigate] = useLocation();
-
-  useEffect(() => {
-    // If user is at root or just cluster/project without trailing slash, redirect to list
-    const pathParts = location.split("/").filter(Boolean);
-
-    // Handle root path
-    if (location === "/") {
-      navigate("/Trinity/Sabinas");
-      return;
-    }
-
-    // Handle cluster/project path without specific route
-    if (pathParts.length === 2 && !location.includes("/idf/") && !location.includes("/admin")) {
-      // Already at the correct path for PublicList
-      return;
-    }
-  }, [location, navigate]);
-
+function Router() {
   return (
-    <>
-      <Route path="/" component={PublicList} />
-      <Route path="/:cluster/:project" component={PublicList} />
-      <Route path="/:cluster/:project/idf/:code" component={PublicDetail} />
-      <Route path="/:cluster/:project/admin" component={CmsUpload} />
+    <Switch>
+      <Route path="/" component={() => <PublicList params={{ cluster: "trk", project: "trinity" }} />} />
+      <Route path="/:cluster/:project" component={({ params }: any) => <PublicList params={params} />} />
+      <Route path="/:cluster/:project/idf/:code" component={({ params }: any) => <PublicDetail params={params} />} />
+      <Route path="/:cluster/:project/admin" component={({ params }: any) => <CmsUpload params={params} />} />
       <Route component={NotFound} />
-    </>
+    </Switch>
   );
 }
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <Router>
-          <div className="min-h-screen flex flex-col bg-background">
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <div className="min-h-screen flex flex-col bg-background text-foreground">
             <Navbar />
             <main className="flex-1">
-              <RouteHandler />
+              <Router />
             </main>
           </div>
+
+          {/* Copyright Footer */}
+          <footer className="mt-auto border-t border-border bg-card">
+            <div className="max-w-7xl mx-auto px-6 py-4">
+              <div className="text-center text-sm text-muted-foreground">
+                © {new Date().getFullYear()} RKSquared, Cox e Inpro Telecom. All rights reserved.
+              </div>
+            </div>
+          </footer>
           <Toaster />
-        </Router>
-        <ReactQueryDevtools initialIsOpen={false} />
-      </ThemeProvider>
-    </QueryClientProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

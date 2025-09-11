@@ -51,23 +51,7 @@ app.include_router(qr.router, prefix="/api")
 
 # Mount frontend static files for deployment
 if os.path.exists("dist"):
-    from fastapi.staticfiles import StaticFiles
-    from fastapi.responses import FileResponse
-    
-    # Mount static assets only if the assets directory exists
-    if os.path.exists("dist/assets"):
-        app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
-    
-    # Catch-all route for SPA - must be last
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        # If it's an API route, let it 404 naturally
-        if full_path.startswith("api/"):
-            from fastapi import HTTPException
-            raise HTTPException(status_code=404, detail="Not Found")
-        
-        # For all other routes, serve the SPA
-        return FileResponse("dist/index.html")
+    app.mount("/", StaticFiles(directory="dist", html=True), name="frontend")
 
 @app.get("/api")
 async def root():
