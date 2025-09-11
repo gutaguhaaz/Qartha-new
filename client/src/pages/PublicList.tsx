@@ -186,25 +186,27 @@ export default function PublicList({ params }: { params: PublicListProps }) {
 
         {/* Health Legend */}
         <div
-          className="flex items-center space-x-6 text-sm"
+          className="hide-health-status flex items-center space-x-6 text-sm"
           data-testid="health-legend"
         >
           <span className="text-muted-foreground">Health Status:</span>
-          <div className="flex items-center space-x-2">
-            <div className="health-indicator bg-green-500"></div>
-            <span>Operational</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="health-indicator bg-yellow-500"></div>
-            <span>Under Review</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="health-indicator bg-red-500"></div>
-            <span>Critical</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="health-indicator bg-gray-500"></div>
-            <span>No Data</span>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span>Operational</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <span>Under Review</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              <span>Critical</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+              <span>No Data</span>
+            </div>
           </div>
         </div>
       </div>
@@ -271,7 +273,7 @@ export default function PublicList({ params }: { params: PublicListProps }) {
               {/* Health Summary */}
               {idf.health && (
                 <div
-                  className="flex items-center space-x-4 text-xs"
+                  className="hide-health-status flex items-center space-x-4 text-xs"
                   data-testid={`health-summary-${idf.code}`}
                 >
                   {idf.health.counts.ok > 0 && (

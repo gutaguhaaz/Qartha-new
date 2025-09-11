@@ -348,3 +348,8 @@ a.bg-card.border.rounded-lg {
 .dark .status-cell {
   background: #2d2d2d;
 }
+
+/* Hide health status elements in directory view */
+.hide-health-status {
+  display: none !important;
+}
