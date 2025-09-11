@@ -18,14 +18,20 @@ def validate_cluster(cluster: str):
 
 def map_url_project_to_db_project(project: str) -> str:
     """Map URL project name to database project name"""
+    import urllib.parse
+    # Decode URL encoded project name
+    decoded_project = urllib.parse.unquote(project)
+    
     project_mapping = {
         "Sabinas": "Sabinas Project",
-        "sabinas": "Sabinas Project",
+        "sabinas": "Sabinas Project", 
         "Sabinas%20Project": "Sabinas Project",
         "Sabinas Project": "Sabinas Project",
+        "trinity": "Trinity",
+        "Trinity": "Trinity",
         # Add more mappings as needed
     }
-    return project_mapping.get(project, project)
+    return project_mapping.get(decoded_project, decoded_project)
 
 
 def compute_health(table_data: dict) -> Optional[IdfHealth]:

@@ -17,7 +17,13 @@ const DEFAULT_PROJECT = "sabinas"; // Example default project
 export default function PublicList() {
   const params = useParams();
   const cluster = params.cluster || DEFAULT_CLUSTER;
-  const project = params.project || DEFAULT_PROJECT;
+  // Map URL project to the correct format for API calls
+  let project = params.project || DEFAULT_PROJECT;
+  
+  // Handle URL encoding and mapping
+  if (project === "Sabinas" || project === "sabinas") {
+    project = "Sabinas Project";
+  }
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddIdfDialogOpen, setIsAddIdfDialogOpen] = useState(false);
@@ -28,7 +34,11 @@ export default function PublicList() {
     error,
   } = useQuery({
     queryKey: ["idfs", cluster, project, "list"],
-    queryFn: () => getIdfs(cluster, project, { include_health: 1, limit: 50 }),
+    queryFn: () => {
+      // Use "Sabinas" for the API call when project is "Sabinas Project"
+      const apiProject = project === "Sabinas Project" ? "Sabinas" : project;
+      return getIdfs(cluster, apiProject, { include_health: 1, limit: 50 });
+    },
   });
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
