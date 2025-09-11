@@ -9,7 +9,6 @@ import PdfOrImage from "@/components/PdfOrImage";
 import DataTable from "@/components/DataTable";
 import AdminSidebar from "@/components/AdminSidebar";
 import AddIdfDialog from "@/components/AddIdfDialog";
-import { IDF_TABS, getVisibleTabs, getDefaultTab } from "../lib/tabsConfig";
 
 interface PublicDetailProps {
   cluster: string;
@@ -23,28 +22,9 @@ export default function PublicDetail({
   params: PublicDetailProps;
 }) {
   const { cluster, project, code } = params;
-  const [activeTab, setActiveTab] = useState(getDefaultTab());
+  const [activeTab, setActiveTab] = useState<string>("overview");
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isAddIdfDialogOpen, setIsAddIdfDialogOpen] = useState(false);
-
-  // Update URL when tab changes
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const urlTab = url.searchParams.get('tab');
-    if (urlTab && getVisibleTabs().find(tab => tab.key === urlTab)) {
-      setActiveTab(urlTab);
-    } else if (!urlTab) {
-      url.searchParams.set('tab', getDefaultTab());
-      window.history.replaceState({}, '', url.toString());
-    }
-  }, []);
-
-  const handleTabChange = (tabKey: string) => {
-    setActiveTab(tabKey);
-    const url = new URL(window.location.href);
-    url.searchParams.set('tab', tabKey);
-    window.history.pushState({}, '', url.toString());
-  };
 
   // Listen for admin panel open events
   useEffect(() => {
@@ -215,8 +195,8 @@ export default function PublicDetail({
                 {idf.code} • {idf.site} • {idf.room}
               </p>
 
-              {/* Global Health Status - Hidden */}
-              {false && idf.health && (
+              {/* Global Health Status */}
+              {idf.health && (
                 <div
                   className="flex items-center space-x-4"
                   data-testid="health-status"
@@ -309,72 +289,95 @@ export default function PublicDetail({
       {/* Tabs */}
       <div className="mb-6">
         <div
-          className="flex space-x-1 border-b border-border overflow-x-auto"
+          className="flex space-x-1 bg-muted rounded-lg p-1"
           data-testid="tab-navigation"
         >
-          {getVisibleTabs().map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => handleTabChange(tab.key)}
-              className={`tab-button ${
-                activeTab === tab.key ? "active" : ""
-              }`}
-              data-testid={`tab-${tab.key}`}
-            >
-              {tab.icon && <i className={`${tab.icon} mr-2`}></i>}
-              {tab.label}
-            </button>
-          ))}
+          <button
+            className={`tab-button ${activeTab === "overview" ? "active" : ""}`}
+            onClick={() => setActiveTab("overview")}
+            data-testid="tab-overview"
+          >
+            <i className="fas fa-info-circle mr-2"></i>Overview
+          </button>
+          <button
+            className={`tab-button ${activeTab === "gallery" ? "active" : ""}`}
+            onClick={() => setActiveTab("gallery")}
+            data-testid="tab-gallery"
+          >
+            <i className="fas fa-images mr-2"></i>Gallery
+          </button>
+          <button
+            className={`tab-button ${activeTab === "documents" ? "active" : ""}`}
+            onClick={() => setActiveTab("documents")}
+            data-testid="tab-documents"
+          >
+            <i className="fas fa-file-alt mr-2"></i>Documents
+          </button>
+          <button
+            className={`tab-button ${activeTab === "diagram" ? "active" : ""}`}
+            onClick={() => setActiveTab("diagram")}
+            data-testid="tab-diagram"
+          >
+            <i className="fas fa-project-diagram mr-2"></i>Diagram
+          </button>
+          <button
+            className={`tab-button ${activeTab === "table" ? "active" : ""}`}
+            onClick={() => setActiveTab("table")}
+            data-testid="tab-table"
+          >
+            <i className="fas fa-table mr-2"></i>Fiber Allocation Table
+          </button>
         </div>
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1">
-        {/* Overview Tab - Hidden */}
+      <div className="tab-content">
         {activeTab === "overview" && (
-          <div className="hidden space-y-6">
-            {/* Basic Info */}
+          <div
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+            data-testid="tab-content-overview"
+          >
             <div className="bg-card border border-border rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <h3 className="text-lg font-semibold mb-4">IDF Details</h3>
+              <dl className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Code
-                  </label>
-                  <p className="font-mono" data-testid="idf-code">
+                  <dt className="text-sm text-muted-foreground">Code</dt>
+                  <dd className="font-mono" data-testid="detail-code">
                     {idf.code}
-                  </p>
+                  </dd>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Title
-                  </label>
-                  <p data-testid="idf-title">{idf.title || "N/A"}</p>
+                  <dt className="text-sm text-muted-foreground">Title</dt>
+                  <dd data-testid="detail-title">{idf.title}</dd>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Site
-                  </label>
-                  <p data-testid="idf-site">{idf.site || "N/A"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Room
-                  </label>
-                  <p data-testid="idf-room">{idf.room || "N/A"}</p>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Description
-                  </label>
-                  <p data-testid="idf-description">
-                    {idf.description || "No description available"}
-                  </p>
-                </div>
-              </div>
+                {idf.site && (
+                  <div>
+                    <dt className="text-sm text-muted-foreground">Site</dt>
+                    <dd data-testid="detail-site">{idf.site}</dd>
+                  </div>
+                )}
+                {idf.room && (
+                  <div>
+                    <dt className="text-sm text-muted-foreground">Room</dt>
+                    <dd data-testid="detail-room">{idf.room}</dd>
+                  </div>
+                )}
+                {idf.description && (
+                  <div>
+                    <dt className="text-sm text-muted-foreground">
+                      Description
+                    </dt>
+                    <dd
+                      className="text-muted-foreground"
+                      data-testid="detail-description"
+                    >
+                      {idf.description}
+                    </dd>
+                  </div>
+                )}
+              </dl>
             </div>
 
-            {/* Health Status */}
             {idf.health && (
               <div className="bg-card border border-border rounded-lg p-6">
                 <h3 className="text-lg font-semibold mb-4">Health Status</h3>
@@ -436,71 +439,27 @@ export default function PublicDetail({
           </div>
         )}
 
-        {/* DFO Tab - First and default */}
-        {activeTab === "dfo" && (
-          <div>
-            {idf.table && idf.table.length > 0 ? (
-              <DataTable data={idf.table} />
-            ) : (
-              <p className="text-muted-foreground text-center py-8">
-                No fiber optic information available
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Gallery Tab */}
         {activeTab === "gallery" && (
-          <Gallery images={idf.gallery || []} />
-        )}
-
-        {/* Location Tab - New */}
-        {activeTab === "location" && (
-          <div>
-            {idf.locationImages && idf.locationImages.length > 0 ? (
-              <Gallery images={idf.locationImages} />
-            ) : (
-              <p className="text-muted-foreground text-center py-8">
-                No location images available
-              </p>
-            )}
+          <div data-testid="tab-content-gallery">
+            <Gallery images={idf.gallery} />
           </div>
         )}
 
-        {/* Diagram Tab - Images only */}
-        {activeTab === "diagram" && (
-          <div>
-            {idf.diagramImages && idf.diagramImages.length > 0 ? (
-              <Gallery images={idf.diagramImages} />
-            ) : idf.diagram && idf.diagram.url && (idf.diagram.url.endsWith('.jpg') || idf.diagram.url.endsWith('.png') || idf.diagram.url.endsWith('.jpeg')) ? (
-              <div className="flex justify-center">
-                <img
-                  src={idf.diagram.url}
-                  alt="Diagram"
-                  className="max-w-full h-auto rounded-lg border"
-                />
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-center py-8">
-                No diagram images available
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Documents Tab - PDF, DOC, XLSX */}
         {activeTab === "documents" && (
-          <div className="space-y-4">
-            {/* PDF Diagrams */}
-            {idf.diagram && idf.diagram.url && idf.diagram.url.endsWith('.pdf') && (
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">Diagram (PDF)</h3>
-                <PdfOrImage media={idf.diagram} />
-              </div>
-            )}
+          <div data-testid="tab-content-documents">
+            <DocList documents={idf.documents} />
+          </div>
+        )}
 
-            {/* Document List */}
-            <DocList documents={idf.documents || []} />
+        {activeTab === "diagram" && (
+          <div data-testid="tab-content-diagram">
+            <PdfOrImage diagram={idf.diagram} />
+          </div>
+        )}
+
+        {activeTab === "table" && (
+          <div data-testid="tab-content-table">
+            <DataTable table={idf.table} />
           </div>
         )}
       </div>

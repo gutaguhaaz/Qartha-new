@@ -33,7 +33,6 @@ interface IdfData {
   media?: { // Added media property
     logo?: { name: string; url: string };
   };
-  locationImages?: any[]; // Added for location images
 }
 
 export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSidebarProps) {
@@ -156,7 +155,6 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
         },
         gallery: Array.isArray(idfData.gallery) ? idfData.gallery : [],
         documents: Array.isArray(idfData.documents) ? idfData.documents : [],
-        locationImages: Array.isArray(idfData.locationImages) ? idfData.locationImages : [], // Initialize locationImages
         diagram: idfData.diagram || null,
         table: idfData.table || null, // Keep as single table, not array
         media: idfData.media || {} // Ensure media object exists
@@ -177,11 +175,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
         description: data.basic_info?.description || data.description || "",
         site: data.basic_info?.location || data.site || "",
         room: data.room || "",
-        table: data.table || undefined,
-        gallery: data.gallery,
-        documents: data.documents,
-        locationImages: data.locationImages, // Include locationImages in save
-        diagram: data.diagram,
+        table: data.table || undefined
       };
 
       const response = await fetch(`/api/${selectedCluster}/${selectedProject}/idfs/${selectedIdf}`, {
@@ -214,7 +208,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
     },
   });
 
-  const handleFileUpload = async (files: FileList | null, type: 'gallery' | 'documents' | 'diagram' | 'locationImages') => { // Added 'locationImages' type
+  const handleFileUpload = async (files: FileList | null, type: 'images' | 'documents' | 'diagram') => {
     if (!files || files.length === 0 || !selectedIdf) {
       toast({
         title: "Error",
@@ -238,11 +232,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
       const updatedIdf = { ...editingIdf };
 
       for (let i = 0; i < files.length; i++) {
-        // The uploadAsset function should handle the type correctly.
-        // For 'locationImages', it should be treated similarly to 'gallery' or as a distinct type if the backend expects it.
-        const uploadType = type === 'locationImages' ? 'images' : type; // Assuming backend handles 'locationImages' as 'images'
-
-        const result = await uploadAsset(selectedCluster || "", selectedProject || "", selectedIdf, files[i], uploadType, adminToken);
+        const result = await uploadAsset(selectedCluster || "", selectedProject || "", selectedIdf, files[i], type, adminToken);
 
         // Add to local state immediately
         const mediaItem = {
@@ -251,7 +241,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
           kind: type === 'diagram' ? 'diagram' : type.slice(0, -1) // Remove 's' from 'images'/'documents'
         };
 
-        if (type === 'gallery') {
+        if (type === 'images') {
           if (!updatedIdf.gallery) updatedIdf.gallery = [];
           updatedIdf.gallery.push(mediaItem);
         } else if (type === 'documents') {
@@ -259,9 +249,6 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
           updatedIdf.documents.push(mediaItem);
         } else if (type === 'diagram') {
           updatedIdf.diagram = mediaItem;
-        } else if (type === 'locationImages') { // Handle locationImages
-          if (!updatedIdf.locationImages) updatedIdf.locationImages = [];
-          updatedIdf.locationImages.push(mediaItem);
         }
 
         toast({
@@ -289,14 +276,15 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
 
   const removeMedia = (
     item: any,
-    type: 'gallery' | 'documents' | 'diagram' | 'locationImages' // Added 'locationImages'
+    type: 'images' | 'documents' | 'diagram'
   ) => {
     if (!editingIdf) return;
 
     if (type === 'diagram') {
       setEditingIdf({ ...editingIdf, diagram: null });
     } else {
-      const key: 'gallery' | 'documents' | 'locationImages' = type; // Direct mapping
+      const key: 'gallery' | 'documents' =
+        type === 'images' ? 'gallery' : 'documents';
       const currentItems = editingIdf[key] || [];
       const updatedItems = currentItems.filter((i: any) => i.url !== item.url);
       setEditingIdf({ ...editingIdf, [key]: updatedItems });
@@ -340,7 +328,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
   return (
     <>
       {/* Backdrop */}
-      <div
+      <div 
         className="fixed inset-0 bg-black/50 z-40"
         onClick={onClose}
       />
@@ -471,9 +459,9 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                       onChange={(e) =>
                         setEditingIdf((prev: any) => ({
                           ...prev,
-                          basic_info: {
-                            ...prev.basic_info,
-                            title: e.target.value
+                          basic_info: { 
+                            ...prev.basic_info, 
+                            title: e.target.value 
                           },
                         }))
                       }
@@ -486,9 +474,9 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                       onChange={(e) =>
                         setEditingIdf((prev: any) => ({
                           ...prev,
-                          basic_info: {
-                            ...prev.basic_info,
-                            location: e.target.value
+                          basic_info: { 
+                            ...prev.basic_info, 
+                            location: e.target.value 
                           },
                         }))
                       }
@@ -507,9 +495,9 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                       onChange={(e) =>
                         setEditingIdf((prev: any) => ({
                           ...prev,
-                          basic_info: {
-                            ...prev.basic_info,
-                            description: e.target.value
+                          basic_info: { 
+                            ...prev.basic_info, 
+                            description: e.target.value 
                           },
                         }))
                       }
@@ -529,7 +517,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                         multiple
                         accept="image/*"
                         className="hidden"
-                        onChange={(e) => handleFileUpload(e.target.files, 'gallery')}
+                        onChange={(e) => handleFileUpload(e.target.files, 'images')}
                       />
                       <div className="flex items-center space-x-1 text-xs bg-primary text-primary-foreground px-2 py-1 rounded-md hover:bg-primary/90">
                         <Plus className="w-3 h-3" />
@@ -546,7 +534,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                           className="w-full h-20 object-cover rounded border"
                         />
                         <button
-                          onClick={() => removeMedia(img, 'gallery')}
+                          onClick={() => removeMedia(img, 'images')}
                           className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <Trash2 className="w-3 h-3" />
@@ -563,8 +551,8 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                     <label className="cursor-pointer">
                       <input
                         type="file"
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                         multiple
+                        accept=".pdf,.doc,.docx,.xls,.xlsx"
                         className="hidden"
                         onChange={(e) => handleFileUpload(e.target.files, 'documents')}
                       />
@@ -621,43 +609,6 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                   )}
                 </div>
 
-                {/* Location Images */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">Location Images</h4>
-                    <label className="cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => handleFileUpload(e.target.files, 'locationImages')}
-                      />
-                      <div className="flex items-center space-x-1 text-xs bg-primary text-primary-foreground px-2 py-1 rounded-md hover:bg-primary/90">
-                        <Upload className="w-3 h-3" />
-                        <span>Upload</span>
-                      </div>
-                    </label>
-                  </div>
-                  {editingIdf.locationImages && editingIdf.locationImages.length > 0 && (
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {editingIdf.locationImages.map((item: any, index: number) => (
-                        <div key={index} className="relative group">
-                          <div className="p-2 bg-accent rounded border">
-                            <span className="text-xs">{item.filename}</span>
-                          </div>
-                          <button
-                            onClick={() => removeMedia(item, 'locationImages')}
-                            className="absolute top-1 right-1 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
                 {/* Logo Widget Section */}
                 {selectedIdf && adminToken && (
                   <div className="space-y-3">
@@ -675,7 +626,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium">Fiber Allocation Table</h4>
                   <div className="bg-card border border-border rounded-lg overflow-hidden">
-                    <DataTable
+                    <DataTable 
                       table={editingIdf.table || undefined}
                       isEditable={true}
                       onChange={(newTable) =>
@@ -687,8 +638,8 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
 
                 {/* Save Changes */}
                 <div className="pt-4 border-t border-border">
-                  <button
-                    onClick={handleSave}
+                  <button 
+                    onClick={handleSave} 
                     className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors flex items-center justify-center space-x-2">
                     <Save className="w-4 h-4" />
                     <span>Save Changes</span>

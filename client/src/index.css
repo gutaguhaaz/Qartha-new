@@ -145,11 +145,6 @@
     }
   }
 
-  /* Hidden elements */
-  .hidden {
-    display: none !important;
-  }
-
   /* Logo theme switching */
   .logo-container .logo-svg {
     height: 25px;
