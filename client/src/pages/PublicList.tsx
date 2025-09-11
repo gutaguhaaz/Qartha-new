@@ -228,8 +228,8 @@ export default function PublicList({ params }: { params: PublicListProps }) {
         >
           {filteredIdfs.map((idf: IdfIndex) => (
             <Link
-              key={`${idf.cluster}-${idf.project}-${idf.code}`}
-              href={`/${cluster}/${project}/idf/${idf.code}`}
+              key={idf.code}
+              href={`/${cluster}/${project === "Sabinas Project" ? "Sabinas" : project}/idf/${idf.code}`}
               className="bg-card border border-border rounded-lg p-6 card-hover"
               data-testid={`card-${idf.code}`}
             >

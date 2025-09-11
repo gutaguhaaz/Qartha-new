@@ -41,7 +41,7 @@ export default function Navbar() {
     setSelectedProject(projects[0]);
   };
 
-  const currentPath = `/${selectedCluster}/${selectedProject}`;
+  const currentPath = `/${selectedCluster}/${selectedProject === "Sabinas Project" ? "Sabinas" : selectedProject}`;
   const isDirectoryActive =
     location === currentPath ||
     location === "/" ||
