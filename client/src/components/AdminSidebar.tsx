@@ -582,30 +582,26 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 {activeTab === "location" && (
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Location images - Specific location photos
+                      Location image - Single location photo with zoom and drag functionality
                     </p>
-                    {editingIdf?.location && editingIdf.location.length > 0 ? (
+                    {editingIdf?.location ? (
                       <div className="space-y-2">
-                        <h4 className="font-medium">Location Images:</h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          {editingIdf.location.map((item, index) => (
-                            <div key={index} className="relative">
-                              <img
-                                src={item.url}
-                                alt={item.name || `Location image ${index + 1}`}
-                                className="w-full h-20 object-cover rounded border"
-                              />
-                              <span className="text-xs text-muted-foreground block mt-1 truncate">
-                                {item.name || `Image ${index + 1}`}
-                              </span>
-                            </div>
-                          ))}
+                        <h4 className="font-medium">Current Location Image:</h4>
+                        <div className="relative">
+                          <img
+                            src={typeof editingIdf.location.url === 'string' ? editingIdf.location.url : editingIdf.location.url.toString()}
+                            alt={editingIdf.location.name || 'Location image'}
+                            className="w-full h-32 object-cover rounded border"
+                          />
+                          <span className="text-xs text-muted-foreground block mt-1 truncate">
+                            {editingIdf.location.name || 'Location image'}
+                          </span>
                         </div>
                       </div>
                     ) : (
                       <div className="text-center py-8 text-muted-foreground">
                         <i className="fas fa-map-marker-alt text-2xl mb-2"></i>
-                        <p className="text-sm">No location images available</p>
+                        <p className="text-sm">No location image available</p>
                       </div>
                     )}
                   </div>

@@ -32,8 +32,8 @@ async def _create_idf_record(cluster: str, project: str, code: str, idf_data: Id
         raise HTTPException(status_code=409, detail="IDF already exists")
 
     query = """
-        INSERT INTO idfs (cluster, project, code, title, description, site, room, gallery, documents, diagram, table_data)
-        VALUES (:cluster, :project, :code, :title, :description, :site, :room, :gallery, :documents, :diagram, :table_data)
+        INSERT INTO idfs (cluster, project, code, title, description, site, room, gallery, documents, diagram, location, table_data)
+        VALUES (:cluster, :project, :code, :title, :description, :site, :room, :gallery, :documents, :diagram, :location, :table_data)
         RETURNING *
     """
     table_json = json.dumps(idf_data.table.model_dump()) if idf_data.table else None
@@ -48,6 +48,7 @@ async def _create_idf_record(cluster: str, project: str, code: str, idf_data: Id
         "gallery": json.dumps([]),
         "documents": json.dumps([]),
         "diagram": None,
+        "location": None,
         "table_data": table_json,
     }
     row = await database.fetch_one(query, values)

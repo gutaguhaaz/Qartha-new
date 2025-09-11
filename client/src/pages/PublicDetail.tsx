@@ -9,6 +9,7 @@ import PdfOrImage from "@/components/PdfOrImage";
 import DataTable from "@/components/DataTable";
 import AdminSidebar from "@/components/AdminSidebar";
 import AddIdfDialog from "@/components/AddIdfDialog";
+import LocationViewer from "@/components/LocationViewer";
 
 interface PublicDetailProps {
   cluster: string;
@@ -354,14 +355,7 @@ export default function PublicDetail({
 
         {activeTab === "location" && (
           <div data-testid="tab-content-location">
-            {idf.location && idf.location.length > 0 ? (
-              <Gallery images={idf.location} />
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <i className="fas fa-map-marker-alt text-4xl mb-4"></i>
-                <p>No location available</p>
-              </div>
-            )}
+            <LocationViewer location={idf.location} />
           </div>
         )}
 

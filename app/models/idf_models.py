@@ -66,6 +66,7 @@ class IdfPublic(BaseModel):
     gallery: List[MediaItem]
     documents: List[MediaItem]
     diagrams: List[MediaItem]
+    location: Optional[MediaItem] = None
     table: Optional[IdfTable] = None
     health: Optional[IdfHealth] = None
     media: Optional[IdfMedia] = None

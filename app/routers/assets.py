@@ -104,6 +104,54 @@ async def upload_image(
     return {"url": url, "message": "Image uploaded successfully"}
 
 
+@router.post("/{cluster}/{project}/assets/location")
+async def upload_location_image(
+    cluster: str,
+    project: str,
+    file: UploadFile = File(...),
+    code: str = Form(...),
+    authorization: Optional[str] = Header(None)
+):
+    """Upload location image for IDF"""
+    validate_cluster(cluster)
+    verify_admin_token(authorization)
+
+    # Check if IDF exists
+    idf = await database.fetch_one(
+        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": project, "code": code}
+    )
+
+    if not idf:
+        raise HTTPException(status_code=404, detail="IDF not found")
+
+    # Save file
+    file_extension = os.path.splitext(file.filename or "location.jpg")[1]
+    file_path = os.path.join(
+        settings.STATIC_DIR,
+        cluster,
+        project,
+        "location",
+        f"{code}_location{file_extension}"
+    )
+
+    url = await save_file(file, file_path)
+
+    # Update IDF location
+    location_item = {
+        "url": url,
+        "name": file.filename,
+        "kind": "image"
+    }
+
+    await database.execute(
+        "UPDATE idfs SET location = :location WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"location": json.dumps(location_item), "cluster": cluster, "project": project, "code": code}
+    )
+
+    return {"url": url, "message": "Location image uploaded successfully"}
+
+
 @router.post("/{cluster}/{project}/assets/documents")
 async def upload_document(
     cluster: str,
