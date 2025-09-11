@@ -43,8 +43,8 @@ async def _create_idf_record(cluster: str, project: str, code: str, idf_data: Id
         raise HTTPException(status_code=409, detail="IDF already exists")
 
     query = """
-        INSERT INTO idfs (cluster, project, code, title, description, site, room, gallery, documents, diagram, location, table_data)
-        VALUES (:cluster, :project, :code, :title, :description, :site, :room, :gallery, :documents, :diagram, :location, :table_data)
+        INSERT INTO idfs (cluster, project, code, title, description, site, room, gallery, documents, diagrams, location, table_data)
+        VALUES (:cluster, :project, :code, :title, :description, :site, :room, :gallery, :documents, :diagrams, :location, :table_data)
         RETURNING *
     """
     table_json = json.dumps(idf_data.table.model_dump()) if idf_data.table else None
@@ -58,7 +58,7 @@ async def _create_idf_record(cluster: str, project: str, code: str, idf_data: Id
         "room": idf_data.room,
         "gallery": json.dumps([]),
         "documents": json.dumps([]),
-        "diagram": None,
+        "diagrams": json.dumps([]),
         "location": None,
         "table_data": table_json,
     }
@@ -124,21 +124,21 @@ async def update_idf(
     table_json = json.dumps(idf_data.table.model_dump()) if idf_data.table else None
     query = """
         UPDATE idfs
-        SET title = $4, description = $5, site = $6, room = $7, table_data = $8
-        WHERE cluster = $1 AND project = $2 AND code = $3
+        SET title = :title, description = :description, site = :site, room = :room, table_data = :table_data
+        WHERE cluster = :cluster AND project = :project AND code = :code
         RETURNING *
     """
-    row = await database.fetch_one(
-        query,
-        cluster,
-        db_project,
-        code,
-        idf_data.title,
-        idf_data.description,
-        idf_data.site,
-        idf_data.room,
-        table_json,
-    )
+    values = {
+        "cluster": cluster,
+        "project": db_project,
+        "code": code,
+        "title": idf_data.title,
+        "description": idf_data.description,
+        "site": idf_data.site,
+        "room": idf_data.room,
+        "table_data": table_json,
+    }
+    row = await database.fetch_one(query, values)
 
     gallery = json.loads(row["gallery"]) if isinstance(row["gallery"], str) else row["gallery"]
     documents = json.loads(row["documents"]) if isinstance(row["documents"], str) else row["documents"]
