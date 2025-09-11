@@ -354,7 +354,7 @@ export default function PublicDetail({
 
         {activeTab === "location" && (
           <div data-testid="tab-content-location">
-            <Gallery images={idf.gallery.filter(item => item.kind === 'image')} />
+            <Gallery images={idf.gallery || []} />
           </div>
         )}
 

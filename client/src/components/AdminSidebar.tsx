@@ -574,13 +574,13 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 {activeTab === "location" && (
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Location images - Only images from gallery are shown here
+                      Location images - All gallery images are shown here
                     </p>
-                    {editingIdf?.gallery && editingIdf.gallery.filter(item => item.kind === 'image').length > 0 && (
+                    {editingIdf?.gallery && editingIdf.gallery.length > 0 && (
                       <div className="space-y-2">
                         <h4 className="font-medium">Location Images:</h4>
                         <div className="grid grid-cols-2 gap-2">
-                          {editingIdf.gallery.filter(item => item.kind === 'image').map((item, index) => (
+                          {editingIdf.gallery.map((item, index) => (
                             <div key={index} className="relative">
                               <img
                                 src={item.url}
