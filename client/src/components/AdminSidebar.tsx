@@ -75,7 +75,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
     queryFn: async () => {
       // Using predefined clusters for now
       return [
-        { value: "trk", label: "TRK" },
+        { value: "trk", label: "Trinity" }, // Changed label from TRK to Trinity
         { value: "lab", label: "LAB" },
         { value: "alpha", label: "ALPHA" }
       ];
@@ -85,7 +85,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
   // Define projects based on cluster selection
   const projectsByCluster = {
     trk: [
-      { value: "trinity", label: "Trinity" },
+      { value: "trinity", label: "Trinity" }, // Corrected value to match cluster value
       { value: "alpha", label: "Alpha" }
     ],
     lab: [
