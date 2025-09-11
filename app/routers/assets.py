@@ -137,7 +137,7 @@ async def upload_location_image(
 
     url = await save_file(file, file_path)
 
-    # Update IDF location
+    # Update IDF location (store as array to match database format)
     location_item = {
         "url": url,
         "name": file.filename,
@@ -146,7 +146,7 @@ async def upload_location_image(
 
     await database.execute(
         "UPDATE idfs SET location = :location WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"location": json.dumps(location_item), "cluster": cluster, "project": project, "code": code}
+        {"location": json.dumps([location_item]), "cluster": cluster, "project": project, "code": code}
     )
 
     return {"url": url, "message": "Location image uploaded successfully"}

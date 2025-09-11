@@ -231,10 +231,21 @@ async def get_idf(
     if idf_dict.get("table"):
         health = compute_health(idf_dict["table"])
 
+    # Parse location field (handle array format from database)
+    location = None
+    if idf_dict.get("location"):
+        location_data = json.loads(idf_dict["location"]) if isinstance(idf_dict["location"], str) else idf_dict["location"]
+        # Handle both array and single object formats
+        if isinstance(location_data, list) and len(location_data) > 0:
+            location_item = location_data[0]  # Take first item from array
+            location = convert_relative_urls_to_absolute(location_item)
+        elif isinstance(location_data, dict):
+            location = convert_relative_urls_to_absolute(location_data)
+
     # Parse media field
     media = None
-    if idf_dict.get("media"):
-        media_data = json.loads(idf_dict["media"]) if isinstance(idf_data["media"], str) else idf_data["media"]
+    if idf_data.get("media"):
+        media_data = json.loads(idf_data["media"]) if isinstance(idf_data["media"], str) else idf_data["media"]
         media_data = convert_relative_urls_to_absolute(media_data)
         if media_data.get("logo"):
             from app.models.idf_models import IdfMedia, MediaLogo
@@ -256,7 +267,7 @@ async def get_idf(
         gallery=convert_relative_urls_to_absolute(idf_dict["gallery"]),
         documents=convert_relative_urls_to_absolute(idf_dict["documents"]),
         diagrams=convert_relative_urls_to_absolute(idf_dict["diagrams"]),
-        location=convert_relative_urls_to_absolute(idf_dict["location"]) if idf_dict["location"] else None,
+        location=location,
         table=idf_dict["table"],
         health=health,
         media=media
