@@ -190,12 +190,13 @@ a.bg-card.border.rounded-lg {
 
 /* ODF Table Styles */
 .odf-container {
-  font-family: 'Courier New', monospace;
-  font-size: 11px;
+  font-family: 'Arial', sans-serif;
+  font-size: 10px;
   background: white;
   color: black;
-  min-width: 1200px;
+  min-width: 1400px;
   overflow-x: auto;
+  border: 2px solid black;
 }
 
 .odf-header {
@@ -204,12 +205,11 @@ a.bg-card.border.rounded-lg {
   text-align: center;
   padding: 8px;
   font-weight: bold;
-  font-size: 14px;
-  letter-spacing: 4px;
+  font-size: 12px;
+  letter-spacing: 8px;
 }
 
 .odf-table {
-  border: 2px solid black;
   border-collapse: collapse;
   width: 100%;
 }
@@ -222,35 +222,48 @@ a.bg-card.border.rounded-lg {
 .odf-table th,
 .odf-table td {
   border: 1px solid black;
-  padding: 4px;
+  padding: 2px 4px;
   text-align: center;
   font-weight: bold;
+  font-size: 9px;
+  min-width: 30px;
+  height: 25px;
+  vertical-align: middle;
 }
 
 .header-cell {
   background: #f0f0f0;
-  font-size: 10px;
-  padding: 4px;
+  font-size: 8px;
+  padding: 2px;
+  font-weight: bold;
+  text-align: center;
 }
 
 .subheader-cell {
   background: #f8f8f8;
-  font-size: 9px;
-  padding: 2px;
+  font-size: 8px;
+  padding: 1px;
+  font-weight: bold;
+  text-align: center;
 }
 
 .cable-label {
-  background: #e0e0e0;
+  background: #e8e8e8;
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  font-size: 10px;
-  padding: 8px 4px;
+  font-size: 8px;
+  padding: 4px 2px;
   vertical-align: middle;
+  font-weight: bold;
+  min-width: 60px;
+  text-align: center;
 }
 
 .buffer-cell {
-  background: #f0f0f0;
-  font-size: 10px;
+  background: #f5f5f5;
+  font-size: 9px;
+  font-weight: bold;
+  color: black;
 }
 
 .buffer-cell.brown {
@@ -260,11 +273,12 @@ a.bg-card.border.rounded-lg {
 
 .fiber-cell {
   color: white;
-  font-size: 10px;
+  font-size: 9px;
+  font-weight: bold;
 }
 
 .fiber-cell.blue {
-  background: #0066CC;
+  background: #0066FF;
 }
 
 .fiber-cell.orange {
@@ -272,7 +286,7 @@ a.bg-card.border.rounded-lg {
 }
 
 .fiber-cell.green {
-  background: #009900;
+  background: #00AA00;
 }
 
 .fiber-cell.brown {
@@ -281,11 +295,14 @@ a.bg-card.border.rounded-lg {
 
 .port-cell {
   background: white;
-  font-size: 10px;
+  font-size: 9px;
+  color: black;
+  font-weight: bold;
 }
 
 .dest-cell {
-  font-size: 9px;
+  font-size: 8px;
+  font-weight: bold;
 }
 
 .dest-cell.red {
@@ -294,13 +311,14 @@ a.bg-card.border.rounded-lg {
 }
 
 .dest-cell.cyan {
-  background: #00CCCC;
+  background: #00FFFF;
   color: black;
 }
 
 .ring-cell {
   color: white;
-  font-size: 10px;
+  font-size: 9px;
+  font-weight: bold;
 }
 
 .ring-cell.purple {
@@ -308,30 +326,32 @@ a.bg-card.border.rounded-lg {
 }
 
 .ring-cell.yellow {
-  background: #FFCC00;
+  background: #FFFF00;
   color: black;
 }
 
 .ring-cell.magenta {
-  background: #CC00CC;
+  background: #FF00FF;
 }
 
 .ring-cell.cyan {
-  background: #00CCCC;
+  background: #00FFFF;
   color: black;
 }
 
 .ptp-cell {
   background: #808080;
   color: white;
-  font-size: 9px;
+  font-size: 8px;
+  font-weight: bold;
 }
 
 .status-cell {
   background: white;
-  padding: 4px;
+  padding: 2px;
   text-align: center;
   vertical-align: middle;
+  font-size: 9px;
 }
 
 /* Dark mode adjustments for ODF */
