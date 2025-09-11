@@ -20,7 +20,6 @@ class TableColumn(BaseModel):
 class IdfTable(BaseModel):
     columns: List[TableColumn]
     rows: List[Dict[str, Any]]
-    dfo_image: Optional[str] = None
 
 
 class HealthCounts(BaseModel):

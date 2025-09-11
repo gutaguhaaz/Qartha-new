@@ -214,55 +214,6 @@ async def upload_document(
     return {"url": url, "message": "Document uploaded successfully"}
 
 
-@router.post("/{cluster}/{project}/assets/dfo")
-async def upload_dfo_image(
-    cluster: str,
-    project: str,
-    file: UploadFile = File(...),
-    code: str = Form(...),
-    authorization: Optional[str] = Header(None)
-):
-    """Upload DFO (Fiber Optic Information) image for IDF"""
-    validate_cluster(cluster)
-    verify_admin_token(authorization)
-
-    # Validate file type
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="File must be an image")
-
-    # Check if IDF exists
-    idf = await database.fetch_one(
-        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"cluster": cluster, "project": project, "code": code}
-    )
-
-    if not idf:
-        raise HTTPException(status_code=404, detail="IDF not found")
-
-    # Save file
-    file_extension = os.path.splitext(file.filename or "dfo.jpg")[1]
-    file_path = os.path.join(
-        settings.STATIC_DIR,
-        cluster,
-        project,
-        "dfo",
-        f"{code}_dfo{file_extension}"
-    )
-
-    url = await save_file(file, file_path)
-
-    # Update table_data with DFO image URL
-    table_data = json.loads(idf["table_data"]) if idf["table_data"] else {}
-    table_data["dfo_image"] = url
-
-    await database.execute(
-        "UPDATE idfs SET table_data = :table_data WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"table_data": json.dumps(table_data), "cluster": cluster, "project": project, "code": code}
-    )
-
-    return {"url": url, "message": "DFO image uploaded successfully"}
-
-
 @router.post("/{cluster}/{project}/assets/diagram")
 async def upload_diagram(
     cluster: str,
