@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.db.mongo import ensure_indexes, seed_data, close_database, init_database # Assuming init_database is in mongo.py
+from app.routers import assets, devices, qr, public_idfs, admin_idfs
 
 
 @asynccontextmanager
@@ -43,7 +44,7 @@ app.mount("/static", StaticFiles(directory=settings.STATIC_DIR), name="static")
 
 # Include routers with /api prefix
 app.include_router(public_idfs.router, prefix="/api")
-app.include_router(admin_idfs.router, prefix="/api")
+app.include_router(admin_idfs.router, prefix="/api/admin")
 app.include_router(devices.router, prefix="/api")
 app.include_router(assets.router, prefix="/api")
 app.include_router(qr.router, prefix="/api")
