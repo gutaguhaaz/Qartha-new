@@ -3,8 +3,10 @@ import os
 from databases import Database
 from app.core.config import settings
 
-# SQLite database for development
-DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///./qartha.db')
+# SQLite database for development - override environment DATABASE_URL to force SQLite
+# The environment DATABASE_URL (probably PostgreSQL) conflicts with our SQLite setup
+DATABASE_URL = 'sqlite+aiosqlite:///./qartha.db'
+print(f"Using development database: {DATABASE_URL}")
 database = Database(DATABASE_URL)
 
 
@@ -55,7 +57,8 @@ async def init_database():
 
 async def ensure_indexes():
     """Create database tables and indexes if they don't exist"""
-    await init_database()
+    # Tables and indexes are already created in init_database()
+    pass
 
 
 async def seed_data():
