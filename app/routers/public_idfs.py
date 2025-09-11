@@ -19,6 +19,7 @@ def validate_cluster(cluster: str):
 def map_url_project_to_db_project(project: str) -> str:
     """Map URL project name to database project name"""
     project_mapping = {
+        "Sabinas": "Sabinas Project",
         "sabinas": "Sabinas Project",
         "Sabinas%20Project": "Sabinas Project",
         "Sabinas Project": "Sabinas Project",
