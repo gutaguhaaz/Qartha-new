@@ -1,72 +1,69 @@
-import { MediaItem } from "@shared/schema";
+import { FileText, Download, FileSpreadsheet } from "lucide-react";
+
+interface Document {
+  url: string;
+  name?: string;
+  kind: string;
+}
 
 interface DocListProps {
-  documents: MediaItem[];
+  documents: Document[];
 }
 
 export default function DocList({ documents }: DocListProps) {
-  if (documents.length === 0) {
+  if (!documents || documents.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground" data-testid="doclist-empty">
-        <i className="fas fa-file-alt text-4xl mb-4"></i>
+      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+        <FileText className="w-12 h-12 mb-4 opacity-50" />
         <p>No documents available</p>
       </div>
     );
   }
 
-  const getFileIcon = (url: string) => {
-    const extension = url.split('.').pop()?.toLowerCase();
-    switch (extension) {
-      case 'pdf':
-        return 'fas fa-file-pdf text-red-400';
-      case 'doc':
-      case 'docx':
-        return 'fas fa-file-word text-blue-400';
-      case 'xls':
-      case 'xlsx':
-        return 'fas fa-file-excel text-green-400';
-      case 'ppt':
-      case 'pptx':
-        return 'fas fa-file-powerpoint text-orange-400';
-      default:
-        return 'fas fa-file-alt text-gray-400';
+  const getFileIcon = (filename: string) => {
+    const extension = filename.split('.').pop()?.toLowerCase();
+    if (extension === 'xlsx' || extension === 'xls') {
+      return <FileSpreadsheet className="w-5 h-5 text-green-500" />;
     }
+    return <FileText className="w-5 h-5 text-blue-500" />;
   };
 
-  const getFileSize = (url: string) => {
-    // This would typically come from the backend
-    // For now, we'll show a placeholder
-    return "Document";
+  const handleDownload = (url: string, filename?: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename || 'document';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
-    <div className="space-y-3" data-testid="doclist-container">
+    <div className="space-y-3">
       {documents.map((doc, index) => (
         <div
           key={index}
-          className="bg-card border border-border rounded-lg p-4 flex items-center justify-between hover:bg-accent/50 transition-colors"
-          data-testid={`document-${index}`}
+          className="flex items-center justify-between p-4 bg-card border border-border rounded-lg hover:bg-accent/50 transition-colors"
         >
           <div className="flex items-center space-x-3">
-            <i className={`${getFileIcon(doc.url)} text-xl`}></i>
+            {getFileIcon(doc.name || doc.url)}
             <div>
-              <h4 className="font-medium" data-testid={`document-name-${index}`}>
+              <p className="font-medium text-foreground">
                 {doc.name || `Document ${index + 1}`}
-              </h4>
-              <p className="text-sm text-muted-foreground">
-                {getFileSize(doc.url)}
+              </p>
+              <p className="text-sm text-muted-foreground capitalize">
+                {doc.kind} • {doc.url.split('.').pop()?.toUpperCase()}
               </p>
             </div>
           </div>
-          <a
-            href={doc.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:text-primary/80 transition-colors"
-            data-testid={`link-document-${index}`}
+          <button
+            onClick={() => handleDownload(doc.url, doc.name)}
+            className="flex items-center space-x-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            title="Download document"
           >
-            <i className="fas fa-external-link-alt"></i>
-          </a>
+            <Download className="w-4 h-4" />
+            <span className="text-sm">Download</span>
+          </button>
         </div>
       ))}
     </div>
