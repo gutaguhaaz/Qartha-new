@@ -56,8 +56,8 @@ export default function PublicDetail({
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
   const { data: logo } = useQuery({
-    queryKey: ["logo", cluster],
-    queryFn: () => getLogo(cluster),
+    queryKey: ["logo", cluster, project],
+    queryFn: () => getLogo(cluster, project),
     retry: false,
   });
 
@@ -124,7 +124,8 @@ export default function PublicDetail({
     );
   }
 
-  const qrUrl = `${API_BASE}/api/${cluster}/${project}/idfs/${code}/qr.png`;
+  // Use absolute URL for QR code to ensure it works
+  const qrUrl = `${window.location.origin}/api/${encodeURIComponent(cluster)}/${encodeURIComponent(project)}/idfs/${encodeURIComponent(code)}/qr.png`;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8" data-testid="public-detail">
@@ -269,7 +270,9 @@ export default function PublicDetail({
                 src={qrUrl}
                 alt="QR Code"
                 className="w-24 h-24"
+                crossOrigin="anonymous"
                 onError={(e) => {
+                  console.error('QR Code failed to load:', qrUrl);
                   const target = e.target as HTMLImageElement;
                   target.style.display = "none";
                   target.parentElement!.innerHTML = `
@@ -277,6 +280,9 @@ export default function PublicDetail({
                       <i class="fas fa-qrcode text-2xl text-muted-foreground"></i>
                     </div>
                   `;
+                }}
+                onLoad={() => {
+                  console.log('QR Code loaded successfully:', qrUrl);
                 }}
               />
               <p className="text-xs text-muted-foreground mt-2 text-center">
