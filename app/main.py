@@ -5,13 +5,13 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
-from app.db.mongo import ensure_indexes, seed_data, close_database
-from app.routers import public_idfs, admin_idfs, assets, devices, qr
+from app.db.mongo import ensure_indexes, seed_data, close_database, init_database # Assuming init_database is in mongo.py
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    await init_database() # Call init_database here
     await ensure_indexes()
     await seed_data()
     yield

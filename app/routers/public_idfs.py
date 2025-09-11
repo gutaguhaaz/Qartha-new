@@ -63,8 +63,8 @@ def compute_health(table_data: dict) -> Optional[IdfHealth]:
     )
 
 
-@router.get("/{cluster}/{project}/idfs", response_model=List[IdfIndex])
-async def get_idfs(
+@router.get("/{cluster}/{project}/idfs")
+async def list_idfs(
     cluster: str = Depends(validate_cluster),
     project: str = "",
     q: Optional[str] = Query(None, description="Search query"),
@@ -73,6 +73,7 @@ async def get_idfs(
     include_health: int = Query(0, description="Include health computation")
 ):
     """Get list of IDFs for a cluster/project"""
+    print(f"Listing IDFs for cluster: {cluster}, project: {project}")
 
     # Build SQL query
     base_query = "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project"
@@ -104,7 +105,7 @@ async def get_idfs(
             idf_data["documents"] = json.loads(idf_data["documents"])
         if isinstance(idf_data["diagram"], str) and idf_data["diagram"]:
             idf_data["diagram"] = json.loads(idf_data["diagram"])
-        
+
         # Parse devices field if it exists and is a string
         if idf_data.get("devices") and isinstance(idf_data["devices"], str):
             idf_data["devices"] = json.loads(idf_data["devices"])
