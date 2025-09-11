@@ -1,9 +1,11 @@
 import json
+import os
 from databases import Database
 from app.core.config import settings
 
-# PostgreSQL database
-database = Database(settings.DATABASE_URL)
+# SQLite database for development
+DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///./qartha.db')
+database = Database(DATABASE_URL)
 
 
 async def init_database():
@@ -13,7 +15,7 @@ async def init_database():
     # Create IDFs table
     await database.execute("""
         CREATE TABLE IF NOT EXISTS idfs (
-            id SERIAL PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             cluster VARCHAR(50) NOT NULL,
             project VARCHAR(50) NOT NULL,
             code VARCHAR(50) NOT NULL,
@@ -21,10 +23,10 @@ async def init_database():
             description TEXT,
             site VARCHAR(255),
             room VARCHAR(255),
-            gallery JSONB DEFAULT '[]',
-            documents JSONB DEFAULT '[]',
-            diagram JSONB,
-            table_data JSONB,
+            gallery TEXT DEFAULT '[]',
+            documents TEXT DEFAULT '[]',
+            diagram TEXT,
+            table_data TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(cluster, project, code)
         )
@@ -33,7 +35,7 @@ async def init_database():
     # Create devices table
     await database.execute("""
         CREATE TABLE IF NOT EXISTS devices (
-            id SERIAL PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             cluster VARCHAR(50) NOT NULL,
             project VARCHAR(50) NOT NULL,
             idf_code VARCHAR(50) NOT NULL,
