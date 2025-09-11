@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "web", "postgresql-16", "python-3.11", "python3"]
+modules = ["nodejs-20", "web", "postgresql-16", "python-3.11"]
 run = "workflow.run Project"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
@@ -8,10 +8,8 @@ packages = ["libxcrypt", "postgresql"]
 
 [deployment]
 deploymentTarget = "autoscale"
-# Para autoscale en producción normalmente se expone un solo servicio.
-# En dev seguimos usando workflows paralelos.
-build = ["pip install -r requirements.txt", "npm install", "npm run build"]
-run = ["uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+buildCommand = "./build.sh"
+runCommand = "bash -lc 'uvicorn app.main:app --host 0.0.0.0 --port ${PORT}'"
 
 [[ports]]
 localPort = 5000
@@ -21,8 +19,7 @@ externalPort = 80
 localPort = 8000
 externalPort = 8000
 
-[env]
-PORT = "5000"
+
 
 [workflows]
 runButton = "Project"
