@@ -15,14 +15,18 @@ export default function PublicList({ params }: { params: PublicListProps }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddIdfDialogOpen, setIsAddIdfDialogOpen] = useState(false);
 
-  const { data: idfs = [], isLoading, error } = useQuery({
-    queryKey: ['idfs', cluster, project, 'list'],
-    queryFn: () => getIdfs(cluster, project, { include_health: 1, limit: 50 })
+  const {
+    data: idfs = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["idfs", cluster, project, "list"],
+    queryFn: () => getIdfs(cluster, project, { include_health: 1, limit: 50 }),
   });
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
   const { data: logo } = useQuery({
-    queryKey: ['logo', cluster],
+    queryKey: ["logo", cluster],
     queryFn: () => getLogo(cluster),
     retry: false,
   });
@@ -41,21 +45,31 @@ export default function PublicList({ params }: { params: PublicListProps }) {
 
   const getHealthIndicatorClass = (level?: string) => {
     switch (level) {
-      case 'green': return 'bg-green-500';
-      case 'yellow': return 'bg-yellow-500';
-      case 'red': return 'bg-red-500';
-      case 'gray': return 'bg-gray-500';
-      default: return 'bg-gray-500';
+      case "green":
+        return "bg-green-500";
+      case "yellow":
+        return "bg-yellow-500";
+      case "red":
+        return "bg-red-500";
+      case "gray":
+        return "bg-gray-500";
+      default:
+        return "bg-gray-500";
     }
   };
 
   const getHealthTitle = (level?: string) => {
     switch (level) {
-      case 'green': return 'Operational';
-      case 'yellow': return 'Under Review';
-      case 'red': return 'Critical Failure';
-      case 'gray': return 'No Data';
-      default: return 'No Data';
+      case "green":
+        return "Operational";
+      case "yellow":
+        return "Under Review";
+      case "red":
+        return "Critical Failure";
+      case "gray":
+        return "No Data";
+      default:
+        return "No Data";
     }
   };
 
@@ -66,7 +80,10 @@ export default function PublicList({ params }: { params: PublicListProps }) {
           <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-card border border-border rounded-lg p-6">
+              <div
+                key={i}
+                className="bg-card border border-border rounded-lg p-6"
+              >
                 <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
                 <div className="h-4 bg-muted rounded w-1/2 mb-4"></div>
                 <div className="space-y-2">
@@ -88,7 +105,7 @@ export default function PublicList({ params }: { params: PublicListProps }) {
           <i className="fas fa-exclamation-triangle text-4xl text-destructive mb-4"></i>
           <h2 className="text-xl font-semibold mb-2">Error Loading IDFs</h2>
           <p className="text-muted-foreground">
-            {error instanceof Error ? error.message : 'Unknown error'}
+            {error instanceof Error ? error.message : "Unknown error"}
           </p>
         </div>
       </div>
@@ -99,7 +116,9 @@ export default function PublicList({ params }: { params: PublicListProps }) {
     <div className="max-w-7xl mx-auto px-6 py-8" data-testid="public-list">
       {/* Welcome Banner */}
       <div className="bg-primary text-primary-foreground rounded-lg p-4 mb-6 text-center">
-        <h1 className="text-xl font-semibold">Welcome to Qartha: Technical Information Portal</h1>
+        <h1 className="text-xl font-semibold">
+          Welcome to the Access Technical Fiber Optic Information Portal
+        </h1>
       </div>
 
       {/* Header Section */}
@@ -111,16 +130,32 @@ export default function PublicList({ params }: { params: PublicListProps }) {
                 src={`${API_BASE}${logo.url}`}
                 alt={`${cluster} logo`}
                 className="h-12 w-auto"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
               />
             )}
             <div className="flex items-center space-x-4">
               <div>
-                <h2 className="text-2xl font-bold text-foreground" data-testid="page-title">
+                <h2
+                  className="text-2xl font-bold text-foreground"
+                  data-testid="page-title"
+                >
                   IDF Directory
                 </h2>
-                <p className="text-muted-foreground mt-1" data-testid="page-subtitle">
-                  {cluster === 'trk' ? 'Trinity Project' : cluster.toUpperCase() + ' Cluster'} • {project === 'trinity' ? 'Sabinas Project' : project.charAt(0).toUpperCase() + project.slice(1) + ' Project'}
+                <p
+                  className="text-muted-foreground mt-1"
+                  data-testid="page-subtitle"
+                >
+                  {cluster === "trk"
+                    ? "Trinity Project"
+                    : cluster.toUpperCase() + " Cluster"}{" "}
+                  •{" "}
+                  {project === "trinity"
+                    ? "Sabinas Project"
+                    : project.charAt(0).toUpperCase() +
+                      project.slice(1) +
+                      " Project"}
                 </p>
               </div>
               <button
@@ -150,7 +185,10 @@ export default function PublicList({ params }: { params: PublicListProps }) {
         </div>
 
         {/* Health Legend */}
-        <div className="flex items-center space-x-6 text-sm" data-testid="health-legend">
+        <div
+          className="flex items-center space-x-6 text-sm"
+          data-testid="health-legend"
+        >
           <span className="text-muted-foreground">Health Status:</span>
           <div className="flex items-center space-x-2">
             <div className="health-indicator bg-green-500"></div>
@@ -173,13 +211,19 @@ export default function PublicList({ params }: { params: PublicListProps }) {
 
       {/* IDF Cards Grid */}
       {filteredIdfs.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground" data-testid="empty-state">
+        <div
+          className="text-center py-12 text-muted-foreground"
+          data-testid="empty-state"
+        >
           <i className="fas fa-search text-4xl mb-4"></i>
           <h3 className="text-lg font-semibold mb-2">No IDFs Found</h3>
           <p>Try adjusting your search terms</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="idf-grid">
+        <div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          data-testid="idf-grid"
+        >
           {filteredIdfs.map((idf: IdfIndex) => (
             <Link
               key={`${idf.cluster}-${idf.project}-${idf.code}`}
@@ -189,10 +233,16 @@ export default function PublicList({ params }: { params: PublicListProps }) {
             >
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="font-semibold text-foreground" data-testid={`title-${idf.code}`}>
+                  <h3
+                    className="font-semibold text-foreground"
+                    data-testid={`title-${idf.code}`}
+                  >
                     {idf.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground mt-1" data-testid={`code-${idf.code}`}>
+                  <p
+                    className="text-sm text-muted-foreground mt-1"
+                    data-testid={`code-${idf.code}`}
+                  >
                     {idf.code}
                   </p>
                 </div>
@@ -220,7 +270,10 @@ export default function PublicList({ params }: { params: PublicListProps }) {
 
               {/* Health Summary */}
               {idf.health && (
-                <div className="flex items-center space-x-4 text-xs" data-testid={`health-summary-${idf.code}`}>
+                <div
+                  className="flex items-center space-x-4 text-xs"
+                  data-testid={`health-summary-${idf.code}`}
+                >
                   {idf.health.counts.ok > 0 && (
                     <span className="px-2 py-1 bg-green-500/10 text-green-400 rounded-full">
                       {idf.health.counts.ok} OK

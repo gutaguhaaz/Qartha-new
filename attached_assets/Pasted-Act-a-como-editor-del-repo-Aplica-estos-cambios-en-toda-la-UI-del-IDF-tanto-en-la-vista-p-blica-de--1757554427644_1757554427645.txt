@@ -1,0 +1,77 @@
+Actúa como editor del repo. Aplica estos cambios en toda la UI del IDF tanto en la vista pública de detalle como en la vista Admin:
+
+Ocultar visualmente Overview (no borrar código):
+
+En los componentes de tabs de IDF (por ejemplo IdfTabs.tsx, IdfDetail.tsx, AdminIdfDetail.tsx o equivalentes), agrega una bandera hidden: true a la pestaña Overview y aplica clase CSS hidden al contenedor del panel. Si no hay sistema de banderas, envuelve el render de Overview con {false && <Overview .../>}.
+
+Asegura que la pestaña Overview no sea la seleccionada por defecto.
+
+Orden nuevo de pestañas (este debe ser el orden y la primera activa):
+
+Fiber Optic Information (DFO) ← primera y activa por defecto
+
+Gallery
+
+Location (nueva pestaña)
+
+Diagram (solo imágenes)
+
+Documents (PDF, DOC/DOCX, XLSX)
+
+Estructura de tabs (unificada):
+
+Centraliza la configuración de pestañas en un arreglo exportado (ej. tabsConfig.ts o dentro del componente), con esta forma:
+
+export const IDF_TABS = [
+  { key: 'dfo',       label: 'Fiber Optic Information (DFO)', component: DfoTab,       default: true },
+  { key: 'gallery',   label: 'Gallery',                       component: GalleryTab },
+  { key: 'location',  label: 'Location',                      component: LocationTab },
+  { key: 'diagram',   label: 'Diagram',                       component: DiagramImagesTab },
+  { key: 'documents', label: 'Documents',                     component: DocumentsTab },
+  { key: 'overview',  label: 'Overview',                      component: OverviewTab, hidden: true }
+];
+
+
+En el render, no muestres tabs con hidden: true y selecciona como inicial el que tenga default: true.
+
+Nueva pestaña: LOCATION (imágenes)
+
+Crea LocationTab que muestre un grid de imágenes (igual que Gallery) pero con su propio data source (ej. idf.locationImages).
+
+Si existe subida/carga, limita a imágenes: accept="image/*".
+
+Ajustes de DIAGRAM
+
+Renombra/usa el componente como DiagramImagesTab y muestra solo imágenes (no PDF aquí).
+
+Si había visor PDF, muévelo a Documents.
+
+Ajustes de DOCUMENTS
+
+DocumentsTab debe permitir/ver PDF, DOC/DOCX y XLSX.
+
+En cualquier input de subida: accept=".pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".
+
+Ocultar semáforo de salud bajo el título en ambas vistas (Detalle y Admin):
+
+Localiza el widget de “Health Status / semáforo” que aparece debajo del título del IDF y ocúltalo visualmente (no borrar). Aplica clase hidden o condición {false && <HealthStatus .../>}.
+
+Ruta/estado inicial
+
+Si el tab activo depende de la URL, ajusta la ruta por defecto a ?tab=dfo (o equivalente) para que DFO sea la primera vista.
+
+Asegura lo mismo en /idf/:code y en /admin/idf/:code.
+
+Pruebas de aceptación
+
+Al entrar a un IDF (público y admin) debe verse primero Fiber Optic Information (DFO).
+
+Overview y el semaforo NO deben ser visibles (pero su código sigue en el repo).
+
+Deben existir y verse tabs: Gallery, Location, Diagram, Documents en ese orden.
+
+Diagram solo muestra imágenes.
+
+Documents acepta/visualiza PDF/DOC/DOCX/XLS/XLSX.
+
+Realiza los cambios con refactor mínimo y mantén estilado/temas existentes.
