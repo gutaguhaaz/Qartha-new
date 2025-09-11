@@ -115,7 +115,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop selectors - Only show in directory view */}
-          {!location.includes('/idf/') && (
+          {!location.includes("/idf/") && (
             <div className="hidden md:flex items-center space-x-4">
               <select
                 value={selectedCluster}
@@ -125,7 +125,9 @@ export default function Navbar() {
               >
                 {CLUSTERS.map((cluster: string) => (
                   <option key={cluster} value={cluster}>
-                    {cluster === 'trk' ? 'Trinity Project' : cluster.toUpperCase() + ' Cluster'}
+                    {cluster === "Trinity"
+                      ? "Trinity"
+                      : cluster.toUpperCase() + " Cluster"}
                   </option>
                 ))}
               </select>
@@ -138,7 +140,11 @@ export default function Navbar() {
               >
                 {getProjectsForCluster(selectedCluster).map((project) => (
                   <option key={project} value={project}>
-                    {project === 'trinity' ? 'Trinity Project' : project.charAt(0).toUpperCase() + project.slice(1) + ' Project'}
+                    {project === "Sabinas Project"
+                      ? "Sabinas Project"
+                      : project.charAt(0).toUpperCase() +
+                        project.slice(1) +
+                        " Project"}
                   </option>
                 ))}
               </select>
@@ -156,7 +162,7 @@ export default function Navbar() {
               <i className="fas fa-list"></i>
             </Link>
             {/* Only show admin button in CMS routes */}
-            {location.includes('/admin') && (
+            {location.includes("/admin") && (
               <button
                 onClick={() => setIsAdminOpen(true)}
                 className="nav-link"
@@ -188,7 +194,7 @@ export default function Navbar() {
           className={`${isMenuOpen ? "block" : "hidden"} md:hidden mt-4 space-y-4`}
         >
           {/* Mobile selectors - Only show in directory view */}
-          {!location.includes('/idf/') && (
+          {!location.includes("/idf/") && (
             <div className="flex flex-col space-y-2">
               <select
                 value={selectedCluster}
@@ -198,7 +204,9 @@ export default function Navbar() {
               >
                 {CLUSTERS.map((cluster: string) => (
                   <option key={cluster} value={cluster}>
-                    {cluster === 'trk' ? 'Trinity Project' : cluster.toUpperCase() + ' Cluster'}
+                    {cluster === "trk"
+                      ? "Trinity Project"
+                      : cluster.toUpperCase() + " Cluster"}
                   </option>
                 ))}
               </select>
@@ -211,7 +219,11 @@ export default function Navbar() {
               >
                 {getProjectsForCluster(selectedCluster).map((project) => (
                   <option key={project} value={project}>
-                    {project === 'trinity' ? 'Trinity Project' : project.charAt(0).toUpperCase() + project.slice(1) + ' Project'}
+                    {project === "trinity"
+                      ? "Trinity Project"
+                      : project.charAt(0).toUpperCase() +
+                        project.slice(1) +
+                        " Project"}
                   </option>
                 ))}
               </select>
@@ -229,7 +241,7 @@ export default function Navbar() {
               <i className="fas fa-list"></i>
             </Link>
             {/* Only show admin button in CMS routes */}
-            {location.includes('/admin') && (
+            {location.includes("/admin") && (
               <button
                 onClick={() => {
                   setIsAdminOpen(true);
