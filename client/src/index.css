@@ -147,31 +147,22 @@
 
   /* Logo theme switching */
   .logo-container .logo-svg {
-    color: hsl(var(--primary-foreground));
+    height: 45px;
+    width: auto;
   }
 
-  .dark .logo-container .logo-svg * {
-    stroke: white;
-  }
-
-  /* Alternative approach using fill for filled SVGs */
-  .dark .logo-svg path {
-    stroke: white;
+  /* Dark mode logo styles */
+  .dark .logo-svg .logo-path-0,
+  .dark .logo-svg .logo-path-1,
+  .dark .logo-svg .logo-path-2,
+  .dark .logo-svg .logo-path-3 {
+    fill: white !important;
+    opacity: 1 !important;
   }
 }
 
 a.bg-card.border.rounded-lg {
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
-
-}
-
-svg.logo-svg.logoqartha {
-  height: 45px !important;
-  width: auto !important;
-}
-
-.dark svg.logoqartha.logo-svg * {
-  fill: white;
 }
 
 .health-indicator.bg-red-500 {
