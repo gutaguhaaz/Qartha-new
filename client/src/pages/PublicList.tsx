@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useParams } from "wouter";
 import { getIdfs, getLogo } from "@/lib/api";
 import { IdfIndex } from "@shared/schema";
 import AddIdfDialog from "@/components/AddIdfDialog";
@@ -10,8 +10,15 @@ interface PublicListProps {
   project: string;
 }
 
-export default function PublicList({ params }: { params: PublicListProps }) {
-  const { cluster, project } = params;
+// Define default values for cluster and project if they are not provided in the URL
+const DEFAULT_CLUSTER = "trk"; // Example default cluster
+const DEFAULT_PROJECT = "sabinas"; // Example default project
+
+export default function PublicList() {
+  const params = useParams();
+  const cluster = params.cluster || DEFAULT_CLUSTER;
+  const project = params.project || DEFAULT_PROJECT;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddIdfDialogOpen, setIsAddIdfDialogOpen] = useState(false);
 
@@ -151,7 +158,7 @@ export default function PublicList({ params }: { params: PublicListProps }) {
                     ? "Trinity Project"
                     : cluster.toUpperCase() + " Cluster"}{" "}
                   •{" "}
-                  {project === "trinity"
+                  {project === "sabinas"
                     ? "Sabinas Project"
                     : project.charAt(0).toUpperCase() +
                       project.slice(1) +
@@ -229,7 +236,7 @@ export default function PublicList({ params }: { params: PublicListProps }) {
           {filteredIdfs.map((idf: IdfIndex) => (
             <Link
               key={idf.code}
-              href={`/${cluster}/${project === "Sabinas Project" ? "Sabinas" : project}/idf/${idf.code}`}
+              href={`/${cluster}/${project}/idf/${idf.code}`}
               className="bg-card border border-border rounded-lg p-6 card-hover"
               data-testid={`card-${idf.code}`}
             >
