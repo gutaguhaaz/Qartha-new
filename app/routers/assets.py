@@ -190,16 +190,30 @@ async def upload_diagram(
 
     url = await save_file(file, file_path)
 
-    # Update IDF diagram
-    media_item = {
+    # Get current diagrams array
+    current_idf = await database.fetch_one(
+        "SELECT diagrams FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": project, "code": code}
+    )
+    
+    current_diagrams = []
+    if current_idf and current_idf["diagrams"]:
+        if isinstance(current_idf["diagrams"], str):
+            current_diagrams = json.loads(current_idf["diagrams"])
+        else:
+            current_diagrams = current_idf["diagrams"]
+    
+    # Add new diagram to array
+    new_diagram = {
         "url": url,
         "name": file.filename,
         "kind": "diagram"
     }
+    current_diagrams.append(new_diagram)
 
     await database.execute(
-        "UPDATE idfs SET diagram = :diagram WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"diagram": json.dumps(media_item), "cluster": cluster, "project": project, "code": code}
+        "UPDATE idfs SET diagrams = :diagrams WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"diagrams": json.dumps(current_diagrams), "cluster": cluster, "project": project, "code": code}
     )
 
     return {"url": url, "message": "Diagram uploaded successfully"}

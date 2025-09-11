@@ -70,7 +70,7 @@ export const idfPublicSchema = z.object({
   room: z.string().optional(),
   gallery: z.array(mediaItemSchema),
   documents: z.array(mediaItemSchema),
-  diagram: mediaItemSchema.optional(),
+  diagrams: z.array(mediaItemSchema),
   table: idfTableSchema.optional(),
   health: idfHealthSchema.optional(),
   media: idfMediaSchema.optional(),

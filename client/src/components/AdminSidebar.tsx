@@ -165,7 +165,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
         },
         gallery: Array.isArray(idfData.gallery) ? idfData.gallery : [],
         documents: Array.isArray(idfData.documents) ? idfData.documents : [],
-        diagram: idfData.diagram || null,
+        diagrams: Array.isArray(idfData.diagrams) ? idfData.diagrams : (idfData.diagram ? [idfData.diagram] : []),
         table: idfData.table || null, // Keep as single table, not array
         media: idfData.media || {} // Ensure media object exists
       };
@@ -616,13 +616,23 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                     <p className="text-sm text-muted-foreground">
                       Diagram management - Images only (PDFs moved to Documents)
                     </p>
-                    {editingIdf?.diagram && editingIdf.diagram.kind === 'image' && (
+                    {editingIdf?.diagrams && editingIdf.diagrams.length > 0 && (
                       <div className="space-y-2">
-                        <h4 className="font-medium">Current Diagram:</h4>
-                        <div className="flex items-center space-x-2 p-2 border rounded">
-                          <i className="fas fa-image text-muted-foreground"></i>
-                          <span className="text-sm">{editingIdf.diagram.name || 'Diagram'}</span>
+                        <h4 className="font-medium">Current Diagrams ({editingIdf.diagrams.length}):</h4>
+                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                          {editingIdf.diagrams.map((diagram, index) => (
+                            <div key={index} className="flex items-center space-x-2 p-2 border rounded">
+                              <i className="fas fa-image text-muted-foreground"></i>
+                              <span className="text-sm flex-1">{diagram.name || `Diagram ${index + 1}`}</span>
+                            </div>
+                          ))}
                         </div>
+                      </div>
+                    )}
+                    {(!editingIdf?.diagrams || editingIdf.diagrams.length === 0) && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <i className="fas fa-image text-4xl mb-2"></i>
+                        <p>No diagrams available</p>
                       </div>
                     )}
                   </div>

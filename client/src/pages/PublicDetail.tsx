@@ -367,7 +367,32 @@ export default function PublicDetail({
 
         {activeTab === "diagram" && (
           <div data-testid="tab-content-diagram">
-            <PdfOrImage diagram={idf.diagram && idf.diagram.kind === 'image' ? idf.diagram : null} />
+            <div className="space-y-6">
+              {idf.diagrams && idf.diagrams.length > 0 ? (
+                <div className="space-y-6">
+                  <div className="text-sm text-muted-foreground mb-4">
+                    {idf.diagrams.length} diagram{idf.diagrams.length !== 1 ? 's' : ''} available
+                  </div>
+                  {idf.diagrams.map((diagram, index) => (
+                    <div key={index} className="bg-card rounded-lg border p-6">
+                      <div className="mb-4">
+                        <h3 className="text-lg font-semibold text-foreground">
+                          {diagram.name || `Diagram ${index + 1}`}
+                        </h3>
+                      </div>
+                      <div className="flex justify-center">
+                        <PdfOrImage item={diagram} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <i className="fas fa-project-diagram text-4xl mb-4"></i>
+                  <p>No diagrams available</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

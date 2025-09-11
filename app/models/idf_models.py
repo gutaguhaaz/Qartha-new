@@ -65,7 +65,7 @@ class IdfPublic(BaseModel):
     room: Optional[str] = None
     gallery: List[MediaItem]
     documents: List[MediaItem]
-    diagram: Optional[MediaItem] = None
+    diagrams: List[MediaItem]
     table: Optional[IdfTable] = None
     health: Optional[IdfHealth] = None
     media: Optional[IdfMedia] = None

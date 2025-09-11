@@ -54,7 +54,7 @@ async def _create_idf_record(cluster: str, project: str, code: str, idf_data: Id
 
     gallery = json.loads(row["gallery"]) if isinstance(row["gallery"], str) else row["gallery"]
     documents = json.loads(row["documents"]) if isinstance(row["documents"], str) else row["documents"]
-    diagram = json.loads(row["diagram"]) if row["diagram"] and isinstance(row["diagram"], str) else row["diagram"]
+    diagrams = json.loads(row["diagrams"]) if row.get("diagrams") and isinstance(row["diagrams"], str) else (row.get("diagrams") or [])
     table_data = json.loads(row["table_data"]) if row["table_data"] and isinstance(row["table_data"], str) else row["table_data"]
 
     return IdfPublic(
@@ -67,7 +67,7 @@ async def _create_idf_record(cluster: str, project: str, code: str, idf_data: Id
         room=row["room"],
         gallery=gallery or [],
         documents=documents or [],
-        diagram=diagram,
+        diagrams=diagrams,
         table=table_data,
     )
 
@@ -129,7 +129,7 @@ async def update_idf(
 
     gallery = json.loads(row["gallery"]) if isinstance(row["gallery"], str) else row["gallery"]
     documents = json.loads(row["documents"]) if isinstance(row["documents"], str) else row["documents"]
-    diagram = json.loads(row["diagram"]) if row["diagram"] and isinstance(row["diagram"], str) else row["diagram"]
+    diagrams = json.loads(row["diagrams"]) if row.get("diagrams") and isinstance(row["diagrams"], str) else (row.get("diagrams") or [])
     table_data = json.loads(row["table_data"]) if row["table_data"] and isinstance(row["table_data"], str) else row["table_data"]
 
     return IdfPublic(
@@ -142,7 +142,7 @@ async def update_idf(
         room=row["room"],
         gallery=gallery or [],
         documents=documents or [],
-        diagram=diagram,
+        diagrams=diagrams,
         table=table_data,
     )
 
@@ -159,4 +159,3 @@ async def delete_idf(
     if result == 0:
         raise HTTPException(status_code=404, detail="IDF not found")
     return {"message": "IDF deleted successfully"}
-
