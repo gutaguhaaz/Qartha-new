@@ -49,13 +49,14 @@ async def save_file(file: UploadFile, file_path: str) -> str:
 
 @router.post("/{cluster}/{project}/assets/images")
 async def upload_image(
+    cluster: str,
+    project: str,
     file: UploadFile = File(...),
     code: str = Form(...),
-    cluster: str = Depends(validate_cluster),
-    project: str = "",
     authorization: Optional[str] = Header(None)
 ):
     """Upload image for IDF"""
+    validate_cluster(cluster)
     verify_admin_token(authorization)
 
     # Validate file type
@@ -105,13 +106,14 @@ async def upload_image(
 
 @router.post("/{cluster}/{project}/assets/documents")
 async def upload_document(
+    cluster: str,
+    project: str,
     file: UploadFile = File(...),
     code: str = Form(...),
-    cluster: str = Depends(validate_cluster),
-    project: str = "",
     authorization: Optional[str] = Header(None)
 ):
     """Upload document for IDF"""
+    validate_cluster(cluster)
     verify_admin_token(authorization)
 
     # Check if IDF exists
@@ -157,13 +159,14 @@ async def upload_document(
 
 @router.post("/{cluster}/{project}/assets/diagram")
 async def upload_diagram(
+    cluster: str,
+    project: str,
     file: UploadFile = File(...),
     code: str = Form(...),
-    cluster: str = Depends(validate_cluster),
-    project: str = "",
     authorization: Optional[str] = Header(None)
 ):
     """Upload diagram for IDF"""
+    validate_cluster(cluster)
     verify_admin_token(authorization)
 
     # Check if IDF exists
@@ -204,12 +207,13 @@ async def upload_diagram(
 
 @router.post("/{cluster}/{project}/assets/logo")
 async def upload_logo(
+    cluster: str,
+    project: str,
     file: UploadFile = File(...),
-    cluster: str = Depends(validate_cluster),
-    project: str = "",
     authorization: Optional[str] = Header(None),
 ):
     """Upload cluster logo"""
+    validate_cluster(cluster)
     verify_admin_token(authorization)
 
     if not file.content_type or not file.content_type.startswith("image/"):
@@ -271,13 +275,14 @@ async def get_logo(cluster: str, project: str):
 
 @router.post("/{cluster}/{project}/assets/{code}/logo")
 async def upload_idf_logo(
+    cluster: str,
+    project: str,
     code: str,
     file: UploadFile = File(...),
-    cluster: str = Depends(validate_cluster),
-    project: str = "",
     authorization: Optional[str] = Header(None)
 ):
     """Upload logo for specific IDF"""
+    validate_cluster(cluster)
     verify_admin_token(authorization)
 
     # Validate file type
