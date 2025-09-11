@@ -87,6 +87,26 @@ export default function PdfOrImage({ diagram }: PdfOrImageProps) {
             className="w-full h-auto"
             style={{ transform: `scale(${zoom / 100})` }}
             data-testid="diagram-image"
+            onError={(e) => {
+              console.error(`Failed to load diagram image: ${diagram.url}`);
+              const target = e.target as HTMLImageElement;
+              target.parentElement!.innerHTML = `
+                <div class="p-4 text-center text-muted-foreground">
+                  <i class="fas fa-exclamation-triangle text-4xl mb-4 text-yellow-400"></i>
+                  <p class="mb-2">Failed to load diagram image</p>
+                  <p class="text-sm text-muted-foreground">${diagram.url}</p>
+                  <a
+                    href="${diagram.url}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center px-4 py-2 mt-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                  >
+                    <i class="fas fa-external-link-alt mr-2"></i>
+                    Try Direct Link
+                  </a>
+                </div>
+              `;
+            }}
           />
         )}
       </div>

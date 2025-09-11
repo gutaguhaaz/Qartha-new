@@ -159,9 +159,17 @@ async def list_idfs(
 def convert_relative_urls_to_absolute(data: Any) -> Any:
     """Convert relative URLs to absolute URLs"""
     if isinstance(data, dict):
-        if "url" in data and isinstance(data["url"], str) and data["url"].startswith("/static"):
-            data = data.copy()
-            data["url"] = f"{settings.PUBLIC_BASE_URL}{data['url']}"
+        if "url" in data and isinstance(data["url"], str):
+            if data["url"].startswith("/static"):
+                data = data.copy()
+                data["url"] = f"{settings.PUBLIC_BASE_URL}{data['url']}"
+            elif not data["url"].startswith(("http://", "https://", settings.PUBLIC_BASE_URL)):
+                # Handle relative URLs that don't start with /static
+                data = data.copy()
+                if data["url"].startswith("/"):
+                    data["url"] = f"{settings.PUBLIC_BASE_URL}{data['url']}"
+                else:
+                    data["url"] = f"{settings.PUBLIC_BASE_URL}/static/{data['url']}"
         return {k: convert_relative_urls_to_absolute(v) for k, v in data.items()}
     elif isinstance(data, list):
         return [convert_relative_urls_to_absolute(item) for item in data]
