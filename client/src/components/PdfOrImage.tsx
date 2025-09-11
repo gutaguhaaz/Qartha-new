@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import { MediaItem } from "@shared/schema";
 
 interface PdfOrImageProps {
-  diagram?: MediaItem;
+  item?: MediaItem;
 }
 
-export default function PdfOrImage({ diagram }: PdfOrImageProps) {
+export default function PdfOrImage({ item }: PdfOrImageProps) {
   const [zoom, setZoom] = useState(100);
 
-  if (!diagram) {
+  console.log("PdfOrImage received item:", item);
+
+  if (!item) {
     return (
       <div className="bg-card border border-border rounded-lg p-6" data-testid="diagram-empty">
         <div className="text-center py-12 text-muted-foreground">
@@ -19,14 +21,14 @@ export default function PdfOrImage({ diagram }: PdfOrImageProps) {
     );
   }
 
-  const isPdf = diagram.url.toLowerCase().endsWith('.pdf');
+  const isPdf = item.url.toLowerCase().endsWith('.pdf');
   
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
   const handleDownload = () => {
     const link = document.createElement('a');
-    link.href = diagram.url;
-    link.download = diagram.name || 'diagram';
+    link.href = item.url;
+    link.download = item.name || 'diagram';
     link.click();
   };
 
@@ -34,7 +36,7 @@ export default function PdfOrImage({ diagram }: PdfOrImageProps) {
     <div className="bg-card border border-border rounded-lg p-6" data-testid="diagram-viewer">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold" data-testid="diagram-title">
-          {diagram.name || 'Network Diagram'}
+          {item.name || 'Network Diagram'}
         </h3>
         <div className="flex items-center space-x-2">
           <button
@@ -70,33 +72,33 @@ export default function PdfOrImage({ diagram }: PdfOrImageProps) {
             <i className="fas fa-file-pdf text-4xl mb-4 text-red-400"></i>
             <p className="mb-4">PDF preview not available</p>
             <a
-              href={diagram.url}
+              href={item.url}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
               data-testid="link-open-pdf"
             >
-              <i className="fas fa-external-link-alt mr-2"></i>
+              <i class="fas fa-external-link-alt mr-2"></i>
               Open PDF
             </a>
           </div>
         ) : (
           <img
-            src={diagram.url}
-            alt={diagram.name || 'Network diagram'}
+            src={item.url}
+            alt={item.name || 'Network diagram'}
             className="w-full h-auto"
             style={{ transform: `scale(${zoom / 100})` }}
             data-testid="diagram-image"
             onError={(e) => {
-              console.error(`Failed to load diagram image: ${diagram.url}`);
+              console.error(`Failed to load diagram image: ${item.url}`);
               const target = e.target as HTMLImageElement;
               target.parentElement!.innerHTML = `
                 <div class="p-4 text-center text-muted-foreground">
                   <i class="fas fa-exclamation-triangle text-4xl mb-4 text-yellow-400"></i>
                   <p class="mb-2">Failed to load diagram image</p>
-                  <p class="text-sm text-muted-foreground">${diagram.url}</p>
+                  <p class="text-sm text-muted-foreground">${item.url}</p>
                   <a
-                    href="${diagram.url}"
+                    href="${item.url}"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="inline-flex items-center px-4 py-2 mt-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
