@@ -22,7 +22,7 @@ export default function PublicDetail({
   params: PublicDetailProps;
 }) {
   const { cluster, project, code } = params;
-  const [activeTab, setActiveTab] = useState<string>("overview");
+  const [activeTab, setActiveTab] = useState<string>("table");
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isAddIdfDialogOpen, setIsAddIdfDialogOpen] = useState(false);
 
@@ -195,10 +195,10 @@ export default function PublicDetail({
                 {idf.code} • {idf.site} • {idf.room}
               </p>
 
-              {/* Global Health Status */}
+              {/* Global Health Status - Hidden but kept in code */}
               {idf.health && (
                 <div
-                  className="flex items-center space-x-4"
+                  className="hidden flex items-center space-x-4"
                   data-testid="health-status"
                 >
                   <div className="flex items-center space-x-2">
@@ -293,11 +293,11 @@ export default function PublicDetail({
           data-testid="tab-navigation"
         >
           <button
-            className={`tab-button ${activeTab === "overview" ? "active" : ""}`}
-            onClick={() => setActiveTab("overview")}
-            data-testid="tab-overview"
+            className={`tab-button ${activeTab === "table" ? "active" : ""}`}
+            onClick={() => setActiveTab("table")}
+            data-testid="tab-table"
           >
-            <i className="fas fa-info-circle mr-2"></i>Overview
+            <i className="fas fa-table mr-2"></i>Fiber Optic Information (DFO)
           </button>
           <button
             className={`tab-button ${activeTab === "gallery" ? "active" : ""}`}
@@ -307,11 +307,11 @@ export default function PublicDetail({
             <i className="fas fa-images mr-2"></i>Gallery
           </button>
           <button
-            className={`tab-button ${activeTab === "documents" ? "active" : ""}`}
-            onClick={() => setActiveTab("documents")}
-            data-testid="tab-documents"
+            className={`tab-button ${activeTab === "location" ? "active" : ""}`}
+            onClick={() => setActiveTab("location")}
+            data-testid="tab-location"
           >
-            <i className="fas fa-file-alt mr-2"></i>Documents
+            <i className="fas fa-map-marker-alt mr-2"></i>Location
           </button>
           <button
             className={`tab-button ${activeTab === "diagram" ? "active" : ""}`}
@@ -321,20 +321,62 @@ export default function PublicDetail({
             <i className="fas fa-project-diagram mr-2"></i>Diagram
           </button>
           <button
-            className={`tab-button ${activeTab === "table" ? "active" : ""}`}
-            onClick={() => setActiveTab("table")}
-            data-testid="tab-table"
+            className={`tab-button ${activeTab === "documents" ? "active" : ""}`}
+            onClick={() => setActiveTab("documents")}
+            data-testid="tab-documents"
           >
-            <i className="fas fa-table mr-2"></i>Fiber Allocation Table
+            <i className="fas fa-file-alt mr-2"></i>Documents
+          </button>
+          {/* Overview tab - Hidden but kept in code */}
+          <button
+            className={`hidden tab-button ${activeTab === "overview" ? "active" : ""}`}
+            onClick={() => setActiveTab("overview")}
+            data-testid="tab-overview"
+          >
+            <i className="fas fa-info-circle mr-2"></i>Overview
           </button>
         </div>
       </div>
 
       {/* Tab Content */}
       <div className="tab-content">
+        {activeTab === "table" && (
+          <div data-testid="tab-content-table">
+            <DataTable table={idf.table} />
+          </div>
+        )}
+
+        {activeTab === "gallery" && (
+          <div data-testid="tab-content-gallery">
+            <Gallery images={idf.gallery} />
+          </div>
+        )}
+
+        {activeTab === "location" && (
+          <div data-testid="tab-content-location">
+            <Gallery images={idf.gallery.filter(item => item.kind === 'image')} />
+          </div>
+        )}
+
+        {activeTab === "diagram" && (
+          <div data-testid="tab-content-diagram">
+            <PdfOrImage diagram={idf.diagram && idf.diagram.kind === 'image' ? idf.diagram : null} />
+          </div>
+        )}
+
+        {activeTab === "documents" && (
+          <div data-testid="tab-content-documents">
+            <DocList documents={[
+              ...idf.documents.filter(doc => doc.kind === 'document'),
+              ...(idf.diagram && idf.diagram.kind === 'document' ? [idf.diagram] : [])
+            ]} />
+          </div>
+        )}
+
+        {/* Overview tab content - Hidden but kept in code */}
         {activeTab === "overview" && (
           <div
-            className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+            className="hidden grid grid-cols-1 lg:grid-cols-2 gap-8"
             data-testid="tab-content-overview"
           >
             <div className="bg-card border border-border rounded-lg p-6">
@@ -436,30 +478,6 @@ export default function PublicDetail({
                 </div>
               </div>
             )}
-          </div>
-        )}
-
-        {activeTab === "gallery" && (
-          <div data-testid="tab-content-gallery">
-            <Gallery images={idf.gallery} />
-          </div>
-        )}
-
-        {activeTab === "documents" && (
-          <div data-testid="tab-content-documents">
-            <DocList documents={idf.documents} />
-          </div>
-        )}
-
-        {activeTab === "diagram" && (
-          <div data-testid="tab-content-diagram">
-            <PdfOrImage diagram={idf.diagram} />
-          </div>
-        )}
-
-        {activeTab === "table" && (
-          <div data-testid="tab-content-table">
-            <DataTable table={idf.table} />
           </div>
         )}
       </div>

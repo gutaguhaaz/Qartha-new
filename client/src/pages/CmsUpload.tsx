@@ -115,7 +115,7 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
         input.accept = '.pdf,.doc,.docx,.xls,.xlsx';
         break;
       case 'diagram':
-        input.accept = '.pdf,.png,.jpg,.jpeg';
+        input.accept = '.png,.jpg,.jpeg';
         break;
     }
     
@@ -289,7 +289,7 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
           >
             <i className="fas fa-project-diagram text-3xl text-muted-foreground mb-4"></i>
             <p className="text-lg font-medium mb-2">Upload Diagram</p>
-            <p className="text-muted-foreground mb-4">PDF, PNG, JPG up to 25MB</p>
+            <p className="text-muted-foreground mb-4">PNG, JPG up to 25MB (Images only)</p>
             <button
               onClick={() => handleFileSelect('diagram')}
               disabled={uploading}

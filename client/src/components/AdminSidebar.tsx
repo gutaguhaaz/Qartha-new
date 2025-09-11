@@ -43,6 +43,8 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
   const [idfs, setIdfs] = useState<any[]>([]); // State to hold the list of IDFs
   const [adminToken, setAdminToken] = useState(import.meta.env.VITE_ADMIN_TOKEN || "changeme-demo-token");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [activeTab, setActiveTab] = useState("table");
+  const [showTableEditor, setShowTableEditor] = useState(false); // State for showing/hiding table editor
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -328,7 +330,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 z-40"
         onClick={onClose}
       />
@@ -449,7 +451,270 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
               <div className="space-y-6 border-t border-border pt-6">
                 <h3 className="font-medium">Editing: {editingIdf?.basic_info?.title || editingIdf?.title || 'Untitled'}</h3>
 
-                {/* Basic Info */}
+                {/* Tab Navigation */}
+                <div className="flex flex-wrap gap-1 mb-6">
+                  <button
+                    onClick={() => setActiveTab("table")}
+                    className={`px-3 py-2 text-sm rounded transition-colors ${
+                      activeTab === "table"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    DFO
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("gallery")}
+                    className={`px-3 py-2 text-sm rounded transition-colors ${
+                      activeTab === "gallery"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    Gallery
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("location")}
+                    className={`px-3 py-2 text-sm rounded transition-colors ${
+                      activeTab === "location"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    Location
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("diagram")}
+                    className={`px-3 py-2 text-sm rounded transition-colors ${
+                      activeTab === "diagram"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    Diagram
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("documents")}
+                    className={`px-3 py-2 text-sm rounded transition-colors ${
+                      activeTab === "documents"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    Documents
+                  </button>
+                  {/* Overview tab - Hidden but kept in code */}
+                  <button
+                    onClick={() => setActiveTab("overview")}
+                    className={`hidden px-3 py-2 text-sm rounded transition-colors ${
+                      activeTab === "overview"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    Overview
+                  </button>
+                </div>
+
+                {/* Tab Content */}
+                {activeTab === "table" && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Fiber Optic Information (DFO)</h4>
+                      <button
+                        onClick={() => setShowTableEditor(!showTableEditor)}
+                        className="px-3 py-1 text-xs bg-secondary text-secondary-foreground rounded hover:bg-secondary/80"
+                      >
+                        {showTableEditor ? 'Hide Editor' : 'Show Editor'}
+                      </button>
+                    </div>
+                    {showTableEditor && (
+                      <div className="border rounded-md p-4 bg-muted/50">
+                        <EditableDataTable
+                          table={editingIdf.table}
+                          onChange={(table) => setEditingIdf({ ...editingIdf, table })}
+                        />
+                      </div>
+                    )}
+                    {editingIdf.table && !showTableEditor && (
+                      <div className="text-sm text-muted-foreground">
+                        Table configured with {editingIdf.table.columns?.length || 0} columns and {editingIdf.table.rows?.length || 0} rows
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === "gallery" && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Gallery management - Upload images via CMS Upload page
+                    </p>
+                    {editingIdf?.gallery && editingIdf.gallery.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="font-medium">Current Images:</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {editingIdf.gallery.map((item, index) => (
+                            <div key={index} className="relative">
+                              <img
+                                src={item.url}
+                                alt={item.name || `Gallery image ${index + 1}`}
+                                className="w-full h-20 object-cover rounded border"
+                              />
+                              <span className="text-xs text-muted-foreground block mt-1 truncate">
+                                {item.name || `Image ${index + 1}`}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === "location" && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Location images - Only images from gallery are shown here
+                    </p>
+                    {editingIdf?.gallery && editingIdf.gallery.filter(item => item.kind === 'image').length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="font-medium">Location Images:</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {editingIdf.gallery.filter(item => item.kind === 'image').map((item, index) => (
+                            <div key={index} className="relative">
+                              <img
+                                src={item.url}
+                                alt={item.name || `Location image ${index + 1}`}
+                                className="w-full h-20 object-cover rounded border"
+                              />
+                              <span className="text-xs text-muted-foreground block mt-1 truncate">
+                                {item.name || `Image ${index + 1}`}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === "diagram" && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Diagram management - Images only (PDFs moved to Documents)
+                    </p>
+                    {editingIdf?.diagram && editingIdf.diagram.kind === 'image' && (
+                      <div className="space-y-2">
+                        <h4 className="font-medium">Current Diagram:</h4>
+                        <div className="flex items-center space-x-2 p-2 border rounded">
+                          <i className="fas fa-image text-muted-foreground"></i>
+                          <span className="text-sm">{editingIdf.diagram.name || 'Diagram'}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === "documents" && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Document management - PDF, DOC/DOCX, XLS/XLSX files
+                    </p>
+                    {((editingIdf?.documents && editingIdf.documents.filter(doc => doc.kind === 'document').length > 0) ||
+                      (editingIdf?.diagram && editingIdf.diagram.kind === 'document')) && (
+                      <div className="space-y-2">
+                        <h4 className="font-medium">Current Documents:</h4>
+                        <div className="space-y-2">
+                          {editingIdf.documents?.filter(doc => doc.kind === 'document').map((doc, index) => (
+                            <div key={index} className="flex items-center space-x-2 p-2 border rounded">
+                              <i className="fas fa-file-alt text-muted-foreground"></i>
+                              <span className="text-sm">{doc.name || `Document ${index + 1}`}</span>
+                            </div>
+                          ))}
+                          {editingIdf?.diagram && editingIdf.diagram.kind === 'document' && (
+                            <div className="flex items-center space-x-2 p-2 border rounded">
+                              <i className="fas fa-file-pdf text-muted-foreground"></i>
+                              <span className="text-sm">{editingIdf.diagram.name || 'Diagram PDF'}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Overview tab content - Hidden but kept in code */}
+                {activeTab === "overview" && (
+                  <div className="hidden space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Title</label>
+                      <input
+                        type="text"
+                        value={editingIdf?.basic_info?.title || ""}
+                        onChange={(e) =>
+                          setEditingIdf((prev: any) => ({
+                            ...prev,
+                            basic_info: { ...prev.basic_info, title: e.target.value },
+                          }))
+                        }
+                        className="w-full bg-input border border-border rounded-md px-3 py-2 text-foreground"
+                        placeholder="IDF Title"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Description</label>
+                      <textarea
+                        value={editingIdf?.basic_info?.description || ""}
+                        onChange={(e) =>
+                          setEditingIdf((prev: any) => ({
+                            ...prev,
+                            basic_info: { ...prev.basic_info, description: e.target.value },
+                          }))
+                        }
+                        className="w-full bg-input border border-border rounded-md px-3 py-2 text-foreground h-24 resize-none"
+                        placeholder="IDF Description"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Site</label>
+                        <input
+                          type="text"
+                          value={editingIdf?.basic_info?.location || ""}
+                          onChange={(e) =>
+                            setEditingIdf((prev: any) => ({
+                              ...prev,
+                              basic_info: { ...prev.basic_info, location: e.target.value },
+                            }))
+                          }
+                          className="w-full bg-input border border-border rounded-md px-3 py-2 text-foreground"
+                          placeholder="Site Name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Room</label>
+                        <input
+                          type="text"
+                          value={editingIdf?.room || ""}
+                          onChange={(e) => setEditingIdf((prev:any) => ({...prev, room: e.target.value}))}
+                          placeholder="Room Number"
+                          className="w-full bg-input border border-border rounded-md px-3 py-2 text-foreground"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Health Status / traffic-light widget placeholder */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium">Health Status</h4>
+                  <div className="bg-card border border-border rounded-lg p-4 text-sm text-muted-foreground">
+                    <p>Health Status widget would be here.</p>
+                    <p>This widget is hidden as per requirements.</p>
+                  </div>
+                </div>
+
+                {/* Basic Info (moved from overview to be always visible when editing) */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium">Basic Information</h4>
                   <div className="grid grid-cols-1 gap-3">
@@ -459,10 +724,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                       onChange={(e) =>
                         setEditingIdf((prev: any) => ({
                           ...prev,
-                          basic_info: { 
-                            ...prev.basic_info, 
-                            title: e.target.value 
-                          },
+                          basic_info: { ...prev.basic_info, title: e.target.value },
                         }))
                       }
                       className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm"
@@ -474,10 +736,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                       onChange={(e) =>
                         setEditingIdf((prev: any) => ({
                           ...prev,
-                          basic_info: { 
-                            ...prev.basic_info, 
-                            location: e.target.value 
-                          },
+                          basic_info: { ...prev.basic_info, location: e.target.value },
                         }))
                       }
                       className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm"
@@ -495,10 +754,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                       onChange={(e) =>
                         setEditingIdf((prev: any) => ({
                           ...prev,
-                          basic_info: { 
-                            ...prev.basic_info, 
-                            description: e.target.value 
-                          },
+                          basic_info: { ...prev.basic_info, description: e.target.value },
                         }))
                       }
                       className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm min-h-[100px]"
@@ -507,7 +763,8 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                   </div>
                 </div>
 
-                {/* Images */}
+
+                {/* Images (moved from gallery tab content) */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-medium">Images ({editingIdf.gallery?.length || 0})</h4>
@@ -544,7 +801,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                   </div>
                 </div>
 
-                {/* Documents */}
+                {/* Documents (moved from documents tab content) */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-medium">Documents ({editingIdf.documents?.length || 0})</h4>
@@ -577,7 +834,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                   </div>
                 </div>
 
-                {/* Diagram */}
+                {/* Diagram (moved from diagram tab content) */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-medium">Diagram</h4>
@@ -622,11 +879,11 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                   </div>
                 )}
 
-                {/* Fiber Allocation Table Section */}
+                {/* Fiber Allocation Table Section (moved from table tab content) */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium">Fiber Allocation Table</h4>
                   <div className="bg-card border border-border rounded-lg overflow-hidden">
-                    <DataTable 
+                    <DataTable
                       table={editingIdf.table || undefined}
                       isEditable={true}
                       onChange={(newTable) =>
@@ -638,8 +895,8 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
 
                 {/* Save Changes */}
                 <div className="pt-4 border-t border-border">
-                  <button 
-                    onClick={handleSave} 
+                  <button
+                    onClick={handleSave}
                     className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors flex items-center justify-center space-x-2">
                     <Save className="w-4 h-4" />
                     <span>Save Changes</span>
