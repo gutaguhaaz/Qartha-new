@@ -2,8 +2,11 @@
 #!/bin/bash
 set -euo pipefail
 
-# Replace these with your actual connection strings from the Database panel
-# Example format: postgresql://username:password@host:port/database
+# IMPORTANTE: Este script BORRA todos los datos de PRODUCCIÓN y los reemplaza con los de DESARROLLO
+# Solo ejecutar cuando estés seguro de que quieres reemplazar completamente la base de producción
+
+# Reemplaza estas URLs con las cadenas de conexión reales del panel de Database
+# Formato: postgresql://username:password@host:port/database
 DEV_URL="<paste Development connection string here>"
 PROD_URL="<paste Production connection string here>"
 
@@ -44,7 +47,8 @@ BEGIN
   END IF;
 END $$;
 
--- Atomic swap: clear production table and insert from staging
+-- Atomic swap: BORRA COMPLETAMENTE la tabla de producción e inserta desde staging
+-- ADVERTENCIA: Esto elimina TODOS los datos existentes en producción
 TRUNCATE TABLE public.idfs RESTART IDENTITY;
 INSERT INTO public.idfs SELECT * FROM idfs_stage;
 
