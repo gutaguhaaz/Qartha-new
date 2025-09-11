@@ -104,17 +104,25 @@ async def list_idfs(
         if isinstance(idf_data["documents"], str):
             idf_data["documents"] = json.loads(idf_data["documents"])
         # Parse diagrams field (handle both old single diagram and new array)
+        diagrams_data = []
         if "diagram" in idf_data and idf_data["diagram"]:
             if isinstance(idf_data["diagram"], str):
-                single_diagram = json.loads(idf_data["diagram"])
-                idf_data["diagrams"] = [single_diagram] if single_diagram else []
-            else:
-                idf_data["diagrams"] = [idf_data["diagram"]] if idf_data["diagram"] else []
+                parsed_diagram = json.loads(idf_data["diagram"])
+                if isinstance(parsed_diagram, list):
+                    diagrams_data = parsed_diagram
+                elif parsed_diagram:
+                    diagrams_data = [parsed_diagram]
+            elif isinstance(idf_data["diagram"], list):
+                diagrams_data = idf_data["diagram"]
+            elif idf_data["diagram"]:
+                diagrams_data = [idf_data["diagram"]]
         elif "diagrams" in idf_data and idf_data["diagrams"]:
             if isinstance(idf_data["diagrams"], str):
-                idf_data["diagrams"] = json.loads(idf_data["diagrams"])
-        else:
-            idf_data["diagrams"] = []
+                diagrams_data = json.loads(idf_data["diagrams"])
+            elif isinstance(idf_data["diagrams"], list):
+                diagrams_data = idf_data["diagrams"]
+        
+        idf_data["diagrams"] = diagrams_data
 
         # Parse devices field if it exists and is a string
         if idf_data.get("devices") and isinstance(idf_data["devices"], str):
@@ -184,17 +192,25 @@ async def get_idf(
     if isinstance(idf_dict["documents"], str):
         idf_dict["documents"] = json.loads(idf_dict["documents"])
     # Parse diagrams field (handle both old single diagram and new array)
+    diagrams_data = []
     if "diagram" in idf_dict and idf_dict["diagram"]:
         if isinstance(idf_dict["diagram"], str):
-            single_diagram = json.loads(idf_dict["diagram"])
-            idf_dict["diagrams"] = [single_diagram] if single_diagram else []
-        else:
-            idf_dict["diagrams"] = [idf_dict["diagram"]] if idf_dict["diagram"] else []
+            parsed_diagram = json.loads(idf_dict["diagram"])
+            if isinstance(parsed_diagram, list):
+                diagrams_data = parsed_diagram
+            elif parsed_diagram:
+                diagrams_data = [parsed_diagram]
+        elif isinstance(idf_dict["diagram"], list):
+            diagrams_data = idf_dict["diagram"]
+        elif idf_dict["diagram"]:
+            diagrams_data = [idf_dict["diagram"]]
     elif "diagrams" in idf_dict and idf_dict["diagrams"]:
         if isinstance(idf_dict["diagrams"], str):
-            idf_dict["diagrams"] = json.loads(idf_dict["diagrams"])
-    else:
-        idf_dict["diagrams"] = []
+            diagrams_data = json.loads(idf_dict["diagrams"])
+        elif isinstance(idf_dict["diagrams"], list):
+            diagrams_data = idf_dict["diagrams"]
+    
+    idf_dict["diagrams"] = diagrams_data
 
     # Parse table data
     if isinstance(idf_dict.get("table_data"), str) and idf_dict["table_data"]:
