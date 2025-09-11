@@ -204,8 +204,8 @@ export default function Navbar() {
               >
                 {CLUSTERS.map((cluster: string) => (
                   <option key={cluster} value={cluster}>
-                    {cluster === "trk"
-                      ? "Trinity Project"
+                    {cluster === "Trinity"
+                      ? "Trinity"
                       : cluster.toUpperCase() + " Cluster"}
                   </option>
                 ))}
@@ -219,8 +219,8 @@ export default function Navbar() {
               >
                 {getProjectsForCluster(selectedCluster).map((project) => (
                   <option key={project} value={project}>
-                    {project === "trinity"
-                      ? "Trinity Project"
+                    {project === "Sabinas Project"
+                      ? "Sabinas Project"
                       : project.charAt(0).toUpperCase() +
                         project.slice(1) +
                         " Project"}

@@ -105,37 +105,37 @@ async def seed_data():
             VALUES (:cluster, :project, :code, :title, :description, :site, :room, :gallery, :documents, :diagram, :table_data)
         """
 
-        # TRK Trinity project - 5 IDFs
+        # Trinity Sabinas project - 5 IDFs
         await database.execute(query, {
-            "cluster": "trk", "project": "trinity", "code": "IDF-1004", "title": "IDF 1004", 
+            "cluster": "Trinity", "project": "Sabinas Project", "code": "IDF-1004", "title": "IDF 1004", 
             "description": "IDF principal para el área de oficinas administrativas y centro de datos primario.",
             "site": "TrinityRail HQ", "room": "Rack A", "gallery": json.dumps([]), 
             "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(trk_trinity_table)
         })
 
         await database.execute(query, {
-            "cluster": "trk", "project": "trinity", "code": "IDF-1005", "title": "IDF 1005", 
+            "cluster": "Trinity", "project": "Sabinas Project", "code": "IDF-1005", "title": "IDF 1005", 
             "description": "IDF secundario para el área de producción y manufactura.",
             "site": "TrinityRail HQ", "room": "Rack B", "gallery": json.dumps([]), 
             "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(trk_trinity_table)
         })
 
         await database.execute(query, {
-            "cluster": "trk", "project": "trinity", "code": "IDF-1006", "title": "IDF 1006", 
+            "cluster": "Trinity", "project": "Sabinas Project", "code": "IDF-1006", "title": "IDF 1006", 
             "description": "IDF para el área de desarrollo y testing.",
             "site": "TrinityRail HQ", "room": "Rack C", "gallery": json.dumps([]), 
             "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(trk_trinity_table)
         })
 
         await database.execute(query, {
-            "cluster": "trk", "project": "trinity", "code": "IDF-1007", "title": "IDF 1007", 
+            "cluster": "Trinity", "project": "Sabinas Project", "code": "IDF-1007", "title": "IDF 1007", 
             "description": "IDF para sala de servidores principal.",
             "site": "TrinityRail HQ", "room": "Server Room A", "gallery": json.dumps([]), 
             "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(trk_trinity_table)
         })
 
         await database.execute(query, {
-            "cluster": "trk", "project": "trinity", "code": "IDF-1008", "title": "IDF 1008", 
+            "cluster": "Trinity", "project": "Sabinas Project", "code": "IDF-1008", "title": "IDF 1008", 
             "description": "IDF de respaldo para contingencias.",
             "site": "TrinityRail HQ", "room": "Backup Room", "gallery": json.dumps([]), 
             "documents": json.dumps([]), "diagram": None, "table_data": json.dumps(trk_trinity_table)
