@@ -48,8 +48,11 @@ app.include_router(devices.router, prefix="/api")
 app.include_router(assets.router, prefix="/api")
 app.include_router(qr.router, prefix="/api")
 
+# Mount frontend static files for deployment
+if os.path.exists("dist"):
+    app.mount("/", StaticFiles(directory="dist", html=True), name="frontend")
 
-@app.get("/")
+@app.get("/api")
 async def root():
     return {"message": "Qartha Smart Inventory Network API"}
 

@@ -34,12 +34,22 @@ fi
 
 # Step 4: Ensure build is in root dist/ directory
 echo "Ensuring build is in root dist/ directory..."
-if [ -d "client/dist" ] && [ ! -d "dist" ]; then
+if [ -d "client/dist" ]; then
+    if [ -d "dist" ]; then
+        rm -rf dist
+    fi
     mv client/dist dist
     echo "Moved build from client/dist to dist/"
-elif [ -d "build" ] && [ ! -d "dist" ]; then
+elif [ -d "build" ]; then
+    if [ -d "dist" ]; then
+        rm -rf dist
+    fi
     mv build dist
     echo "Moved build from build/ to dist/"
+elif [ -d "dist/public" ]; then
+    mv dist/public/* dist/
+    rm -rf dist/public
+    echo "Moved build from dist/public to dist/"
 fi
 
 echo "Build completed successfully!"
