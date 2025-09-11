@@ -136,7 +136,6 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
                 <th className="header-cell">DFO POSC & LABEL PORT</th>
                 <th className="header-cell">DFO POSC & LABEL PORT</th>
                 <th className="header-cell">DFO POSC & LABEL PORT</th>
-                <th className="header-cell">STATUS</th>
               </tr>
               <tr>
                 <th className="subheader-cell"></th>
@@ -148,7 +147,6 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
                 <th className="subheader-cell">9</th>
                 <th className="subheader-cell">RING 1</th>
                 <th className="subheader-cell">RING 1</th>
-                <th className="subheader-cell">ESTADO</th>
               </tr>
             </thead>
             <tbody>
@@ -278,12 +276,6 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
                     <td className={`ring-cell ${ringClass}`}>{ringValue}</td>
                     <td className="dest-cell cyan">FR 0401 TO 1003</td>
                     <td className="ring-cell cyan">12</td>
-                    <td className="status-cell">
-                      {isEditable && isEditing ? 
-                        renderEditableCell({key: 'status', type: 'status'}, row.status, index) :
-                        <StatusBadge status={row.status} />
-                      }
-                    </td>
                   </tr>
                 );
               })}
@@ -300,7 +292,7 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold">Sabinas Project - ODF Layout</h3>
-            <p className="text-muted-foreground mt-1">Distribución óptica detallada del frame</p>
+            <p className="text-muted-foreground mt-1">Fiber Optic Distribution</p>
           </div>
           {isEditable && (
             <div className="flex space-x-2">
