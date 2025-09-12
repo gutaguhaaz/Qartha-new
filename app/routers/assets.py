@@ -276,6 +276,57 @@ async def upload_diagram(
     return {"url": url, "message": "Diagram uploaded successfully"}
 
 
+@router.delete("/{cluster}/{project}/assets/{code}/{asset_type}/{index}")
+async def delete_asset(
+    cluster: str,
+    project: str,
+    code: str,
+    asset_type: str,
+    index: int,
+    authorization: Optional[str] = Header(None)
+):
+    """Delete an asset (image, document, or diagram) from an IDF"""
+    validate_cluster(cluster)
+    verify_admin_token(authorization)
+
+    field_map = {
+        "images": "gallery",
+        "documents": "documents",
+        "diagram": "diagrams",
+        "diagrams": "diagrams",
+    }
+    if asset_type not in field_map:
+        raise HTTPException(status_code=400, detail="Invalid asset type")
+
+    idf = await database.fetch_one(
+        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": project, "code": code},
+    )
+    if not idf:
+        raise HTTPException(status_code=404, detail="IDF not found")
+
+    field_name = field_map[asset_type]
+    items = json.loads(idf[field_name]) if isinstance(idf[field_name], str) else (idf[field_name] or [])
+
+    if index < 0 or index >= len(items):
+        raise HTTPException(status_code=404, detail="Asset not found")
+
+    item = items.pop(index)
+
+    if item.get("url") and item["url"].startswith("/static"):
+        file_path = item["url"].replace("/static", settings.STATIC_DIR)
+        try:
+            os.remove(file_path)
+        except OSError:
+            pass
+
+    await database.execute(
+        f"UPDATE idfs SET {field_name} = :items WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"items": json.dumps(items), "cluster": cluster, "project": project, "code": code},
+    )
+
+    return {"message": f"{asset_type.rstrip('s').capitalize()} deleted successfully"}
+
 @router.post("/{cluster}/{project}/assets/logo")
 async def upload_logo(
     cluster: str,

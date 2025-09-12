@@ -1,4 +1,4 @@
-import { FileText, Download, FileSpreadsheet } from "lucide-react";
+import { FileText, Download, FileSpreadsheet, Trash2 } from "lucide-react";
 
 interface Document {
   url: string;
@@ -8,9 +8,10 @@ interface Document {
 
 interface DocListProps {
   documents: Document[];
+  onDelete?: (index: number) => void;
 }
 
-export default function DocList({ documents }: DocListProps) {
+export default function DocList({ documents, onDelete }: DocListProps) {
   if (!documents || documents.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -56,14 +57,25 @@ export default function DocList({ documents }: DocListProps) {
               </p>
             </div>
           </div>
-          <button
-            onClick={() => handleDownload(doc.url, doc.name)}
-            className="flex items-center space-x-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-            title="Download document"
-          >
-            <Download className="w-4 h-4" />
-            <span className="text-sm">Download</span>
-          </button>
+          <div className="flex items-center space-x-2">
+            {onDelete && (
+              <button
+                onClick={() => onDelete(index)}
+                className="p-2 text-destructive hover:bg-destructive/10 rounded-md"
+                title="Delete document"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={() => handleDownload(doc.url, doc.name)}
+              className="flex items-center space-x-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+              title="Download document"
+            >
+              <Download className="w-4 h-4" />
+              <span className="text-sm">Download</span>
+            </button>
+          </div>
         </div>
       ))}
     </div>

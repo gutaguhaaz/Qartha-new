@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { uploadCsv, uploadAsset, downloadCsvTemplate, uploadLogo } from "@/lib/api";
+import { uploadCsv, uploadAsset, downloadCsvTemplate, uploadLogo, getIdf, deleteAsset, updateIdf } from "@/lib/api";
 import AddIdfDialog from "@/components/AddIdfDialog";
+import Gallery from "@/components/Gallery";
+import DocList from "@/components/DocList";
+import EditableDataTable from "@/components/EditableDataTable";
 
 interface CmsUploadProps {
   cluster: string;
@@ -13,7 +16,22 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
   const [idfCode, setIdfCode] = useState("");
   const [adminToken, setAdminToken] = useState(import.meta.env.VITE_ADMIN_TOKEN || "changeme-demo-token");
   const [uploading, setUploading] = useState(false);
+  const [idfData, setIdfData] = useState<any | null>(null);
   const { toast } = useToast();
+
+  const loadIdf = async () => {
+    if (!idfCode.trim()) return;
+    try {
+      const data = await getIdf(cluster, project, idfCode);
+      setIdfData(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error loading IDF",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleFileUpload = async (files: FileList | null, type: 'csv' | 'images' | 'documents' | 'diagram') => {
     if (!files || files.length === 0) return;
@@ -35,15 +53,17 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
           title: "Success",
           description: result.message || "CSV uploaded successfully"
         });
+        await loadIdf();
       } else {
         // Upload each file for assets
         for (let i = 0; i < files.length; i++) {
           const result = await uploadAsset(cluster, project, idfCode, files[i], type, adminToken);
           toast({
-            title: "Success", 
+            title: "Success",
             description: `${files[i].name} uploaded successfully`
           });
         }
+        await loadIdf();
       }
     } catch (error) {
       toast({
@@ -127,6 +147,48 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
     input.click();
   };
 
+  const handleDelete = async (type: 'images' | 'documents' | 'diagram', index: number) => {
+    if (!idfCode.trim()) return;
+    try {
+      await deleteAsset(cluster, project, idfCode, type, index, adminToken);
+      toast({ title: 'Success', description: 'Asset deleted successfully' });
+      await loadIdf();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Error deleting asset',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleTableChange = async (table: any) => {
+    if (!idfCode.trim()) return;
+    setIdfData((prev: any) => (prev ? { ...prev, table } : prev));
+    try {
+      await updateIdf({
+        cluster,
+        project,
+        code: idfCode,
+        body: {
+          title: idfData?.title || '',
+          description: idfData?.description || '',
+          site: idfData?.site || '',
+          room: idfData?.room || '',
+          table,
+        },
+        token: adminToken,
+      });
+      toast({ title: 'Success', description: 'Table updated' });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Error updating table',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-8" data-testid="cms-upload">
       <div className="flex items-center justify-between mb-8">
@@ -165,14 +227,23 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">IDF Code</label>
-            <input
-              type="text"
-              placeholder="IDF-1004"
-              value={idfCode}
-              onChange={(e) => setIdfCode(e.target.value)}
-              className="w-full bg-input border border-border rounded-md px-3 py-2 text-foreground placeholder-muted-foreground"
-              data-testid="input-idf-code"
-            />
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                placeholder="IDF-1004"
+                value={idfCode}
+                onChange={(e) => setIdfCode(e.target.value)}
+                className="w-full bg-input border border-border rounded-md px-3 py-2 text-foreground placeholder-muted-foreground"
+                data-testid="input-idf-code"
+              />
+              <button
+                onClick={loadIdf}
+                className="px-3 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
+                type="button"
+              >
+                Load
+              </button>
+            </div>
           </div>
         </div>
 
@@ -193,6 +264,11 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
         {/* CSV Upload */}
         <div className="bg-card border border-border rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Devices (CSV)</h3>
+          {idfData?.table && (
+            <div className="mb-4">
+              <EditableDataTable table={idfData.table} onChange={handleTableChange} />
+            </div>
+          )}
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
               <div className="flex items-center space-x-3">
@@ -235,6 +311,11 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
         {/* Image Upload */}
         <div className="bg-card border border-border rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Images</h3>
+          {idfData?.gallery?.length > 0 && (
+            <div className="mb-4">
+              <Gallery images={idfData.gallery} onDelete={(index) => handleDelete('images', index)} />
+            </div>
+          )}
           <div
             className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-ring transition-colors"
             onDrop={(e) => handleDrop(e, 'images')}
@@ -258,6 +339,11 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
         {/* Document Upload */}
         <div className="bg-card border border-border rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Documents</h3>
+          {idfData?.documents?.length > 0 && (
+            <div className="mb-4">
+              <DocList documents={idfData.documents} onDelete={(index) => handleDelete('documents', index)} />
+            </div>
+          )}
           <div
             className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-ring transition-colors"
             onDrop={(e) => handleDrop(e, 'documents')}
@@ -281,6 +367,11 @@ export default function CmsUpload({ params }: { params: CmsUploadProps }) {
         {/* Diagram Upload */}
         <div className="bg-card border border-border rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Diagram</h3>
+          {idfData?.diagrams?.length > 0 && (
+            <div className="mb-4">
+              <Gallery images={idfData.diagrams} onDelete={(index) => handleDelete('diagram', index)} />
+            </div>
+          )}
           <div
             className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-ring transition-colors"
             onDrop={(e) => handleDrop(e, 'diagram')}

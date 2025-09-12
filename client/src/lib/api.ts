@@ -93,6 +93,18 @@ export async function uploadAsset(cluster: string, project: string, code: string
   return response.json();
 }
 
+export async function deleteAsset(cluster: string, project: string, code: string, assetType: 'images' | 'documents' | 'diagram', index: number, token: string) {
+  const url = `${API_BASE}/api/${cluster}/${project}/assets/${code}/${assetType}/${index}`;
+  const response = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  if (!response.ok) throw new Error(`Failed to delete asset: ${response.statusText}`);
+  return response.json();
+}
+
 export async function uploadLogo(cluster: string, project: string, file: File, token: string) {
   const formData = new FormData();
   formData.append('file', file);
@@ -146,6 +158,34 @@ export async function uploadIdfLogo({
   if (!response.ok) {
     const message = await response.text();
     throw new Error(message || 'Failed to upload IDF logo');
+  }
+  return response.json();
+}
+
+export async function updateIdf({
+  cluster,
+  project,
+  code,
+  body,
+  token,
+}: {
+  cluster: string;
+  project: string;
+  code: string;
+  body: { title: string; description?: string; site: string; room?: string; table?: any };
+  token?: string;
+}) {
+  const url = `${API_BASE}/api/${cluster}/${project}/idfs/${code}`;
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || 'Failed to update IDF');
   }
   return response.json();
 }

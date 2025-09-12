@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { MediaItem } from "@shared/schema";
+import { Trash2 } from "lucide-react";
 
 interface GalleryProps {
   images: MediaItem[];
+  onDelete?: (index: number) => void;
 }
 
-export default function Gallery({ images }: GalleryProps) {
+export default function Gallery({ images, onDelete }: GalleryProps) {
   const [selectedImage, setSelectedImage] = useState<MediaItem | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -35,10 +37,18 @@ export default function Gallery({ images }: GalleryProps) {
         {images.map((image, index) => (
           <div
             key={index}
-            className="aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+            className="relative aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => openLightbox(image)}
             data-testid={`image-${index}`}
           >
+            {onDelete && (
+              <button
+                className="absolute top-2 right-2 z-10 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"
+                onClick={(e) => { e.stopPropagation(); onDelete(index); }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
             <img
               src={image.url}
               alt={image.name || `Gallery image ${index + 1}`}
