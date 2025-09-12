@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { Toaster } from "./components/ui/toaster";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import PublicList from "./pages/PublicList";
 import PublicDetail from "./pages/PublicDetail";
 import CmsUpload from "./pages/CmsUpload";
@@ -53,6 +54,7 @@ function App() {
             <main className="flex-1">
               <RouteHandler />
             </main>
+            <Footer />
           </div>
           <Toaster />
         </Router>
