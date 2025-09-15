@@ -170,7 +170,7 @@ export default function LocationViewer({ location }: LocationViewerProps) {
       className={`bg-card border border-border rounded-lg overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''}`}
     >
       {/* Controls */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30"></div>
+      <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
         <div className="flex items-center space-x-2">
           <span className="text-sm font-medium">Location Image</span>
           {location.name && (
