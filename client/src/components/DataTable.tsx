@@ -3,7 +3,13 @@ import StatusBadge from "./StatusBadge";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, Edit3 } from "lucide-react";
 
 interface DataTableProps {
@@ -12,7 +18,11 @@ interface DataTableProps {
   onChange?: (table: IdfTable) => void;
 }
 
-export default function DataTable({ table, isEditable = false, onChange }: DataTableProps) {
+export default function DataTable({
+  table,
+  isEditable = false,
+  onChange,
+}: DataTableProps) {
   const [isEditing, setIsEditing] = useState(false);
   // Create sample table data if none exists to demonstrate the health system
   const sampleTable: IdfTable = {
@@ -24,59 +34,138 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
       { key: "port2", label: "Port 2", type: "text" },
       { key: "destination", label: "Destination", type: "text" },
       { key: "ring", label: "Ring", type: "text" },
-      { key: "status", label: "Status", type: "status", options: ["ok", "revisión", "falla", "libre", "reservado"] }
+      {
+        key: "status",
+        label: "Status",
+        type: "status",
+        options: ["ok", "revisión", "falla", "libre", "reservado"],
+      },
     ],
     rows: [
-      { cable: "48H OPTRONICS", buffer: "1", fiber: "1", port1: "1003", port2: "6", destination: "TO 1101", ring: "10", status: "ok" },
-      { cable: "48H OPTRONICS", buffer: "2", fiber: "2", port1: "1004", port2: "18", destination: "1004", ring: "20", status: "revisión" },
-      { cable: "48H OPTRONICS", buffer: "3", fiber: "3", port1: "1001", port2: "27", destination: "TO 0801", ring: "31", status: "falla" },
-      { cable: "48H OPTRONICS", buffer: "4", fiber: "4", port1: "1002", port2: "40", destination: "44", ring: "45", status: "ok" },
-      { cable: "12H OPTRONICS TO 1003", buffer: "1", fiber: "5", port1: "1003", port2: "51", destination: "56", ring: "57", status: "reservado" },
-      { cable: "12H OPTRONICS TO 1002", buffer: "1", fiber: "6", port1: "1002", port2: "53", destination: "PTP", ring: "67", status: "falla" },
-      { cable: "12H OPTRONICS TO 1001", buffer: "1", fiber: "7", port1: "1001", port2: "75", destination: "79", ring: "81", status: "libre" },
-      { cable: "24H WAVE OPTICS TO 1101", buffer: "1", fiber: "8", port1: "FR ODF 1004", port2: "77", destination: "79", ring: "83", status: "ok" }
-    ]
+      {
+        cable: "48H OPTRONICS",
+        buffer: "1",
+        fiber: "1",
+        port1: "1003",
+        port2: "6",
+        destination: "TO 1101",
+        ring: "10",
+        status: "ok",
+      },
+      {
+        cable: "48H OPTRONICS",
+        buffer: "2",
+        fiber: "2",
+        port1: "1004",
+        port2: "18",
+        destination: "1004",
+        ring: "20",
+        status: "revisión",
+      },
+      {
+        cable: "48H OPTRONICS",
+        buffer: "3",
+        fiber: "3",
+        port1: "1001",
+        port2: "27",
+        destination: "TO 0801",
+        ring: "31",
+        status: "falla",
+      },
+      {
+        cable: "48H OPTRONICS",
+        buffer: "4",
+        fiber: "4",
+        port1: "1002",
+        port2: "40",
+        destination: "44",
+        ring: "45",
+        status: "ok",
+      },
+      {
+        cable: "12H OPTRONICS TO 1003",
+        buffer: "1",
+        fiber: "5",
+        port1: "1003",
+        port2: "51",
+        destination: "56",
+        ring: "57",
+        status: "reservado",
+      },
+      {
+        cable: "12H OPTRONICS TO 1002",
+        buffer: "1",
+        fiber: "6",
+        port1: "1002",
+        port2: "53",
+        destination: "PTP",
+        ring: "67",
+        status: "falla",
+      },
+      {
+        cable: "12H OPTRONICS TO 1001",
+        buffer: "1",
+        fiber: "7",
+        port1: "1001",
+        port2: "75",
+        destination: "79",
+        ring: "81",
+        status: "libre",
+      },
+      {
+        cable: "24H WAVE OPTICS TO 1101",
+        buffer: "1",
+        fiber: "8",
+        port1: "FR ODF 1004",
+        port2: "77",
+        destination: "79",
+        ring: "83",
+        status: "ok",
+      },
+    ],
   };
 
   const displayTable = table || sampleTable;
 
   const addRow = () => {
     if (!displayTable || !onChange) return;
-    
+
     const newRow: any = {};
-    displayTable.columns.forEach(col => {
-      newRow[col.key] = '';
+    displayTable.columns.forEach((col) => {
+      newRow[col.key] = "";
     });
-    
+
     const updatedTable = {
       ...displayTable,
-      rows: [...(displayTable.rows || []), newRow]
+      rows: [...(displayTable.rows || []), newRow],
     };
     onChange(updatedTable);
   };
 
   const updateCell = (rowIndex: number, columnKey: string, value: string) => {
     if (!displayTable || !onChange) return;
-    
+
     const updatedRows = [...displayTable.rows];
     updatedRows[rowIndex] = {
       ...updatedRows[rowIndex],
-      [columnKey]: value
+      [columnKey]: value,
     };
-    
+
     const updatedTable = {
       ...displayTable,
-      rows: updatedRows
+      rows: updatedRows,
     };
     onChange(updatedTable);
   };
 
   const renderEditableCell = (column: any, value: any, rowIndex: number) => {
-    if (column.type === 'status') {
+    if (column.type === "status") {
       return (
         <Select
-          value={value || ''}
-          onValueChange={(newValue) => updateCell(rowIndex, column.key, newValue)}
+          value={value || ""}
+          onValueChange={(newValue) =>
+            updateCell(rowIndex, column.key, newValue)
+          }
         >
           <SelectTrigger className="w-full h-8 text-xs">
             <SelectValue placeholder="Status" />
@@ -94,7 +183,7 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
 
     return (
       <Input
-        value={value || ''}
+        value={value || ""}
         onChange={(e) => updateCell(rowIndex, column.key, e.target.value)}
         className="w-full h-8 text-xs"
         placeholder=""
@@ -102,9 +191,16 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
     );
   };
 
-  if (!displayTable || !displayTable.columns || displayTable.columns.length === 0) {
+  if (
+    !displayTable ||
+    !displayTable.columns ||
+    displayTable.columns.length === 0
+  ) {
     return (
-      <div className="bg-card border border-border rounded-lg overflow-hidden" data-testid="table-empty">
+      <div
+        className="bg-card border border-border rounded-lg overflow-hidden"
+        data-testid="table-empty"
+      >
         <div className="p-6 text-center text-muted-foreground">
           <i className="fas fa-table text-4xl mb-4"></i>
           <p>No hay datos de tabla disponibles</p>
@@ -118,10 +214,8 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
     return (
       <div className="odf-container">
         {/* Header */}
-        <div className="odf-header">
-          ODF IDF-1004
-        </div>
-        
+        <div className="odf-header">ODF IDF-1004</div>
+
         {/* Main ODF Table */}
         <div className="odf-table">
           <table>
@@ -161,9 +255,9 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
                 let destClass = "";
                 let ringValue = "";
                 let ringClass = "";
-                
+
                 // Map row data to display values based on index
-                switch(index) {
+                switch (index) {
                   case 0:
                     cableLabel = "48H OPTRONICS\nFROM FIBER\nHUT";
                     bufferValue = "1";
@@ -258,13 +352,19 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
                     ringClass = "cyan";
                     break;
                 }
-                
+
                 return (
                   <tr key={index}>
                     {cableLabel && (
-                      <td className="cable-label" rowSpan={cableLabel.includes("48H") ? 4 : 1}>
-                        {cableLabel.split('\n').map((line, i) => (
-                          <span key={i}>{line}{i < cableLabel.split('\n').length - 1 && <br/>}</span>
+                      <td
+                        className="cable-label"
+                        rowSpan={cableLabel.includes("48H") ? 4 : 1}
+                      >
+                        {cableLabel.split("\n").map((line, i) => (
+                          <span key={i}>
+                            {line}
+                            {i < cableLabel.split("\n").length - 1 && <br />}
+                          </span>
                         ))}
                       </td>
                     )}
@@ -287,12 +387,19 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden" data-testid="data-table">
+    <div
+      className="bg-card border border-border rounded-lg overflow-hidden"
+      data-testid="data-table"
+    >
       <div className="p-6 border-b border-border">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold">Sabinas Project - ODF Layout</h3>
-            <p className="text-muted-foreground mt-1">Fiber Optic Distribution</p>
+            <h3 className="text-lg font-semibold">
+              Sabinas Project - DFO Layout
+            </h3>
+            <p className="text-muted-foreground mt-1">
+              Distribution Fiber Optic
+            </p>
           </div>
           {isEditable && (
             <div className="flex space-x-2">
@@ -302,7 +409,7 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
                 size="sm"
               >
                 <Edit3 className="w-4 h-4 mr-2" />
-                {isEditing ? 'Finalizar Edición' : 'Editar'}
+                {isEditing ? "Finalizar Edición" : "Editar"}
               </Button>
               {isEditing && (
                 <Button onClick={addRow} size="sm">
@@ -315,9 +422,7 @@ export default function DataTable({ table, isEditable = false, onChange }: DataT
         </div>
       </div>
 
-      <div className="overflow-x-auto p-4">
-        {renderOdfTable()}
-      </div>
+      <div className="overflow-x-auto p-4">{renderOdfTable()}</div>
     </div>
   );
 }
