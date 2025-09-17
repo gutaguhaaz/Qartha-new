@@ -356,8 +356,10 @@ a.bg-card.border.rounded-lg {
 
 .odf-container {
   background-repeat: no-repeat !important;
-  background: url('https://technicalfoinformation.replit.app/static/trk/trinity/dfo/IDF-1004_dfo.png');
-  background-size: 100% 100%;
+  background: url(https://technicalfoinformation.replit.app/static/trk/trinity/dfo/IDF-1004_dfo.png);
+  background-size: contain;
+  background-position: center;
+  min-width: 900px;
 }
 
 .odf-container * {
