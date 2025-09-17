@@ -360,6 +360,7 @@ a.bg-card.border.rounded-lg {
   background-size: contain;
   background-position: center;
   min-width: 900px;
+  height: 600px;
 }
 
 .odf-container * {
