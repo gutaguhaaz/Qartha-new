@@ -513,29 +513,29 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                   </button>
                 </div>
 
-                {/* Tab Content */}
                 {activeTab === "table" && (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">Fiber Optic Information (DFO)</h4>
-                      <button
-                        onClick={() => setShowTableEditor(!showTableEditor)}
-                        className="px-3 py-1 text-xs bg-secondary text-secondary-foreground rounded hover:bg-secondary/80"
-                      >
-                        {showTableEditor ? 'Hide Editor' : 'Show Editor'}
-                      </button>
-                    </div>
-                    {showTableEditor && (
-                      <div className="border rounded-md p-4 bg-muted/50">
-                        <EditableDataTable
-                          table={editingIdf.table}
-                          onChange={(table) => setEditingIdf({ ...editingIdf, table })}
-                        />
+                    <p className="text-sm text-muted-foreground">
+                      DFO Layout image - Visual fiber distribution diagram
+                    </p>
+                    {editingIdf?.dfo ? (
+                      <div className="space-y-2">
+                        <h4 className="font-medium">Current DFO Image:</h4>
+                        <div className="relative">
+                          <img
+                            src={typeof editingIdf.dfo.url === 'string' ? editingIdf.dfo.url : editingIdf.dfo.url.toString()}
+                            alt={editingIdf.dfo.name || 'DFO Layout'}
+                            className="w-full h-32 object-cover rounded border"
+                          />
+                          <span className="text-xs text-muted-foreground block mt-1 truncate">
+                            {editingIdf.dfo.name || 'DFO Layout'}
+                          </span>
+                        </div>
                       </div>
-                    )}
-                    {editingIdf.table && !showTableEditor && (
-                      <div className="text-sm text-muted-foreground">
-                        Table configured with {editingIdf.table.columns?.length || 0} columns and {editingIdf.table.rows?.length || 0} rows
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <i className="fas fa-table text-2xl mb-2"></i>
+                        <p className="text-sm">No DFO image available</p>
                       </div>
                     )}
                   </div>

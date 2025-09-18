@@ -257,6 +257,17 @@ async def get_idf(
     if idf_dict.get("table"):
         health = compute_health(idf_dict["table"])
 
+    # Parse dfo field (handle array format from database)
+    dfo = None
+    if idf_dict.get("dfo"):
+        dfo_data = json.loads(idf_dict["dfo"]) if isinstance(idf_dict["dfo"], str) else idf_dict["dfo"]
+        # Handle both array and single object formats
+        if isinstance(dfo_data, list) and len(dfo_data) > 0:
+            dfo_item = dfo_data[0]  # Take first item from array
+            dfo = convert_relative_urls_to_absolute(dfo_item)
+        elif isinstance(dfo_data, dict):
+            dfo = convert_relative_urls_to_absolute(dfo_data)
+
     # Parse location field (handle array format from database)
     location = None
     if idf_dict.get("location"):
@@ -293,6 +304,7 @@ async def get_idf(
         gallery=convert_relative_urls_to_absolute(idf_dict["gallery"]),
         documents=convert_relative_urls_to_absolute(idf_dict["documents"]),
         diagrams=convert_relative_urls_to_absolute(idf_dict["diagrams"]),
+        dfo=dfo,
         location=location,
         table=idf_dict["table"],
         health=health,

@@ -71,6 +71,7 @@ export const idfPublicSchema = z.object({
   gallery: z.array(mediaItemSchema),
   documents: z.array(mediaItemSchema),
   diagrams: z.array(mediaItemSchema),
+  dfo: mediaItemSchema.optional(),
   table: idfTableSchema.optional(),
   health: idfHealthSchema.optional(),
   media: idfMediaSchema.optional(),
@@ -82,6 +83,7 @@ export const idfUpsertSchema = z.object({
   description: z.string().optional(),
   site: z.string().optional(),
   room: z.string().optional(),
+  dfo: mediaItemSchema.optional(),
   table: idfTableSchema.optional(),
 });
 

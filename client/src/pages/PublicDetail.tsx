@@ -7,6 +7,7 @@ import Gallery from "@/components/Gallery";
 import DocList from "@/components/DocList";
 import PdfOrImage from "@/components/PdfOrImage";
 import DataTable from "@/components/DataTable";
+import DfoImageViewer from "@/components/DfoImageViewer";
 import AdminSidebar from "@/components/AdminSidebar";
 import AddIdfDialog from "@/components/AddIdfDialog";
 import LocationViewer from "@/components/LocationViewer";
@@ -130,7 +131,7 @@ export default function PublicDetail({
     if (proj === "sabinas" || proj === "Sabinas") return "Sabinas Project";
     return proj;
   };
-  
+
   const apiProject = getApiProject(project);
   const qrUrl = `${window.location.origin}/api/${encodeURIComponent(cluster)}/${encodeURIComponent(apiProject)}/idfs/${encodeURIComponent(code)}/qr.png`;
 
@@ -369,8 +370,8 @@ export default function PublicDetail({
       {/* Tab Content */}
       <div className="tab-content">
         {activeTab === "table" && (
-          <div data-testid="tab-content-table">
-            <DataTable table={idf.table} />
+          <div className="bg-card border border-border rounded-lg overflow-hidden">
+            <DfoImageViewer item={idf.dfo} />
           </div>
         )}
 

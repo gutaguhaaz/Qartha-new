@@ -66,6 +66,7 @@ class IdfPublic(BaseModel):
     gallery: List[MediaItem]
     documents: List[MediaItem]
     diagrams: List[MediaItem]
+    dfo: Optional[MediaItem] = None
     location: Optional[MediaItem] = None
     table: Optional[IdfTable] = None
     health: Optional[IdfHealth] = None
@@ -77,6 +78,7 @@ class IdfUpsert(BaseModel):
     description: Optional[str] = None
     site: Optional[str] = None
     room: Optional[str] = None
+    dfo: Optional[MediaItem] = None
     table: Optional[IdfTable] = None
 
 
