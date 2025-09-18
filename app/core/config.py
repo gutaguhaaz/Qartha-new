@@ -15,7 +15,9 @@ class Settings(BaseSettings):
                                             "Trinity").split(",")
     DEFAULT_PROJECT: str = os.getenv("DEFAULT_PROJECT", "Sabinas")
     PUBLIC_BASE_URL: str | None = os.getenv(
-        "PUBLIC_BASE_URL", "https://technicalfoinformation.replit.app/")
+        "PUBLIC_BASE_URL",
+        "https://65906d3e-61df-4f08-a529-69b0151d25b5-00-2xvkklizfouhp.riker.replit.dev/"
+    )
 
 
 settings = Settings()
