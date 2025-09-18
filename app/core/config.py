@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     DEFAULT_CLUSTER: str = os.getenv("DEFAULT_CLUSTER", "Trinity")
     ALLOWED_CLUSTERS: list[str] = os.getenv("ALLOWED_CLUSTERS",
                                             "trinity").split(",")
-    DEFAULT_PROJECT: str = os.getenv("DEFAULT_PROJECT", "Sabinas Project")
+    DEFAULT_PROJECT: str = os.getenv("DEFAULT_PROJECT", "Sabinas")
     PUBLIC_BASE_URL: str | None = os.getenv(
         "PUBLIC_BASE_URL", "https://technicalfoinformation.replit.app/")
 
