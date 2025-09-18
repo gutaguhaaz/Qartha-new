@@ -1,38 +1,39 @@
-
 // Configuración centralizada de la aplicación
 export const config = {
   // Configuración de clusters y proyectos
   clusters: {
-    available: ["Trinity", "lab", "alpha"],
-    default: "Trinity"
+    available: ["Trinity"],
+    default: "Trinity",
   },
-  
+
   // Configuración de proyectos por cluster
   projects: {
     Trinity: [
-      { value: "Sabinas Project", label: "Sabinas Project", apiValue: "Sabinas" }
+      {
+        value: "Sabinas Project",
+        label: "Sabinas Project",
+        apiValue: "Sabinas",
+      },
+      {
+        value: "Monclova Project",
+        label: "Monclova Project",
+        apiValue: "Monclova",
+      },
     ],
-    lab: [
-      { value: "demo", label: "Demo", apiValue: "demo" },
-      { value: "research", label: "Research", apiValue: "research" }
-    ],
-    alpha: [
-      { value: "prototype", label: "Prototype", apiValue: "prototype" }
-    ]
   },
-  
+
   // Configuración por defecto
   defaults: {
     cluster: "Trinity",
-    project: "Sabinas Project"
+    project: "Sabinas Project",
   },
-  
+
   // Configuración de API
   api: {
     baseUrl: import.meta.env.VITE_API_BASE_URL || "",
-    adminToken: import.meta.env.VITE_ADMIN_TOKEN || "changeme-demo-token"
+    adminToken: import.meta.env.VITE_ADMIN_TOKEN || "changeme-demo-token",
   },
-  
+
   // Mapeo de URLs
   urlMapping: {
     // Mapeo de proyecto a URL para la API
@@ -40,26 +41,26 @@ export const config = {
       if (project === "Sabinas Project") return "Sabinas";
       return project;
     },
-    
+
     // Mapeo de proyecto a URL para el frontend
     projectToUrlPath: (project: string) => {
       if (project === "Sabinas Project") return "Sabinas";
       return project;
     },
-    
+
     // Mapeo inverso de URL a proyecto
     urlPathToProject: (urlPath: string) => {
       if (urlPath === "Sabinas") return "Sabinas Project";
       return urlPath;
-    }
+    },
   },
-  
+
   // Configuración de la interfaz
   ui: {
     searchPlaceholder: "Search IDFs by code, title or location...",
     defaultLimit: 50,
-    itemsPerPage: 20
-  }
+    itemsPerPage: 20,
+  },
 };
 
 // Función para obtener proyectos de un cluster
@@ -73,7 +74,7 @@ export const getClusterConfig = (cluster: string) => {
   return {
     cluster,
     projects,
-    defaultProject: projects[0]?.value || ""
+    defaultProject: projects[0]?.value || "",
   };
 };
 
@@ -85,5 +86,5 @@ export const isValidCluster = (cluster: string) => {
 // Función para validar si un proyecto existe en un cluster
 export const isValidProject = (cluster: string, project: string) => {
   const projects = getProjectsForCluster(cluster);
-  return projects.some(p => p.value === project);
+  return projects.some((p) => p.value === project);
 };
