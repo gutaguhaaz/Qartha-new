@@ -125,7 +125,8 @@ export default function PublicDetail({
   }
 
   // Use absolute URL for QR code to ensure it works
-  const qrUrl = `${window.location.origin}/api/${encodeURIComponent(cluster)}/${encodeURIComponent(project)}/idfs/${encodeURIComponent(code)}/qr.png`;
+  const apiProject = project === "Sabinas" ? "Sabinas Project" : project;
+  const qrUrl = `${window.location.origin}/api/${encodeURIComponent(cluster)}/${encodeURIComponent(apiProject)}/idfs/${encodeURIComponent(code)}/qr.png`;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8" data-testid="public-detail">

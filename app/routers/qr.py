@@ -17,8 +17,16 @@ def _absolute_frontend_url(request: Request, cluster: str, project: str, code: s
     if not base:
         # Ej: http://host:port  (sin path)
         base = str(request.base_url).rstrip("/")
+    
+    # Map project name for URL
+    project_mapping = {
+        "Sabinas Project": "sabinas",
+        "Trinity": "trinity"
+    }
+    url_project = project_mapping.get(project, project.lower())
+    
     # Front SPA hash-route:
-    return f"{base}/#/{cluster}/{project}/idf/{code}"
+    return f"{base}#{cluster}/{url_project}/idf/{code}"
 
 
 @router.get("/{cluster}/{project}/idfs/{code}/qr.png")
