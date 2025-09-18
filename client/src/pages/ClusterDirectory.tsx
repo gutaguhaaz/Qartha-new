@@ -108,7 +108,7 @@ export default function ClusterDirectory() {
                 )}
                 <div>
                   <h3 className="text-xl font-semibold text-foreground">
-                    {cluster === "Trinity" ? "Trinity Cluster" : cluster.toUpperCase() + " Cluster"}
+                    {cluster === "trk" ? "Trinity Rail Cluster" : cluster.toUpperCase() + " Cluster"}
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''} available

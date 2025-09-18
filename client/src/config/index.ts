@@ -2,30 +2,25 @@
 export const config = {
   // Configuración de clusters y proyectos
   clusters: {
-    available: ["Trinity"],
-    default: "Trinity",
+    available: ["trk"],
+    default: "trk",
   },
 
   // Configuración de proyectos por cluster
   projects: {
-    Trinity: [
+    trk: [
       {
-        value: "Sabinas",
-        label: "Sabinas Project",
-        apiValue: "Sabinas",
-      },
-      {
-        value: "Monclova",
-        label: "Monclova Project",
-        apiValue: "Monclova",
+        value: "trinity",
+        label: "Trinity Project",
+        apiValue: "trinity",
       },
     ],
   },
 
   // Configuración por defecto
   defaults: {
-    cluster: "Trinity",
-    project: "Sabinas",
+    cluster: "trk",
+    project: "trinity",
   },
 
   // Configuración de API
@@ -48,9 +43,9 @@ export const config = {
 
     // Mapeo inverso de URL a proyecto - maneja tanto el formato antiguo como nuevo
     urlPathToProject: (urlPath: string) => {
-      // Decodifica la URL por si viene como "Sabinas%20Project"
+      // Decodifica la URL por si viene como "trinity%20project"
       const decoded = decodeURIComponent(urlPath);
-      if (decoded === "Sabinas") return "Sabinas";
+      if (decoded === "trinity") return "trinity";
       return decoded;
     },
   },

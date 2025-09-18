@@ -121,8 +121,8 @@ export default function Navbar() {
               >
                 {config.clusters.available.map((cluster: string) => (
                   <option key={cluster} value={cluster}>
-                    {cluster === "Trinity"
-                      ? "Trinity"
+                    {cluster === "trk"
+                      ? "Trinity Rail"
                       : cluster.toUpperCase() + " Cluster"}
                   </option>
                 ))}
@@ -196,8 +196,8 @@ export default function Navbar() {
               >
                 {config.clusters.available.map((cluster: string) => (
                   <option key={cluster} value={cluster}>
-                    {cluster === "Trinity"
-                      ? "Trinity"
+                    {cluster === "trk"
+                      ? "Trinity Rail"
                       : cluster.toUpperCase() + " Cluster"}
                   </option>
                 ))}
