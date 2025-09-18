@@ -133,9 +133,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
     queryFn: async () => {
       if (!selectedCluster || !selectedProject || !selectedIdf) return null;
       const apiProject = config.urlMapping.projectToApiPath(selectedProject);
-      const response = await fetch(`/api/${selectedCluster}/${apiProject}/idfs/${selectedIdf}`);
-      if (!response.ok) throw new Error('Failed to fetch IDF details');
-      return response.json();
+      return await getIdf(selectedCluster, apiProject, selectedIdf);
     },
     enabled: !!selectedCluster && !!selectedProject && !!selectedIdf
   });
@@ -192,25 +190,35 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
       return response.json();
     },
     onSuccess: () => {
-      toast({ title: "Success", description: "IDF saved successfully" });
+      toast({ title: "Éxito", description: "IDF guardado correctamente" });
       queryClient.invalidateQueries({ queryKey: ['admin', 'idf-details', selectedCluster, selectedProject, selectedIdf] });
-      refetchIdf(); // Refetch to get the latest data
+      queryClient.invalidateQueries({ queryKey: ['idfs', selectedCluster, selectedProject] });
+      refetchIdf();
     },
     onError: (error) => {
       console.error("Save error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to save: ${error}",
+        description: error instanceof Error ? error.message : `Error al guardar: ${error}`,
         variant: "destructive",
       });
     },
   });
 
   const handleFileUpload = async (files: FileList | null, type: 'images' | 'documents' | 'diagram') => {
-    if (!files || files.length === 0 || !selectedIdf) {
+    if (!files || files.length === 0) {
       toast({
         title: "Error",
-        description: "Please select an IDF first",
+        description: "Por favor selecciona un archivo",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedCluster || !selectedProject || !selectedIdf) {
+      toast({
+        title: "Error",
+        description: "Por favor selecciona un IDF primero",
         variant: "destructive",
       });
       return;
@@ -219,7 +227,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
     if (!adminToken || adminToken === "changeme-demo-token") {
       toast({
         title: "Error",
-        description: "Please set a valid admin token",
+        description: "Por favor configura un token de administrador válido",
         variant: "destructive",
       });
       return;
@@ -251,8 +259,8 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
         }
 
         toast({
-          title: "Success",
-          description: `${files[i].name} uploaded successfully`,
+          title: "Éxito",
+          description: `${files[i].name} subido correctamente`,
         });
       }
 
@@ -267,7 +275,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
       console.error("Upload error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Upload failed",
+        description: error instanceof Error ? error.message : "Error al subir archivo",
         variant: "destructive",
       });
     }
@@ -294,7 +302,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
     if (!editingIdf) {
       toast({
         title: "Error",
-        description: "No data to save",
+        description: "No hay datos para guardar",
         variant: "destructive",
       });
       return;
@@ -303,17 +311,18 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
     if (!adminToken || adminToken === "changeme-demo-token") {
       toast({
         title: "Error",
-        description: "Please set a valid admin token",
+        description: "Por favor configura un token de administrador válido",
         variant: "destructive",
       });
       return;
     }
 
     // Validate required fields
-    if (!editingIdf.basic_info?.title?.trim()) {
+    const title = editingIdf.basic_info?.title?.trim() || editingIdf.title?.trim();
+    if (!title) {
       toast({
         title: "Error",
-        description: "Title is required",
+        description: "El título es requerido",
         variant: "destructive",
       });
       return;
@@ -339,7 +348,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-border">
-            <h2 className="text-lg font-semibold">Admin Panel</h2>
+            <h2 className="text-lg font-semibold">Panel de Administración</h2>
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setIsFullscreen(!isFullscreen)}
@@ -368,8 +377,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
             {/* Selection */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-medium">Select IDF to Edit</h3>
-                {/* Add IDF Button Removed */}
+                <h3 className="font-medium">Seleccionar IDF para Editar</h3>
               </div>
 
               <div className="space-y-3">
@@ -384,7 +392,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                     }}
                     className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm"
                   >
-                    <option value="">Select Cluster</option>
+                    <option value="">Seleccionar Cluster</option>
                     {clusters.map((cluster: { value: string; label: string }) => (
                       <option key={cluster.value} value={cluster.value}>
                         {cluster.label}
@@ -394,7 +402,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Project</label>
+                  <label className="block text-sm font-medium mb-1">Proyecto</label>
                   <select
                     value={selectedProject}
                     onChange={(e) => {
@@ -404,7 +412,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                     className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm"
                     disabled={!selectedCluster}
                   >
-                    <option value="">Select Project</option>
+                    <option value="">Seleccionar Proyecto</option>
                     {projects.map((project: { value: string; label: string }) => (
                       <option key={project.value} value={project.value}>
                         {project.label}
@@ -421,7 +429,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                     className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm"
                     disabled={!selectedProject}
                   >
-                    <option value="">Select IDF</option>
+                    <option value="">Seleccionar IDF</option>
                     {idfs.map((idf: any) => (
                       <option key={idf.code} value={idf.code}>
                         {idf.code} - {idf.title}
@@ -432,13 +440,13 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Admin Token</label>
+                <label className="block text-sm font-medium mb-1">Token de Administrador</label>
                 <input
                   type="password"
                   value={adminToken}
                   onChange={(e) => setAdminToken(e.target.value)}
                   className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm font-mono"
-                  placeholder="Enter admin token"
+                  placeholder="Ingresa el token de administrador"
                 />
               </div>
             </div>
@@ -446,7 +454,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
             {/* IDF Editor */}
             {editingIdf && (
               <div className="space-y-6 border-t border-border pt-6">
-                <h3 className="font-medium">Editing: {editingIdf?.basic_info?.title || editingIdf?.title || 'Untitled'}</h3>
+                <h3 className="font-medium">Editando: {editingIdf?.basic_info?.title || editingIdf?.title || 'Sin título'}</h3>
 
                 {/* Tab Navigation */}
                 <div className="flex flex-wrap gap-1 mb-6">
@@ -468,7 +476,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                         : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
-                    Gallery
+                    Galería
                   </button>
                   <button
                     onClick={() => setActiveTab("location")}
@@ -478,7 +486,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                         : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
-                    Location
+                    Ubicación
                   </button>
                   <button
                     onClick={() => setActiveTab("diagram")}
@@ -488,7 +496,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                         : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
-                    Diagram
+                    Diagramas
                   </button>
                   <button
                     onClick={() => setActiveTab("documents")}
@@ -498,7 +506,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                         : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
-                    Documents
+                    Documentos
                   </button>
                   {/* Overview tab - Hidden but kept in code */}
                   <button
@@ -516,7 +524,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 {activeTab === "table" && (
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      DFO Layout image - Visual fiber distribution diagram
+                      Imagen de diseño DFO - Diagrama visual de distribución de fibra
                     </p>
                     {editingIdf?.dfo ? (
                       <div className="space-y-2">
@@ -544,7 +552,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 {activeTab === "gallery" && (
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Gallery management - Upload images via CMS Upload page
+                      Gestión de galería - Subir imágenes a través de la página de CMS
                     </p>
                     {editingIdf?.gallery && editingIdf.gallery.length > 0 && (
                       <div className="space-y-2">
@@ -571,7 +579,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 {activeTab === "location" && (
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Location image - Single location photo with zoom and drag functionality
+                      Imagen de ubicación - Foto única de ubicación con funcionalidad de zoom y arrastre
                     </p>
                     {editingIdf?.location ? (
                       <div className="space-y-2">
@@ -599,7 +607,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 {activeTab === "diagram" && (
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Diagram management - Images only (PDFs moved to Documents)
+                      Gestión de diagramas - Solo imágenes (PDFs movidos a Documentos)
                     </p>
                     {editingIdf?.diagrams && editingIdf.diagrams.length > 0 && (
                       <div className="space-y-2">
@@ -626,7 +634,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 {activeTab === "documents" && (
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Document management - PDF, DOC/DOCX, XLS/XLSX files
+                      Gestión de documentos - Archivos PDF, DOC/DOCX, XLS/XLSX
                     </p>
                     {((editingIdf?.documents && editingIdf.documents.filter(doc => doc.kind === 'document').length > 0) ||
                       (editingIdf?.diagram && editingIdf.diagram.kind === 'document')) && (
@@ -729,7 +737,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
 
                 {/* Basic Info (moved from overview to be always visible when editing) */}
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium">Basic Information</h4>
+                  <h4 className="text-sm font-medium">Información Básica</h4>
                   <div className="grid grid-cols-1 gap-3">
                     <input
                       type="text"
@@ -741,7 +749,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                         }))
                       }
                       className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm"
-                      placeholder="IDF Title"
+                      placeholder="Título del IDF"
                     />
                     <input
                       type="text"
@@ -753,13 +761,13 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                         }))
                       }
                       className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm"
-                      placeholder="Location"
+                      placeholder="Ubicación"
                     />
                     <input
                       type="text"
                       value={editingIdf?.room || ""}
                       onChange={(e) => setEditingIdf((prev:any) => ({...prev, room: e.target.value}))}
-                      placeholder="Room"
+                      placeholder="Sala"
                       className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm"
                     />
                     <textarea
@@ -771,7 +779,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                         }))
                       }
                       className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm min-h-[100px]"
-                      placeholder="Description"
+                      placeholder="Descripción"
                     />
                   </div>
                 </div>
@@ -780,7 +788,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 {/* Images (moved from gallery tab content) */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">Images ({editingIdf.gallery?.length || 0})</h4>
+                    <h4 className="text-sm font-medium">Imágenes ({editingIdf.gallery?.length || 0})</h4>
                     <label className="cursor-pointer">
                       <input
                         type="file"
@@ -817,7 +825,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 {/* Documents (moved from documents tab content) */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">Documents ({editingIdf.documents?.length || 0})</h4>
+                    <h4 className="text-sm font-medium">Documentos ({editingIdf.documents?.length || 0})</h4>
                     <label className="cursor-pointer">
                       <input
                         type="file"
@@ -850,7 +858,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 {/* Diagram (moved from diagram tab content) */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">Diagram</h4>
+                    <h4 className="text-sm font-medium">Diagrama</h4></old_str>
                     <label className="cursor-pointer">
                       <input
                         type="file"
@@ -894,7 +902,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
 
                 {/* Fiber Allocation Table Section (moved from table tab content) */}
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium">Fiber Allocation Table</h4>
+                  <h4 className="text-sm font-medium">Tabla de Asignación de Fibras</h4>
                   <div className="bg-card border border-border rounded-lg overflow-hidden">
                     <DataTable
                       table={editingIdf.table || undefined}
@@ -910,9 +918,10 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 <div className="pt-4 border-t border-border">
                   <button
                     onClick={handleSave}
-                    className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors flex items-center justify-center space-x-2">
+                    disabled={saveIdfMutation.isPending}
+                    className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
                     <Save className="w-4 h-4" />
-                    <span>Save Changes</span>
+                    <span>{saveIdfMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}</span>
                   </button>
                 </div>
               </div>
