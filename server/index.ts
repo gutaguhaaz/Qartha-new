@@ -17,9 +17,10 @@ app.use('/api', async (req, res) => {
     const response = await fetch(proxyUrl, {
       method: req.method,
       headers: {
-        ...req.headers,
+        'content-type': req.headers['content-type'] || 'application/json',
+        'authorization': req.headers['authorization'] || '',
         'host': '0.0.0.0:8000'
-      },
+      } as HeadersInit,
       body: req.method === 'GET' || req.method === 'HEAD' ? undefined : JSON.stringify(req.body)
     });
 
@@ -49,7 +50,8 @@ app.use('/api', async (req, res) => {
       res.end();
     }
   } catch (error) {
-    log(`Proxy error: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown proxy error';
+    log(`Proxy error: ${errorMessage}`);
     res.status(500).json({ error: 'Proxy error' });
   }
 });
