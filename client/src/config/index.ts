@@ -10,8 +10,8 @@ export const config = {
   projects: {
     Trinity: [
       {
-        value: "Sabinas Project",
-        label: "Sabinas Project",
+        value: "Sabinas",
+        label: "Sabinas Project", 
         apiValue: "Sabinas",
       },
       {
@@ -36,8 +36,8 @@ export const config = {
 
   // Configuración por defecto
   defaults: {
-    cluster: "Trinity",
-    project: "Sabinas Project",
+    cluster: "Trinity", 
+    project: "Sabinas",
   },
 
   // Configuración de API
@@ -50,20 +50,20 @@ export const config = {
   urlMapping: {
     // Mapeo de proyecto a URL para la API
     projectToApiPath: (project: string) => {
-      if (project === "Sabinas Project") return "Sabinas";
       return project;
     },
 
-    // Mapeo de proyecto a URL para el frontend
+    // Mapeo de proyecto a URL para el frontend  
     projectToUrlPath: (project: string) => {
-      if (project === "Sabinas Project") return "Sabinas";
       return project;
     },
 
-    // Mapeo inverso de URL a proyecto
+    // Mapeo inverso de URL a proyecto - maneja tanto el formato antiguo como nuevo
     urlPathToProject: (urlPath: string) => {
-      if (urlPath === "Sabinas") return "Sabinas Project";
-      return urlPath;
+      // Decodifica la URL por si viene como "Sabinas%20Project"
+      const decoded = decodeURIComponent(urlPath);
+      if (decoded === "Sabinas Project") return "Sabinas";
+      return decoded;
     },
   },
 

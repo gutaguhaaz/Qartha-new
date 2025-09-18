@@ -23,10 +23,10 @@ def map_url_project_to_db_project(project: str) -> str:
     decoded_project = urllib.parse.unquote(project)
     
     project_mapping = {
-        "Sabinas": "Sabinas Project",
-        "sabinas": "Sabinas Project", 
-        "Sabinas%20Project": "Sabinas Project",
-        "Sabinas Project": "Sabinas Project",
+        "Sabinas": "Sabinas",
+        "sabinas": "Sabinas", 
+        "Sabinas%20Project": "Sabinas",  # Handle old URL format
+        "Sabinas Project": "Sabinas",    # Handle old project name
         "trinity": "Trinity",
         "Trinity": "Trinity",
         # Add more mappings as needed
