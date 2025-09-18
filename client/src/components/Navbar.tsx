@@ -3,32 +3,12 @@ import { useState, useEffect } from "react";
 import ThemeToggle from "./ThemeToggle";
 import AdminSidebar from "./AdminSidebar";
 import { Settings, Menu, X } from "lucide-react";
-
-// Consolidated configuration
-const config = {
-  clusters: {
-    available: import.meta.env.VITE_CLUSTERS?.split(",") || ["trinity"],
-    default: import.meta.env.VITE_DEFAULT_CLUSTER || "trinity",
-  },
-  projects: {
-    default: import.meta.env.VITE_DEFAULT_PROJECT || "Sabinas Project",
-    mapping: {
-      trinity: [
-        { value: "Sabinas Project", label: "Sabinas Project" },
-        { value: "Monclova Project", label: "Monclova Project" },
-      ],
-    },
-  },
-};
-
-const getProjectsForCluster = (cluster: string) => {
-  return config.projects.mapping[cluster.toLowerCase()] || [];
-};
+import { config, getProjectsForCluster } from "../config";
 
 export default function Navbar() {
   const [location] = useLocation();
-  const [selectedCluster, setSelectedCluster] = useState(config.clusters.default);
-  const [selectedProject, setSelectedProject] = useState(config.projects.default);
+  const [selectedCluster, setSelectedCluster] = useState(config.defaults.cluster);
+  const [selectedProject, setSelectedProject] = useState(config.defaults.project);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -44,7 +24,7 @@ export default function Navbar() {
           setSelectedProject(project);
         } else {
           // If the project from the URL is not valid for the cluster, set to default project for that cluster
-          setSelectedProject(projects.length > 0 ? projects[0].value : config.projects.default);
+          setSelectedProject(projects.length > 0 ? projects[0].value : config.defaults.project);
         }
       }
     }
@@ -53,7 +33,7 @@ export default function Navbar() {
   const handleClusterChange = (cluster: string) => {
     setSelectedCluster(cluster);
     const projects = getProjectsForCluster(cluster);
-    setSelectedProject(projects.length > 0 ? projects[0].value : config.projects.default);
+    setSelectedProject(projects.length > 0 ? projects[0].value : config.defaults.project);
   };
 
   // Construct the current path based on selected cluster and project
