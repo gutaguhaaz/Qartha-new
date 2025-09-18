@@ -2,25 +2,25 @@
 export const config = {
   // Configuración de clusters y proyectos
   clusters: {
-    available: ["trk"],
-    default: "trk",
+    available: ["Trinity"],
+    default: "Trinity",
   },
 
   // Configuración de proyectos por cluster
   projects: {
-    trk: [
+    Trinity: [
       {
-        value: "trinity",
-        label: "Trinity Project",
-        apiValue: "trinity",
+        value: "sabinas",
+        label: "Sabinas Project",
+        apiValue: "Sabinas",
       },
     ],
   },
 
   // Configuración por defecto
   defaults: {
-    cluster: "trk",
-    project: "trinity",
+    cluster: "Trinity",
+    project: "sabinas",
   },
 
   // Configuración de API
