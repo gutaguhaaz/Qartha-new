@@ -78,10 +78,12 @@ if os.path.exists("dist"):
         return FileResponse("dist/index.html")
 
 @app.get("/api")
+@app.head("/api")
 async def root():
     return {"message": "Qartha Smart Inventory Network API"}
 
 
 @app.get("/health")
+@app.head("/health")
 async def health_check():
     return {"status": "healthy", "version": "1.0.0"}
