@@ -29,6 +29,9 @@ def map_url_project_to_db_project(project: str) -> str:
         "Sabinas%20Project": "Sabinas Project",  # Handle URL format
         "trinity": "Trinity",
         "Trinity": "Trinity",
+        # Add mappings for trk cluster
+        "trinity/sabinas": "Sabinas Project",
+        "sabinas/trinity": "Sabinas Project",
         # Add more mappings as needed
     }
     return project_mapping.get(decoded_project, decoded_project)

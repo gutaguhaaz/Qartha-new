@@ -2,7 +2,7 @@
 export const config = {
   // Configuración de clusters y proyectos
   clusters: {
-    available: ["Trinity"],
+    available: ["Trinity", "trk"],
     default: "Trinity",
   },
 
@@ -13,6 +13,18 @@ export const config = {
         value: "sabinas",
         label: "Sabinas Project",
         apiValue: "Sabinas",
+      },
+    ],
+    trk: [
+      {
+        value: "trinity",
+        label: "Trinity Project",
+        apiValue: "Trinity",
+      },
+      {
+        value: "sabinas",
+        label: "Sabinas Project", 
+        apiValue: "Sabinas Project",
       },
     ],
   },

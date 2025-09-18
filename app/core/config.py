@@ -11,8 +11,7 @@ class Settings(BaseSettings):
     ADMIN_TOKEN: str = os.getenv("ADMIN_TOKEN",
                                  "qartha-admin-2025-secure-token")
     DEFAULT_CLUSTER: str = os.getenv("DEFAULT_CLUSTER", "Trinity")
-    ALLOWED_CLUSTERS: list[str] = os.getenv("ALLOWED_CLUSTERS",
-                                            "Trinity").split(",")
+    ALLOWED_CLUSTERS: List[str] = ["Trinity", "trk"]
     DEFAULT_PROJECT: str = os.getenv("DEFAULT_PROJECT", "Sabinas")
     PUBLIC_BASE_URL: str | None = os.getenv(
         "PUBLIC_BASE_URL",
