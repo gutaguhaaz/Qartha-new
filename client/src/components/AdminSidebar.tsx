@@ -858,7 +858,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                 {/* Diagram (moved from diagram tab content) */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">Diagrama</h4></old_str>
+                    <h4 className="text-sm font-medium">Diagrama</h4>
                     <label className="cursor-pointer">
                       <input
                         type="file"
