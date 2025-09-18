@@ -26,12 +26,17 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
     );
   }
 
+  // Ensure the URL uses the correct path format
+  const imageUrl = typeof item.url === 'string' ? item.url : item.url.toString();
+  // Fix URL if it incorrectly contains 'idfs' instead of the proper static path
+  const correctedUrl = imageUrl.replace('/idfs/', '/static/').replace('/api/', '/static/');
+
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
 
   const handleDownload = () => {
     const link = document.createElement('a');
-    link.href = item.url;
+    link.href = correctedUrl;
     link.download = item.name || 'dfo-diagram';
     link.click();
   };
@@ -153,7 +158,7 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
         >
           <img
             ref={imageRef}
-            src={item.url}
+            src={correctedUrl}
             alt={item.name || 'DFO Layout'}
             className="absolute object-contain w-full h-full"
             style={imageStyle}

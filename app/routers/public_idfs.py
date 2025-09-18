@@ -267,6 +267,13 @@ async def get_idf(
             dfo = convert_relative_urls_to_absolute(dfo_item)
         elif isinstance(dfo_data, dict):
             dfo = convert_relative_urls_to_absolute(dfo_data)
+        
+        # Ensure DFO URL points to static files, not API endpoints
+        if dfo and "url" in dfo:
+            dfo_url = dfo["url"]
+            if "/api/" in dfo_url and "/idfs/" in dfo_url:
+                # Convert API URL to static URL
+                dfo["url"] = dfo_url.replace("/api/", "/static/").replace("/idfs/", "/")
 
     # Parse location field (handle array format from database)
     location = None
