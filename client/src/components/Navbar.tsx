@@ -49,7 +49,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           {/* Brand */}
           <Link
-            href={currentPath}
+            href="/"
             className="flex items-center"
             data-testid="link-home"
           >

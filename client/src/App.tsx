@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { Toaster } from "./components/ui/toaster";
 import Navbar from "./components/Navbar";
+import ClusterDirectory from "./pages/ClusterDirectory";
 import PublicList from "./pages/PublicList";
 import PublicDetail from "./pages/PublicDetail";
 import CmsUpload from "./pages/CmsUpload";
@@ -19,9 +20,9 @@ function RouteHandler() {
     // If user is at root or just cluster/project without trailing slash, redirect to list
     const pathParts = location.split("/").filter(Boolean);
 
-    // Handle root path
+    // Handle root path - show cluster directory
     if (location === "/") {
-      navigate("/Trinity/Sabinas");
+      // Stay on root to show cluster directory
       return;
     }
 
@@ -34,7 +35,7 @@ function RouteHandler() {
 
   return (
     <>
-      <Route path="/" component={PublicList} />
+      <Route path="/" component={ClusterDirectory} />
       <Route path="/:cluster/:project" component={PublicList} />
       <Route path="/:cluster/:project/idf/:code" component={PublicDetail} />
       <Route path="/:cluster/:project/admin" component={CmsUpload} />
