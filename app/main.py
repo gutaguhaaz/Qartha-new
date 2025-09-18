@@ -58,7 +58,7 @@ async def debug_idfs():
     return [dict(row) for row in rows]
 
 # Mount frontend static files for deployment
-if os.path.exists("dist"):
+if os.path.exists("dist") and os.path.exists("dist/index.html"):
     from fastapi.staticfiles import StaticFiles
     from fastapi.responses import FileResponse
 
