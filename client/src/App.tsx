@@ -45,6 +45,8 @@ function RouteHandler() {
 }
 
 function App() {
+  const currentYear = new Date().getFullYear();
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
@@ -54,6 +56,9 @@ function App() {
             <main className="flex-1">
               <RouteHandler />
             </main>
+            <footer className="border-t border-border bg-background py-4 text-center text-xs text-muted-foreground sm:text-sm">
+              ©{currentYear}. Inpro Telecom, Rk Squared. All Rights Reserved.
+            </footer>
           </div>
           <Toaster />
         </Router>
