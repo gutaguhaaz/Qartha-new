@@ -37,6 +37,17 @@ def map_url_project_to_db_project(project: str) -> str:
     return project_mapping.get(decoded_project, decoded_project)
 
 
+def map_db_project_to_static_path(project: str) -> str:
+    """Map database project name to static file path"""
+    project_to_path = {
+        "Sabinas Project": "sabinas",
+        "Trinity": "trinity",
+        "sabinas": "sabinas",
+        "trinity": "trinity"
+    }
+    return project_to_path.get(project, project.lower().replace(' ', ''))
+
+
 def compute_health(table_data: dict) -> Optional[IdfHealth]:
     """Compute health status from table rows"""
     if not table_data or not table_data.get("rows"):
@@ -259,21 +270,40 @@ async def get_idf(
 
     # Parse dfo field (handle array format from database)
     dfo = None
-    if idf_dict.get("dfo"):
-        dfo_data = json.loads(idf_dict["dfo"]) if isinstance(idf_dict["dfo"], str) else idf_dict["dfo"]
-        # Handle both array and single object formats
-        if isinstance(dfo_data, list) and len(dfo_data) > 0:
-            dfo_item = dfo_data[0]  # Take first item from array
-            dfo = convert_relative_urls_to_absolute(dfo_item)
-        elif isinstance(dfo_data, dict):
-            dfo = convert_relative_urls_to_absolute(dfo_data)
+    try:
+        if idf_dict.get("dfo"):
+            dfo_data = json.loads(idf_dict["dfo"]) if isinstance(idf_dict["dfo"], str) else idf_dict["dfo"]
+            # Handle both array and single object formats
+            if isinstance(dfo_data, list) and len(dfo_data) > 0:
+                dfo_item = dfo_data[0]  # Take first item from array
+                dfo = convert_relative_urls_to_absolute(dfo_item)
+            elif isinstance(dfo_data, dict):
+                dfo = convert_relative_urls_to_absolute(dfo_data)
+        else:
+            # If no DFO data exists, create a default one based on the IDF code
+            dfo = {
+                "name": f"{idf_dict['code']}_dfo.png",
+                "url": f"/static/{cluster}/{map_db_project_to_static_path(map_url_project_to_db_project(project))}/dfo/{idf_dict['code']}_dfo.png",
+                "kind": "image"
+            }
+    except Exception as e:
+        print(f"Error parsing DFO data for {idf_dict['code']}: {e}")
+        # Fallback to default DFO
+        dfo = {
+            "name": f"{idf_dict['code']}_dfo.png", 
+            "url": f"/static/{cluster}/{map_db_project_to_static_path(map_url_project_to_db_project(project))}/dfo/{idf_dict['code']}_dfo.png",
+            "kind": "image"
+        }
         
         # Ensure DFO URL points to static files, not API endpoints
         if dfo and "url" in dfo:
             dfo_url = dfo["url"]
-            if "/api/" in dfo_url and "/idfs/" in dfo_url:
-                # Convert API URL to static URL
-                dfo["url"] = dfo_url.replace("/api/", "/static/").replace("/idfs/", "/")
+            # Only fix URLs that incorrectly point to API endpoints for images
+            if "/api/" in dfo_url and "/idfs/" in dfo_url and dfo_url.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg')):
+                # Convert API URL to static URL for image files
+                cluster_part = dfo_url.split('/api/')[1].split('/idfs/')[0]  # Extract cluster/project
+                filename = dfo_url.split('/')[-1]  # Extract filename
+                dfo["url"] = f"/static/{cluster_part}/dfo/{filename}"
 
     # Parse location field (handle array format from database)
     location = None
