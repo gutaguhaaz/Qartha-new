@@ -125,7 +125,13 @@ export default function PublicDetail({
   }
 
   // Use absolute URL for QR code to ensure it works
-  const apiProject = project === "Sabinas" ? "Sabinas Project" : project;
+  // Map frontend project to backend project name
+  const getApiProject = (proj: string) => {
+    if (proj === "sabinas" || proj === "Sabinas") return "Sabinas Project";
+    return proj;
+  };
+  
+  const apiProject = getApiProject(project);
   const qrUrl = `${window.location.origin}/api/${encodeURIComponent(cluster)}/${encodeURIComponent(apiProject)}/idfs/${encodeURIComponent(code)}/qr.png`;
 
   return (

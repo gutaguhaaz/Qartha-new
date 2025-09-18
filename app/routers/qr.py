@@ -18,15 +18,17 @@ def _absolute_frontend_url(request: Request, cluster: str, project: str, code: s
         # Ej: http://host:port  (sin path)
         base = str(request.base_url).rstrip("/")
     
-    # Map project name for URL
+    # Map project name for URL - handle both old and new format
     project_mapping = {
         "Sabinas Project": "sabinas",
-        "Trinity": "trinity"
+        "Sabinas": "sabinas", 
+        "Trinity": "trinity",
+        "trinity": "trinity"
     }
-    url_project = project_mapping.get(project, project.lower())
+    url_project = project_mapping.get(project, project.lower().replace(" ", ""))
     
-    # Front SPA hash-route:
-    return f"{base}#{cluster}/{url_project}/idf/{code}"
+    # Front SPA route (without hash):
+    return f"{base}/{cluster}/{url_project}/idf/{code}"
 
 
 @router.get("/{cluster}/{project}/idfs/{code}/qr.png")
