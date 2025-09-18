@@ -4,23 +4,19 @@ import ThemeToggle from "./ThemeToggle";
 import AdminSidebar from "./AdminSidebar";
 import { Settings, Menu, X } from "lucide-react";
 
-const CLUSTERS = import.meta.env.VITE_CLUSTERS?.split(",") || ["trk", "lab"];
-const DEFAULT_CLUSTER = import.meta.env.VITE_DEFAULT_CLUSTER || "trk";
-const DEFAULT_PROJECT = import.meta.env.VITE_DEFAULT_PROJECT || "trinity";
+const CLUSTERS = import.meta.env.VITE_CLUSTERS?.split(",") || ["trinity"];
+const DEFAULT_CLUSTER = import.meta.env.VITE_DEFAULT_CLUSTER || "trinity";
+const DEFAULT_PROJECT =
+  import.meta.env.VITE_DEFAULT_PROJECT || "Sabinas Project";
 
 const getProjectsForCluster = (cluster: string) => {
-  switch (cluster) {
-    case "trk":
-      return ["Sabinas Project", "Nuevo Proyecto"];
-    case "lab":
-      return ["demo"];
-    case "alpha":
-      return ["test"];
+  switch (cluster.toLowerCase()) {
+    case "trinity":
+      return ["Sabinas Project", "Monclova Project"];
     default:
       return [];
   }
 };
-
 export default function Navbar() {
   const [location] = useLocation();
   const [selectedCluster, setSelectedCluster] = useState(DEFAULT_CLUSTER);
