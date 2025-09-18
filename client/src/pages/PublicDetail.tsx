@@ -295,6 +295,20 @@ export default function PublicDetail({
               <p className="text-xs text-muted-foreground mt-2 text-center">
                 QR Code
               </p>
+              <button
+                onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = qrUrl;
+                  link.download = `QR-${idf.code}.png`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                className="w-full mt-2 px-2 py-1 text-xs bg-secondary text-secondary-foreground rounded hover:bg-secondary/80 transition-colors"
+                data-testid="download-qr"
+              >
+                Download
+              </button>
             </div>
           </div>
         </div>
