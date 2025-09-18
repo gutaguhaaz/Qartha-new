@@ -1,6 +1,7 @@
 import os
 import json
 import glob
+import time  # Import the time module
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form, Header
 from typing import Optional
 from app.core.config import settings
@@ -21,20 +22,29 @@ def map_url_project_to_db_project(project: str) -> str:
     """Map URL project name to database project name"""
     import urllib.parse
     decoded_project = urllib.parse.unquote(project)
-    
+
     project_mapping = {
         "sabinas": "Sabinas Project",
-        "Sabinas": "Sabinas Project", 
+        "Sabinas": "Sabinas Project",
         "Sabinas Project": "Sabinas Project",
         "Sabinas%20Project": "Sabinas Project",  # Handle URL format
         "trinity": "Trinity",
         "Trinity": "Trinity",
-        # Add mappings for trk cluster  
+        # Add mappings for trk cluster
         "trinity/sabinas": "Sabinas Project",
         "sabinas/trinity": "Sabinas Project",
         # Add more mappings as needed
     }
     return project_mapping.get(decoded_project, decoded_project)
+
+def map_db_project_to_folder_name(db_project_name: str) -> str:
+    """Map database project name to a folder-friendly name"""
+    folder_name_mapping = {
+        "Sabinas Project": "sabinas",
+        "Trinity": "trinity",
+        # Add more mappings as needed
+    }
+    return folder_name_mapping.get(db_project_name, db_project_name.lower().replace(" ", "-"))
 
 
 def verify_admin_token(authorization: Optional[str] = None):
@@ -52,9 +62,10 @@ def verify_admin_token(authorization: Optional[str] = None):
     return token
 
 
-async def save_file(file: UploadFile, file_path: str) -> str:
+async def save_file(file: UploadFile, file_path: str, folder_project: str, asset_type: str) -> str:
     """Save uploaded file and return URL"""
     # Ensure directory exists
+    folder_type = asset_type if asset_type != "diagram" else "diagrams"
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
     # Save file
@@ -62,9 +73,9 @@ async def save_file(file: UploadFile, file_path: str) -> str:
         content = await file.read()
         buffer.write(content)
 
-    # Return relative URL
-    relative_path = file_path.replace(settings.STATIC_DIR, "")
-    return f"/static{relative_path}"
+    # Return relative URL using proper folder structure
+    relative_url = f"/static/{os.path.dirname(file_path).replace(settings.STATIC_DIR, '').lstrip('/')}"
+    return relative_url
 
 
 @router.post("/{cluster}/{project}/assets/images")
@@ -95,17 +106,20 @@ async def upload_image(
     # Parse current gallery
     gallery = json.loads(idf["gallery"]) if isinstance(idf["gallery"], str) else idf["gallery"]
 
-    # Save file
-    file_extension = os.path.splitext(file.filename or "image.jpg")[1]
-    file_path = os.path.join(
-        settings.STATIC_DIR,
-        cluster,
-        project,
-        "images",
-        f"{code}_{len(gallery)}{file_extension}"
-    )
+    # Create directory path using proper folder mapping
+    db_project = map_url_project_to_db_project(project)
+    folder_project = map_db_project_to_folder_name(db_project)
+    folder_type = "images"
+    file_dir = os.path.join(settings.STATIC_DIR, cluster, folder_project, folder_type)
+    os.makedirs(file_dir, exist_ok=True)
 
-    url = await save_file(file, file_path)
+    # Generate unique filename
+    timestamp = int(time.time() * 1000)
+    file_extension = os.path.splitext(file.filename or "image.jpg")[1]
+    filename = f"{code}_{len(gallery)}_{timestamp}{file_extension}"
+    file_path = os.path.join(file_dir, filename)
+
+    url = await save_file(file, file_path, folder_project, folder_type)
 
     # Update IDF gallery
     media_item = {
@@ -145,17 +159,20 @@ async def upload_location_image(
     if not idf:
         raise HTTPException(status_code=404, detail="IDF not found")
 
-    # Save file
-    file_extension = os.path.splitext(file.filename or "location.jpg")[1]
-    file_path = os.path.join(
-        settings.STATIC_DIR,
-        cluster,
-        project,
-        "location",
-        f"{code}_location{file_extension}"
-    )
+    # Create directory path using proper folder mapping
+    db_project = map_url_project_to_db_project(project)
+    folder_project = map_db_project_to_folder_name(db_project)
+    folder_type = "location"
+    file_dir = os.path.join(settings.STATIC_DIR, cluster, folder_project, folder_type)
+    os.makedirs(file_dir, exist_ok=True)
 
-    url = await save_file(file, file_path)
+    # Generate unique filename
+    timestamp = int(time.time() * 1000)
+    file_extension = os.path.splitext(file.filename or "location.jpg")[1]
+    filename = f"{code}_location_{timestamp}{file_extension}"
+    file_path = os.path.join(file_dir, filename)
+
+    url = await save_file(file, file_path, folder_project, folder_type)
 
     # Update IDF location (store as array to match database format)
     location_item = {
@@ -196,17 +213,20 @@ async def upload_document(
     # Parse current documents
     documents = json.loads(idf["documents"]) if isinstance(idf["documents"], str) else idf["documents"]
 
-    # Save file
-    file_extension = os.path.splitext(file.filename or "document.pdf")[1]
-    file_path = os.path.join(
-        settings.STATIC_DIR,
-        cluster,
-        project,
-        "documents",
-        f"{code}_{len(documents)}{file_extension}"
-    )
+    # Create directory path using proper folder mapping
+    db_project = map_url_project_to_db_project(project)
+    folder_project = map_db_project_to_folder_name(db_project)
+    folder_type = "documents"
+    file_dir = os.path.join(settings.STATIC_DIR, cluster, folder_project, folder_type)
+    os.makedirs(file_dir, exist_ok=True)
 
-    url = await save_file(file, file_path)
+    # Generate unique filename
+    timestamp = int(time.time() * 1000)
+    file_extension = os.path.splitext(file.filename or "document.pdf")[1]
+    filename = f"{code}_{len(documents)}_{timestamp}{file_extension}"
+    file_path = os.path.join(file_dir, filename)
+
+    url = await save_file(file, file_path, folder_project, folder_type)
 
     # Update IDF documents
     media_item = {
@@ -246,31 +266,34 @@ async def upload_diagram(
     if not idf:
         raise HTTPException(status_code=404, detail="IDF not found")
 
-    # Save file
-    file_extension = os.path.splitext(file.filename or "diagram.pdf")[1]
-    file_path = os.path.join(
-        settings.STATIC_DIR,
-        cluster,
-        project,
-        "diagrams",
-        f"{code}_diagram{file_extension}"
-    )
+    # Create directory path using proper folder mapping
+    db_project = map_url_project_to_db_project(project)
+    folder_project = map_db_project_to_folder_name(db_project)
+    folder_type = "diagrams"
+    file_dir = os.path.join(settings.STATIC_DIR, cluster, folder_project, folder_type)
+    os.makedirs(file_dir, exist_ok=True)
 
-    url = await save_file(file, file_path)
+    # Generate unique filename
+    timestamp = int(time.time() * 1000)
+    file_extension = os.path.splitext(file.filename or "diagram.pdf")[1]
+    filename = f"{code}_diagram_{timestamp}{file_extension}"
+    file_path = os.path.join(file_dir, filename)
+
+    url = await save_file(file, file_path, folder_project, folder_type)
 
     # Get current diagrams array
     current_idf = await database.fetch_one(
         "SELECT diagrams FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
         {"cluster": cluster, "project": project, "code": code}
     )
-    
+
     current_diagrams = []
     if current_idf and current_idf["diagrams"]:
         if isinstance(current_idf["diagrams"], str):
             current_diagrams = json.loads(current_idf["diagrams"])
         else:
             current_diagrams = current_idf["diagrams"]
-    
+
     # Add new diagram to array
     new_diagram = {
         "url": url,
@@ -301,21 +324,23 @@ async def upload_logo(
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
 
-    # Remove existing logos for this cluster
-    for existing in glob.glob(os.path.join(settings.STATIC_DIR, cluster, "logo.*")):
+    # Create directory path using proper folder mapping
+    db_project = map_url_project_to_db_project(project)
+    folder_project = map_db_project_to_folder_name(db_project)
+    logo_dir = os.path.join(settings.STATIC_DIR, cluster, folder_project)
+    os.makedirs(logo_dir, exist_ok=True)
+
+    # Remove existing logos for this cluster/project
+    for existing in glob.glob(os.path.join(logo_dir, "logo.*")):
         try:
             os.remove(existing)
         except OSError:
             pass
 
     file_extension = os.path.splitext(file.filename or "logo.png")[1]
-    file_path = os.path.join(
-        settings.STATIC_DIR,
-        cluster,
-        f"logo{file_extension}"
-    )
+    file_path = os.path.join(logo_dir, f"logo{file_extension}")
 
-    url = await save_file(file, file_path)
+    url = await save_file(file, file_path, folder_project, "logo")
 
     return {"url": url, "message": "Logo uploaded successfully"}
 
@@ -337,9 +362,13 @@ async def get_cluster_logo(cluster: str):
 @router.get("/{cluster}/{project}/logo")
 async def get_logo(cluster: str, project: str):
     """Get project logo"""
+    # Create directory path using proper folder mapping
+    db_project = map_url_project_to_db_project(project)
+    folder_project = map_db_project_to_folder_name(db_project)
+
     # Check both cluster-level and project-level logo locations
     logo_locations = [
-        os.path.join(settings.STATIC_DIR, cluster, project),
+        os.path.join(settings.STATIC_DIR, cluster, folder_project),
         os.path.join(settings.STATIC_DIR, cluster)
     ]
 
@@ -370,7 +399,7 @@ async def upload_idf_logo(
     # Validate file type
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
-    
+
     # Check if file is PNG or JPG
     allowed_types = ["image/png", "image/jpeg", "image/jpg"]
     if file.content_type not in allowed_types:
@@ -385,8 +414,13 @@ async def upload_idf_logo(
     if not idf:
         raise HTTPException(status_code=404, detail="IDF not found")
 
+    # Create directory path using proper folder mapping
+    db_project = map_url_project_to_db_project(project)
+    folder_project = map_db_project_to_folder_name(db_project)
+    logo_dir = os.path.join(settings.STATIC_DIR, cluster, folder_project, "logos")
+    os.makedirs(logo_dir, exist_ok=True)
+
     # Remove existing logo for this IDF
-    logo_dir = os.path.join(settings.STATIC_DIR, cluster, project, "logos")
     for existing in glob.glob(os.path.join(logo_dir, f"{code}-logo.*")):
         try:
             os.remove(existing)
@@ -397,16 +431,13 @@ async def upload_idf_logo(
     file_extension = os.path.splitext(file.filename or "logo.png")[1]
     if not file_extension:
         file_extension = ".png" if file.content_type == "image/png" else ".jpg"
-    
+
     file_path = os.path.join(
-        settings.STATIC_DIR,
-        cluster,
-        project,
-        "logos",
+        logo_dir,
         f"{code}-logo{file_extension}"
     )
 
-    url = await save_file(file, file_path)
+    url = await save_file(file, file_path, folder_project, "logos")
 
     # Update IDF media.logo
     media_item = {
