@@ -4,23 +4,31 @@ import ThemeToggle from "./ThemeToggle";
 import AdminSidebar from "./AdminSidebar";
 import { Settings, Menu, X } from "lucide-react";
 
-const CLUSTERS = import.meta.env.VITE_CLUSTERS?.split(",") || ["trinity"];
-const DEFAULT_CLUSTER = import.meta.env.VITE_DEFAULT_CLUSTER || "trinity";
-const DEFAULT_PROJECT =
-  import.meta.env.VITE_DEFAULT_PROJECT || "Sabinas Project";
+// Consolidated configuration
+const config = {
+  clusters: {
+    available: import.meta.env.VITE_CLUSTERS?.split(",") || ["trinity"],
+    default: import.meta.env.VITE_DEFAULT_CLUSTER || "trinity",
+  },
+  projects: {
+    default: import.meta.env.VITE_DEFAULT_PROJECT || "Sabinas Project",
+    mapping: {
+      trinity: [
+        { value: "Sabinas Project", label: "Sabinas Project" },
+        { value: "Monclova Project", label: "Monclova Project" },
+      ],
+    },
+  },
+};
 
 const getProjectsForCluster = (cluster: string) => {
-  switch (cluster.toLowerCase()) {
-    case "trinity":
-      return ["Sabinas Project", "Monclova Project"];
-    default:
-      return [];
-  }
+  return config.projects.mapping[cluster.toLowerCase()] || [];
 };
+
 export default function Navbar() {
   const [location] = useLocation();
-  const [selectedCluster, setSelectedCluster] = useState(DEFAULT_CLUSTER);
-  const [selectedProject, setSelectedProject] = useState(DEFAULT_PROJECT);
+  const [selectedCluster, setSelectedCluster] = useState(config.clusters.default);
+  const [selectedProject, setSelectedProject] = useState(config.projects.default);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -29,11 +37,14 @@ export default function Navbar() {
     const pathParts = location.split("/").filter(Boolean);
     if (pathParts.length >= 2) {
       const [cluster, project] = pathParts;
-      if (CLUSTERS.includes(cluster)) {
+      if (config.clusters.available.includes(cluster)) {
         setSelectedCluster(cluster);
         const projects = getProjectsForCluster(cluster);
-        if (projects.includes(project)) {
+        if (projects.some(p => p.value === project)) {
           setSelectedProject(project);
+        } else {
+          // If the project from the URL is not valid for the cluster, set to default project for that cluster
+          setSelectedProject(projects.length > 0 ? projects[0].value : config.projects.default);
         }
       }
     }
@@ -42,10 +53,11 @@ export default function Navbar() {
   const handleClusterChange = (cluster: string) => {
     setSelectedCluster(cluster);
     const projects = getProjectsForCluster(cluster);
-    setSelectedProject(projects[0]);
+    setSelectedProject(projects.length > 0 ? projects[0].value : config.projects.default);
   };
 
-  const currentPath = `/${selectedCluster}/${selectedProject === "Sabinas Project" ? "Sabinas" : selectedProject}`;
+  // Construct the current path based on selected cluster and project
+  const currentPath = `/${selectedCluster}/${selectedProject}`;
   const isDirectoryActive =
     location === currentPath ||
     location === "/" ||
@@ -127,7 +139,7 @@ export default function Navbar() {
                 className="bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
                 data-testid="select-cluster"
               >
-                {CLUSTERS.map((cluster: string) => (
+                {config.clusters.available.map((cluster: string) => (
                   <option key={cluster} value={cluster}>
                     {cluster === "Trinity"
                       ? "Trinity"
@@ -143,12 +155,8 @@ export default function Navbar() {
                 data-testid="select-project"
               >
                 {getProjectsForCluster(selectedCluster).map((project) => (
-                  <option key={project} value={project}>
-                    {project === "Sabinas Project"
-                      ? "Sabinas Project"
-                      : project.charAt(0).toUpperCase() +
-                        project.slice(1) +
-                        " Project"}
+                  <option key={project.value} value={project.value}>
+                    {project.label}
                   </option>
                 ))}
               </select>
@@ -206,7 +214,7 @@ export default function Navbar() {
                 className="bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
                 data-testid="select-cluster-mobile"
               >
-                {CLUSTERS.map((cluster: string) => (
+                {config.clusters.available.map((cluster: string) => (
                   <option key={cluster} value={cluster}>
                     {cluster === "Trinity"
                       ? "Trinity"
@@ -222,12 +230,8 @@ export default function Navbar() {
                 data-testid="select-project-mobile"
               >
                 {getProjectsForCluster(selectedCluster).map((project) => (
-                  <option key={project} value={project}>
-                    {project === "Sabinas Project"
-                      ? "Sabinas Project"
-                      : project.charAt(0).toUpperCase() +
-                        project.slice(1) +
-                        " Project"}
+                  <option key={project.value} value={project.value}>
+                    {project.label}
                   </option>
                 ))}
               </select>

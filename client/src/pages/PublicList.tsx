@@ -4,26 +4,21 @@ import { Link, useParams } from "wouter";
 import { getIdfs, getLogo } from "@/lib/api";
 import { IdfIndex } from "@shared/schema";
 import AddIdfDialog from "@/components/AddIdfDialog";
+import { config } from "@/config";
 
 interface PublicListProps {
   cluster: string;
   project: string;
 }
 
-// Define default values for cluster and project if they are not provided in the URL
-const DEFAULT_CLUSTER = "trk"; // Example default cluster
-const DEFAULT_PROJECT = "sabinas"; // Example default project
-
 export default function PublicList() {
   const params = useParams();
-  const cluster = params.cluster || DEFAULT_CLUSTER;
+  const cluster = params.cluster || config.defaults.cluster;
   // Map URL project to the correct format for API calls
-  let project = params.project || DEFAULT_PROJECT;
+  let project = params.project || config.urlMapping.projectToUrlPath(config.defaults.project);
   
   // Handle URL encoding and mapping
-  if (project === "Sabinas" || project === "sabinas") {
-    project = "Sabinas Project";
-  }
+  project = config.urlMapping.urlPathToProject(project);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddIdfDialogOpen, setIsAddIdfDialogOpen] = useState(false);
@@ -35,9 +30,8 @@ export default function PublicList() {
   } = useQuery({
     queryKey: ["idfs", cluster, project, "list"],
     queryFn: () => {
-      // Use "Sabinas" for the API call when project is "Sabinas Project"
-      const apiProject = project === "Sabinas Project" ? "Sabinas" : project;
-      return getIdfs(cluster, apiProject, { include_health: 1, limit: 50 });
+      const apiProject = config.urlMapping.projectToApiPath(project);
+      return getIdfs(cluster, apiProject, { include_health: 1, limit: config.ui.defaultLimit });
     },
   });
 
@@ -192,7 +186,7 @@ export default function PublicList() {
             <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"></i>
             <input
               type="text"
-              placeholder="Search IDFs by code, title or location..."
+              placeholder={config.ui.searchPlaceholder}
               className="w-full bg-input border border-border rounded-lg pl-10 pr-4 py-3 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

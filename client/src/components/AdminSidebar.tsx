@@ -6,7 +6,8 @@ import { getIdfs, getIdf, uploadAsset } from "@/lib/api";
 import EditableDataTable from "./EditableDataTable";
 import DataTable from "./DataTable";
 import AddIdfDialog from "./AddIdfDialog";
-import LogoWidget from "./LogoWidget"; // Assuming LogoWidget is in this path
+import LogoWidget from "./LogoWidget";
+import { config, getProjectsForCluster } from "../config";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -41,7 +42,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
   const [selectedIdf, setSelectedIdf] = useState<string>("");
   const [editingIdf, setEditingIdf] = useState<any>(null);
   const [idfs, setIdfs] = useState<any[]>([]); // State to hold the list of IDFs
-  const [adminToken, setAdminToken] = useState(import.meta.env.VITE_ADMIN_TOKEN || "changeme-demo-token");
+  const [adminToken, setAdminToken] = useState(config.api.adminToken);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeTab, setActiveTab] = useState("table");
   const [showTableEditor, setShowTableEditor] = useState(false); // State for showing/hiding table editor
@@ -73,31 +74,15 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
   const { data: clusters = [] } = useQuery({
     queryKey: ['admin', 'clusters'],
     queryFn: async () => {
-      // Using predefined clusters for now
-      return [
-        { value: "Trinity", label: "Trinity" },
-        { value: "lab", label: "LAB" },
-        { value: "alpha", label: "ALPHA" }
-      ];
+      return config.clusters.available.map(cluster => ({
+        value: cluster,
+        label: cluster === "Trinity" ? "Trinity" : cluster.toUpperCase()
+      }));
     }
   });
 
-  // Define projects based on cluster selection
-  const projectsByCluster = {
-    Trinity: [
-      { value: "Sabinas Project", label: "Sabinas Project" }
-    ],
-    lab: [
-      { value: "demo", label: "Demo" },
-      { value: "research", label: "Research" }
-    ],
-    alpha: [
-      { value: "prototype", label: "Prototype" }
-    ]
-  };
-
   // Dynamically get projects based on selected cluster
-  const projects = selectedCluster ? projectsByCluster[selectedCluster as keyof typeof projectsByCluster] || [] : [];
+  const projects = selectedCluster ? getProjectsForCluster(selectedCluster) : [];
 
   // Fetch IDFs using the getIdfs function from api
   useEffect(() => {
@@ -105,7 +90,8 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
       if (selectedCluster && selectedProject) {
         try {
           console.log(`Loading IDFs for ${selectedCluster}/${selectedProject}`);
-          const data = await getIdfs(selectedCluster, selectedProject);
+          const apiProject = config.urlMapping.projectToApiPath(selectedProject);
+          const data = await getIdfs(selectedCluster, apiProject);
           console.log('Loaded IDFs:', data);
           setIdfs(data);
         } catch (error) {
@@ -123,7 +109,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
   // Reset dependent fields when cluster changes
   useEffect(() => {
     if (selectedCluster) {
-      const projects = projectsByCluster[selectedCluster as keyof typeof projectsByCluster] || [];
+      const projects = getProjectsForCluster(selectedCluster);
       if (projects.length > 0) {
         setSelectedProject(projects[0].value);
       } else {
@@ -146,7 +132,8 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
     queryKey: ['admin', 'idf-details', selectedCluster, selectedProject, selectedIdf],
     queryFn: async () => {
       if (!selectedCluster || !selectedProject || !selectedIdf) return null;
-      const response = await fetch(`/api/${selectedCluster}/${selectedProject === "Sabinas Project" ? "Sabinas" : selectedProject}/idfs/${selectedIdf}`);
+      const apiProject = config.urlMapping.projectToApiPath(selectedProject);
+      const response = await fetch(`/api/${selectedCluster}/${apiProject}/idfs/${selectedIdf}`);
       if (!response.ok) throw new Error('Failed to fetch IDF details');
       return response.json();
     },
@@ -188,7 +175,8 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
         table: data.table || undefined
       };
 
-      const response = await fetch(`/api/${selectedCluster}/${selectedProject === "Sabinas Project" ? "Sabinas" : selectedProject}/idfs/${selectedIdf}`, {
+      const apiProject = config.urlMapping.projectToApiPath(selectedProject);
+      const response = await fetch(`/api/${selectedCluster}/${apiProject}/idfs/${selectedIdf}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -242,7 +230,8 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
       const updatedIdf = { ...editingIdf };
 
       for (let i = 0; i < files.length; i++) {
-        const result = await uploadAsset(selectedCluster || "", selectedProject === "Sabinas Project" ? "Sabinas" : selectedProject, selectedIdf, files[i], type, adminToken);
+        const apiProject = config.urlMapping.projectToApiPath(selectedProject);
+        const result = await uploadAsset(selectedCluster || "", apiProject, selectedIdf, files[i], type, adminToken);
 
         // Add to local state immediately
         const mediaItem = {
