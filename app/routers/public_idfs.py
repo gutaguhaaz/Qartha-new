@@ -268,11 +268,20 @@ async def get_idf(
     if idf_dict.get("table"):
         health = compute_health(idf_dict["table"])
 
-    # Parse dfo field from table_data (this is where it's actually stored in the database)
+    # Parse dfo field - check the url column first (as shown in database screenshot)
     dfo = None
     try:
-        # First check if there's a dedicated dfo field
-        if idf_dict.get("dfo"):
+        # First check if there's a direct url column in the database
+        if idf_dict.get("url"):
+            dfo = {
+                "name": f"{idf_dict['code']}_dfo.png",
+                "url": idf_dict["url"],
+                "kind": "image"
+            }
+            dfo = convert_relative_urls_to_absolute(dfo)
+        
+        # Then check if there's a dedicated dfo field
+        elif idf_dict.get("dfo"):
             dfo_data = json.loads(idf_dict["dfo"]) if isinstance(idf_dict["dfo"], str) else idf_dict["dfo"]
             # Handle both array and single object formats
             if isinstance(dfo_data, list) and len(dfo_data) > 0:
