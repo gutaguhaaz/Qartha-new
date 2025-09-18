@@ -268,11 +268,33 @@ async def get_idf(
     if idf_dict.get("table"):
         health = compute_health(idf_dict["table"])
 
-    # Parse dfo field - check the url column first (as shown in database screenshot)
+    # Parse dfo field - check table_data first as it contains the DFO information
     dfo = None
     try:
-        # First check if there's a direct url column in the database
-        if idf_dict.get("url"):
+        # Check if table_data contains DFO information (as shown in database screenshot)
+        if idf_dict.get("table_data"):
+            table_data_raw = idf_dict["table_data"]
+            
+            # Parse table_data if it's a string
+            if isinstance(table_data_raw, str):
+                try:
+                    table_data = json.loads(table_data_raw)
+                except json.JSONDecodeError:
+                    table_data = table_data_raw
+            else:
+                table_data = table_data_raw
+            
+            # Check if table_data is the DFO object itself (has url, kind, name)
+            if isinstance(table_data, dict) and "url" in table_data and "kind" in table_data:
+                dfo = {
+                    "name": table_data.get("name", f"{idf_dict['code']}_dfo.png"),
+                    "url": table_data["url"],
+                    "kind": table_data.get("kind", "image")
+                }
+                dfo = convert_relative_urls_to_absolute(dfo)
+        
+        # If no DFO in table_data, check if there's a direct url column
+        if not dfo and idf_dict.get("url"):
             dfo = {
                 "name": f"{idf_dict['code']}_dfo.png",
                 "url": idf_dict["url"],
@@ -281,7 +303,7 @@ async def get_idf(
             dfo = convert_relative_urls_to_absolute(dfo)
         
         # Then check if there's a dedicated dfo field
-        elif idf_dict.get("dfo"):
+        if not dfo and idf_dict.get("dfo"):
             dfo_data = json.loads(idf_dict["dfo"]) if isinstance(idf_dict["dfo"], str) else idf_dict["dfo"]
             # Handle both array and single object formats
             if isinstance(dfo_data, list) and len(dfo_data) > 0:
@@ -289,18 +311,6 @@ async def get_idf(
                 dfo = convert_relative_urls_to_absolute(dfo_item)
             elif isinstance(dfo_data, dict):
                 dfo = convert_relative_urls_to_absolute(dfo_data)
-        
-        # If no dedicated dfo field, check table_data
-        elif idf_dict.get("table_data"):
-            table_data = json.loads(idf_dict["table_data"]) if isinstance(idf_dict["table_data"], str) else idf_dict["table_data"]
-            if isinstance(table_data, dict) and "url" in table_data:
-                # The DFO data is stored directly in table_data
-                dfo = {
-                    "name": f"{idf_dict['code']}_dfo.png",
-                    "url": table_data["url"],
-                    "kind": "image"
-                }
-                dfo = convert_relative_urls_to_absolute(dfo)
         
         # If still no DFO data, create a default one based on the IDF code
         if not dfo:
