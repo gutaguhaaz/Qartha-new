@@ -136,6 +136,14 @@ export default function PublicList() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-4">
+            <Link
+              href="/"
+              className="flex items-center space-x-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
+              data-testid="back-to-home-button"
+            >
+              <i className="fas fa-arrow-left"></i>
+              <span>Back to Home</span>
+            </Link>
             {logo && (
               <img
                 src={`${API_BASE}${logo.url}`}
