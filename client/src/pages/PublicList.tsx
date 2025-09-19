@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "wouter";
 import { getIdfs, getLogo } from "@/lib/api";
 import { IdfIndex } from "@shared/schema";
 import AddIdfDialog from "@/components/AddIdfDialog";
 import { config } from "@/config";
+import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
 interface PublicListProps {
   cluster: string;
@@ -16,12 +17,14 @@ export default function PublicList() {
   const cluster = params.cluster || config.defaults.cluster;
   // Map URL project to the correct format for API calls
   let project = params.project || config.urlMapping.projectToUrlPath(config.defaults.project);
-  
+
   // Handle URL encoding and mapping
   project = config.urlMapping.urlPathToProject(project);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAddIdfDialogOpen, setIsAddIdfDialogOpen] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [sortOrder, setSortOrder] = useState<"none" | "asc" | "desc">("none");
+
 
   const {
     data: idfs = [],
@@ -42,17 +45,42 @@ export default function PublicList() {
     retry: false,
   });
 
-  // Client-side search filtering
-  const filteredIdfs = idfs.filter((idf: IdfIndex) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      idf.code.toLowerCase().includes(query) ||
-      idf.title.toLowerCase().includes(query) ||
-      idf.site?.toLowerCase().includes(query) ||
-      idf.room?.toLowerCase().includes(query)
+  // Filter and sort IDFs
+  const filteredAndSortedIdfs = useMemo(() => {
+    if (!idfs) return [];
+
+    // First filter by search query
+    let filtered = idfs.filter((idf) =>
+      idf.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      idf.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      idf.site?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      idf.room?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  });
+
+    // Then sort alphabetically if requested
+    if (sortOrder === "asc") {
+      filtered = [...filtered].sort((a, b) => a.code.localeCompare(b.code));
+    } else if (sortOrder === "desc") {
+      filtered = [...filtered].sort((a, b) => b.code.localeCompare(a.code));
+    }
+
+    return filtered;
+  }, [idfs, searchQuery, sortOrder]);
+
+  const toggleSortOrder = () => {
+    setSortOrder(current => {
+      if (current === "none") return "asc";
+      if (current === "asc") return "desc";
+      return "none";
+    });
+  };
+
+  const getSortIcon = () => {
+    if (sortOrder === "asc") return <ArrowUp className="w-4 h-4" />;
+    if (sortOrder === "desc") return <ArrowDown className="w-4 h-4" />;
+    return <ArrowUpDown className="w-4 h-4" />;
+  };
+
 
   const getHealthIndicatorClass = (level?: string) => {
     switch (level) {
@@ -134,73 +162,45 @@ export default function PublicList() {
 
       {/* Header Section */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/"
-              className="flex items-center space-x-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
-              data-testid="back-to-home-button"
-            >
-              <i className="fas fa-arrow-left"></i>
-              <span>Back to Home</span>
-            </Link>
-            {logo && (
-              <img
-                src={`${API_BASE}${logo.url}`}
-                alt={`${cluster} logo`}
-                className="h-12 w-auto"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
+        {/* Search and Add Button */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-2 flex-1 max-w-lg">
+            <div className="relative flex-1">
+              <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"></i>
+              <input
+                type="text"
+                placeholder="Search IDFs by code, title or location..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-input border border-border rounded-md text-sm text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
+                data-testid="search-input"
               />
-            )}
-            <div className="flex items-center space-x-4">
-              <div>
-                <h2
-                  className="text-2xl font-bold text-foreground"
-                  data-testid="page-title"
-                >
-                  IDF Directory
-                </h2>
-                <p
-                  className="text-muted-foreground mt-1"
-                  data-testid="page-subtitle"
-                >
-                  {cluster === "trk"
-                    ? "Trinity Project"
-                    : cluster.toUpperCase() + " Cluster"}{" "}
-                  •{" "}
-                  {project === "sabinas"
-                    ? "Sabinas Project"
-                    : project.charAt(0).toUpperCase() +
-                      project.slice(1) +
-                      " Project"}
-                </p>
-              </div>
-              <button
-                onClick={() => setIsAddIdfDialogOpen(true)}
-                className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-                data-testid="button-add-idf"
-                title="Add new IDF"
-              >
-                <i className="fas fa-plus"></i>
-                <span>Add IDF</span>
-              </button>
             </div>
+            <button
+              onClick={toggleSortOrder}
+              className={`flex items-center space-x-1 px-3 py-2 bg-input border border-border rounded-md text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors ${
+                sortOrder !== "none" ? "bg-primary text-primary-foreground" : ""
+              }`}
+              title={`Sort ${sortOrder === "none" ? "alphabetically" : sortOrder === "asc" ? "Z-A" : "default"}`}
+              data-testid="sort-button"
+            >
+              {getSortIcon()}
+              <span className="hidden sm:inline">
+                {sortOrder === "none" && "Sort"}
+                {sortOrder === "asc" && "A-Z"}
+                {sortOrder === "desc" && "Z-A"}
+              </span>
+            </button>
           </div>
-
-          {/* Search */}
-          <div className="relative w-96">
-            <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"></i>
-            <input
-              type="text"
-              placeholder={config.ui.searchPlaceholder}
-              className="w-full bg-input border border-border rounded-lg pl-10 pr-4 py-3 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              data-testid="input-search"
-            />
-          </div>
+          <button
+            onClick={() => setShowAddDialog(true)}
+            className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            data-testid="button-add-idf"
+            title="Add new IDF"
+          >
+            <i className="fas fa-plus"></i>
+            <span>Add IDF</span>
+          </button>
         </div>
 
         {/* Health Legend */}
@@ -230,8 +230,8 @@ export default function PublicList() {
         </div>
       </div>
 
-      {/* IDF Cards Grid */}
-      {filteredIdfs.length === 0 ? (
+      {/* IDFs Grid */}
+      {filteredAndSortedIdfs.length === 0 && idfs && idfs.length > 0 && (
         <div
           className="text-center py-12 text-muted-foreground"
           data-testid="empty-state"
@@ -240,12 +240,25 @@ export default function PublicList() {
           <h3 className="text-lg font-semibold mb-2">No IDFs Found</h3>
           <p>Try adjusting your search terms</p>
         </div>
-      ) : (
+      )}
+
+      {filteredAndSortedIdfs.length === 0 && (!idfs || idfs.length === 0) && (
+        <div
+          className="text-center py-12 text-muted-foreground"
+          data-testid="no-idfs-state"
+        >
+          <i className="fas fa-info-circle text-4xl mb-4"></i>
+          <h3 className="text-lg font-semibold mb-2">No IDFs Available</h3>
+          <p>There are currently no IDFs to display for this project and cluster.</p>
+        </div>
+      )}
+
+      {filteredAndSortedIdfs.length > 0 && (
         <div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           data-testid="idf-grid"
         >
-          {filteredIdfs.map((idf: IdfIndex) => (
+          {filteredAndSortedIdfs.map((idf) => (
             <Link
               key={idf.code}
               href={`/${cluster}/${project}/idf/${idf.code}`}
@@ -331,10 +344,10 @@ export default function PublicList() {
       <AddIdfDialog
         cluster={cluster}
         project={project}
-        open={isAddIdfDialogOpen}
-        onOpenChange={setIsAddIdfDialogOpen}
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
         onCreated={() => {
-          setIsAddIdfDialogOpen(false);
+          setShowAddDialog(false);
           window.location.reload(); // Refresh to show new IDF
         }}
       />
