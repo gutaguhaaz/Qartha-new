@@ -183,6 +183,22 @@ async def list_idfs(
         if idf_data.get("devices") and isinstance(idf_data["devices"], str):
             idf_data["devices"] = json.loads(idf_data["devices"])
 
+        # Parse location field for index (simplified version)
+        location_available = False
+        if idf_data.get("location"):
+            try:
+                if isinstance(idf_data["location"], str):
+                    location_data = json.loads(idf_data["location"])
+                else:
+                    location_data = idf_data["location"]
+                
+                if isinstance(location_data, list) and len(location_data) > 0:
+                    location_available = True
+                elif isinstance(location_data, dict) and location_data.get("url"):
+                    location_available = True
+            except (json.JSONDecodeError, TypeError):
+                location_available = False
+
         # Parse media field
         media = None
         if idf_data.get("media"):
@@ -383,14 +399,23 @@ async def get_idf(
     location = None
     if idf_dict.get("location"):
         try:
-            location_data = json.loads(idf_dict["location"]) if isinstance(idf_dict["location"], str) else idf_dict["location"]
+            # Handle string JSON data
+            if isinstance(idf_dict["location"], str):
+                location_data = json.loads(idf_dict["location"])
+            else:
+                location_data = idf_dict["location"]
+            
             # Handle both array and single object formats
             if isinstance(location_data, list) and len(location_data) > 0:
                 location_item = location_data[0]  # Take first item from array
                 location = convert_relative_urls_to_absolute(location_item)
             elif isinstance(location_data, dict):
                 location = convert_relative_urls_to_absolute(location_data)
-        except (json.JSONDecodeError, TypeError):
+            else:
+                print(f"Unexpected location data format for {idf_dict['code']}: {type(location_data)}")
+                location = None
+        except (json.JSONDecodeError, TypeError) as e:
+            print(f"Error parsing location data for {idf_dict['code']}: {e}")
             location = None
 
     # Parse media field
