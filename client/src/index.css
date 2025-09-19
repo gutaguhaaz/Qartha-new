@@ -392,3 +392,7 @@ a[data-testid="link-directory-mobile"] {
 .odf-container * {
   visibility: hidden;
 }
+
+.dark a.bg-card.border.rounded-lg {
+  border: 1px solid #ffffff42;
+}
