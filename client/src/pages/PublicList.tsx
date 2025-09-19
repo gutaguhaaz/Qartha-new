@@ -4,7 +4,7 @@ import { Link, useParams } from "wouter";
 import { getIdfs, getLogo } from "@/lib/api";
 import { IdfIndex } from "@shared/schema";
 import AddIdfDialog from "@/components/AddIdfDialog";
-import { config } from "@/config";
+import { config, getProjectsForCluster } from "@/config";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
 interface PublicListProps {
@@ -158,6 +158,20 @@ export default function PublicList() {
         <h1 className="text-xl font-semibold">
           Welcome to the Access Technical Fiber Optic Information Portal
         </h1>
+      </div>
+
+      {/* IDF Directory Header */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">IDF Directory</h2>
+            <p className="text-muted-foreground mt-1">
+              {cluster === "trk" ? "TRINITY" : cluster.toUpperCase()} Cluster • {
+                getProjectsForCluster(cluster).find(p => p.value === project)?.label || project
+              }
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Header Section */}
