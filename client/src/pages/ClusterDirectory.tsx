@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -26,27 +25,33 @@ export default function ClusterDirectory() {
   });
 
   // Get all projects from all clusters
-  const allProjects = config.clusters.available.flatMap(cluster => 
-    getProjectsForCluster(cluster).map(project => ({
+  const allProjects = config.clusters.available.flatMap((cluster) =>
+    getProjectsForCluster(cluster).map((project) => ({
       ...project,
-      cluster
-    }))
+      cluster,
+    })),
   );
 
   // Get unique project values for filter
-  const uniqueProjects = [...new Set(allProjects.map(p => p.apiValue))];
+  const uniqueProjects = [...new Set(allProjects.map((p) => p.apiValue))];
 
   // Filter clusters based on selected project
-  const filteredClusters = selectedProject === "all" 
-    ? config.clusters.available
-    : config.clusters.available.filter(cluster => 
-        getProjectsForCluster(cluster).some(p => p.apiValue === selectedProject)
-      );
+  const filteredClusters =
+    selectedProject === "all"
+      ? config.clusters.available
+      : config.clusters.available.filter((cluster) =>
+          getProjectsForCluster(cluster).some(
+            (p) => p.apiValue === selectedProject,
+          ),
+        );
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8" data-testid="cluster-directory">
+    <div
+      className="max-w-7xl mx-auto px-6 py-8"
+      data-testid="cluster-directory"
+    >
       {/* Welcome Banner */}
       <div className="bg-primary text-primary-foreground rounded-lg p-6 mb-8 text-center">
         <h1 className="text-3xl font-bold mb-2">
@@ -83,9 +88,10 @@ export default function ClusterDirectory() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredClusters.map((cluster) => {
           const projects = getProjectsForCluster(cluster);
-          const filteredProjects = selectedProject === "all" 
-            ? projects 
-            : projects.filter(p => p.apiValue === selectedProject);
+          const filteredProjects =
+            selectedProject === "all"
+              ? projects
+              : projects.filter((p) => p.apiValue === selectedProject);
 
           if (filteredProjects.length === 0) return null;
 
@@ -108,10 +114,13 @@ export default function ClusterDirectory() {
                 )}
                 <div>
                   <h3 className="text-xl font-semibold text-foreground">
-                    {cluster === "trk" ? "Trinity Rail Cluster" : cluster.toUpperCase() + " Cluster"}
+                    {cluster === "trk"
+                      ? "Trinity Rail Cluster"
+                      : cluster.toUpperCase() + " Directory"}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''} available
+                    {filteredProjects.length} project
+                    {filteredProjects.length !== 1 ? "s" : ""} available
                   </p>
                 </div>
               </div>
