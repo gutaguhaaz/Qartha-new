@@ -178,33 +178,43 @@ export default function PublicList() {
       <div className="mb-8">
         {/* Search and Add Button */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-2 flex-1 max-w-lg">
-            <div className="relative flex-1">
-              <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"></i>
-              <input
-                type="text"
-                placeholder="Search IDFs by code, title or location..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-input border border-border rounded-md text-sm text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
-                data-testid="search-input"
-              />
-            </div>
-            <button
-              onClick={toggleSortOrder}
-              className={`flex items-center space-x-1 px-3 py-2 bg-input border border-border rounded-md text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors ${
-                sortOrder !== "none" ? "bg-primary text-primary-foreground" : ""
-              }`}
-              title={`Sort ${sortOrder === "none" ? "alphabetically" : sortOrder === "asc" ? "Z-A" : "default"}`}
-              data-testid="sort-button"
+          <div className="flex items-center space-x-4">
+            <Link
+              href="/"
+              className="flex items-center space-x-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
+              data-testid="back-to-home"
             >
-              {getSortIcon()}
-              <span className="hidden sm:inline">
-                {sortOrder === "none" && "Sort"}
-                {sortOrder === "asc" && "A-Z"}
-                {sortOrder === "desc" && "Z-A"}
-              </span>
-            </button>
+              <i className="fas fa-home"></i>
+              <span>Back to Home</span>
+            </Link>
+            <div className="flex items-center space-x-2 flex-1 max-w-lg">
+              <div className="relative flex-1">
+                <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"></i>
+                <input
+                  type="text"
+                  placeholder="Search IDFs by code, title or location..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-input border border-border rounded-md text-sm text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:border-transparent"
+                  data-testid="search-input"
+                />
+              </div>
+              <button
+                onClick={toggleSortOrder}
+                className={`flex items-center space-x-1 px-3 py-2 bg-input border border-border rounded-md text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors ${
+                  sortOrder !== "none" ? "bg-primary text-primary-foreground" : ""
+                }`}
+                title={`Sort ${sortOrder === "none" ? "alphabetically" : sortOrder === "asc" ? "Z-A" : "default"}`}
+                data-testid="sort-button"
+              >
+                {getSortIcon()}
+                <span className="hidden sm:inline">
+                  {sortOrder === "none" && "Sort"}
+                  {sortOrder === "asc" && "A-Z"}
+                  {sortOrder === "desc" && "Z-A"}
+                </span>
+              </button>
+            </div>
           </div>
           <button
             onClick={() => setShowAddDialog(true)}
