@@ -367,6 +367,13 @@ select[data-testid="select-project-mobile"] {
   display: none !important;
 }
 
+/* Hide hamburger menu button */
+button[data-testid="mobile-menu-button"],
+.hamburger-menu,
+button[aria-label="Toggle menu"] {
+  display: none !important;
+}
+
 .odf-container {
   background-repeat: no-repeat !important;
   background: url(https://technicalfoinformation.replit.app/static/trk/trinity/dfo/IDF-1004_dfo.png);
