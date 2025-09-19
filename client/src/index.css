@@ -374,6 +374,12 @@ button[aria-label="Toggle menu"] {
   display: none !important;
 }
 
+/* Hide directory link with list icon */
+a[data-testid="link-directory"],
+a[data-testid="link-directory-mobile"] {
+  display: none !important;
+}
+
 .odf-container {
   background-repeat: no-repeat !important;
   background: url(https://technicalfoinformation.replit.app/static/trk/trinity/dfo/IDF-1004_dfo.png);
