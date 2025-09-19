@@ -301,15 +301,15 @@ async def get_idf(
     idf_dict = dict(idf)
 
     # Handle NULL values by providing defaults
-    idf_data["gallery"] = idf_dict.get("gallery") or "[]"
-    idf_data["documents"] = idf_dict.get("documents") or "[]"
-    idf_data["diagram"] = idf_dict.get("diagram") or None
-    idf_data["table_data"] = idf_dict.get("table_data") or None
-    idf_data["location"] = idf_dict.get("location") or None
-    idf_data["title"] = idf_dict.get("title") or idf_dict.get("code", "")
-    idf_data["site"] = idf_dict.get("site") or ""
-    idf_data["room"] = idf_dict.get("room") or ""
-    idf_data["description"] = idf_dict.get("description") or None
+    idf_dict["gallery"] = idf_dict.get("gallery") or "[]"
+    idf_dict["documents"] = idf_dict.get("documents") or "[]"
+    idf_dict["diagram"] = idf_dict.get("diagram") or None
+    idf_dict["table_data"] = idf_dict.get("table_data") or None
+    idf_dict["location"] = idf_dict.get("location") or None
+    idf_dict["title"] = idf_dict.get("title") or idf_dict.get("code", "")
+    idf_dict["site"] = idf_dict.get("site") or ""
+    idf_dict["room"] = idf_dict.get("room") or ""
+    idf_dict["description"] = idf_dict.get("description") or None
 
     # Parse JSON fields
     if isinstance(idf_dict["gallery"], str) and idf_dict["gallery"]:
