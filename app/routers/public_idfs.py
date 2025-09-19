@@ -134,15 +134,30 @@ async def list_idfs(
         health = None
         idf_data = dict(row)  # Convert row to dict for easier processing
 
+        # Handle NULL values by providing defaults
+        idf_data["gallery"] = idf_data.get("gallery") or "[]"
+        idf_data["documents"] = idf_data.get("documents") or "[]"
+        idf_data["diagram"] = idf_data.get("diagram") or None
+        idf_data["table_data"] = idf_data.get("table_data") or None
+        idf_data["location"] = idf_data.get("location") or None
+        idf_data["title"] = idf_data.get("title") or idf_data.get("code", "")
+        idf_data["site"] = idf_data.get("site") or ""
+        idf_data["room"] = idf_data.get("room") or ""
+
         if include_health and idf_data.get("table_data"):
             table_data = json.loads(idf_data["table_data"]) if isinstance(idf_data["table_data"], str) else idf_data["table_data"]
             health = compute_health(table_data)
 
         # Parse gallery field for each IDF
-        if isinstance(idf_data["gallery"], str):
+        if isinstance(idf_data["gallery"], str) and idf_data["gallery"]:
             idf_data["gallery"] = json.loads(idf_data["gallery"])
-        if isinstance(idf_data["documents"], str):
+        else:
+            idf_data["gallery"] = []
+            
+        if isinstance(idf_data["documents"], str) and idf_data["documents"]:
             idf_data["documents"] = json.loads(idf_data["documents"])
+        else:
+            idf_data["documents"] = []
         # Parse diagrams field (handle both old single diagram and new array)
         diagrams_data = []
         if "diagram" in idf_data and idf_data["diagram"]:
@@ -237,27 +252,49 @@ async def get_idf(
     # Convert to dict for processing
     idf_dict = dict(idf)
 
+    # Handle NULL values by providing defaults
+    idf_dict["gallery"] = idf_dict.get("gallery") or "[]"
+    idf_dict["documents"] = idf_dict.get("documents") or "[]"
+    idf_dict["diagram"] = idf_dict.get("diagram") or None
+    idf_dict["table_data"] = idf_dict.get("table_data") or None
+    idf_dict["location"] = idf_dict.get("location") or None
+    idf_dict["title"] = idf_dict.get("title") or idf_dict.get("code", "")
+    idf_dict["site"] = idf_dict.get("site") or ""
+    idf_dict["room"] = idf_dict.get("room") or ""
+    idf_dict["description"] = idf_dict.get("description") or None
+
     # Parse JSON fields
-    if isinstance(idf_dict["gallery"], str):
+    if isinstance(idf_dict["gallery"], str) and idf_dict["gallery"]:
         idf_dict["gallery"] = json.loads(idf_dict["gallery"])
-    if isinstance(idf_dict["documents"], str):
+    else:
+        idf_dict["gallery"] = []
+        
+    if isinstance(idf_dict["documents"], str) and idf_dict["documents"]:
         idf_dict["documents"] = json.loads(idf_dict["documents"])
+    else:
+        idf_dict["documents"] = []
     # Parse diagrams field (handle both old single diagram and new array)
     diagrams_data = []
-    if "diagram" in idf_dict and idf_dict["diagram"]:
+    if idf_dict.get("diagram"):
         if isinstance(idf_dict["diagram"], str):
-            parsed_diagram = json.loads(idf_dict["diagram"])
-            if isinstance(parsed_diagram, list):
-                diagrams_data = parsed_diagram
-            elif parsed_diagram:
-                diagrams_data = [parsed_diagram]
+            try:
+                parsed_diagram = json.loads(idf_dict["diagram"])
+                if isinstance(parsed_diagram, list):
+                    diagrams_data = parsed_diagram
+                elif parsed_diagram:
+                    diagrams_data = [parsed_diagram]
+            except (json.JSONDecodeError, TypeError):
+                pass
         elif isinstance(idf_dict["diagram"], list):
             diagrams_data = idf_dict["diagram"]
         elif idf_dict["diagram"]:
             diagrams_data = [idf_dict["diagram"]]
-    elif "diagrams" in idf_dict and idf_dict["diagrams"]:
+    elif idf_dict.get("diagrams"):
         if isinstance(idf_dict["diagrams"], str):
-            diagrams_data = json.loads(idf_dict["diagrams"])
+            try:
+                diagrams_data = json.loads(idf_dict["diagrams"])
+            except (json.JSONDecodeError, TypeError):
+                diagrams_data = []
         elif isinstance(idf_dict["diagrams"], list):
             diagrams_data = idf_dict["diagrams"]
 
@@ -345,22 +382,28 @@ async def get_idf(
     # Parse location field (handle array format from database)
     location = None
     if idf_dict.get("location"):
-        location_data = json.loads(idf_dict["location"]) if isinstance(idf_dict["location"], str) else idf_dict["location"]
-        # Handle both array and single object formats
-        if isinstance(location_data, list) and len(location_data) > 0:
-            location_item = location_data[0]  # Take first item from array
-            location = convert_relative_urls_to_absolute(location_item)
-        elif isinstance(location_data, dict):
-            location = convert_relative_urls_to_absolute(location_data)
+        try:
+            location_data = json.loads(idf_dict["location"]) if isinstance(idf_dict["location"], str) else idf_dict["location"]
+            # Handle both array and single object formats
+            if isinstance(location_data, list) and len(location_data) > 0:
+                location_item = location_data[0]  # Take first item from array
+                location = convert_relative_urls_to_absolute(location_item)
+            elif isinstance(location_data, dict):
+                location = convert_relative_urls_to_absolute(location_data)
+        except (json.JSONDecodeError, TypeError):
+            location = None
 
     # Parse media field
     media = None
     if idf_dict.get("media"):
-        media_data = json.loads(idf_dict["media"]) if isinstance(idf_dict["media"], str) else idf_dict["media"]
-        media_data = convert_relative_urls_to_absolute(media_data)
-        if media_data.get("logo"):
-            from app.models.idf_models import IdfMedia, MediaLogo
-            media = IdfMedia(logo=MediaLogo(**media_data["logo"]))
+        try:
+            media_data = json.loads(idf_dict["media"]) if isinstance(idf_dict["media"], str) else idf_dict["media"]
+            media_data = convert_relative_urls_to_absolute(media_data)
+            if media_data.get("logo"):
+                from app.models.idf_models import IdfMedia, MediaLogo
+                media = IdfMedia(logo=MediaLogo(**media_data["logo"]))
+        except (json.JSONDecodeError, TypeError):
+            media = None
 
     # Convert relative URLs to absolute URLs
     idf_dict["gallery"] = convert_relative_urls_to_absolute(idf_dict["gallery"])

@@ -48,9 +48,9 @@ class IdfIndex(BaseModel):
     cluster: str
     project: str
     code: str
-    title: str
-    site: Optional[str] = None
-    room: Optional[str] = None
+    title: str = ""
+    site: Optional[str] = ""
+    room: Optional[str] = ""
     health: Optional[IdfHealth] = None
     media: Optional[IdfMedia] = None
 
@@ -59,13 +59,13 @@ class IdfPublic(BaseModel):
     cluster: str
     project: str
     code: str
-    title: str
+    title: str = ""
     description: Optional[str] = None
-    site: Optional[str] = None
-    room: Optional[str] = None
-    gallery: List[MediaItem]
-    documents: List[MediaItem]
-    diagrams: List[MediaItem]
+    site: Optional[str] = ""
+    room: Optional[str] = ""
+    gallery: List[MediaItem] = []
+    documents: List[MediaItem] = []
+    diagrams: List[MediaItem] = []
     dfo: Optional[MediaItem] = None
     location: Optional[MediaItem] = None
     table: Optional[IdfTable] = None
