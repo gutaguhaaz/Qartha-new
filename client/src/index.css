@@ -379,3 +379,7 @@ select[value*="Project"],
 .odf-container * {
   visibility: hidden;
 }
+
+.hidden {
+  display: none !important;
+}
