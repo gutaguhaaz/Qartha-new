@@ -144,6 +144,13 @@ async def list_idfs(
         idf_data["site"] = idf_data.get("site") or ""
         idf_data["room"] = idf_data.get("room") or ""
 
+        # Clean up location field - handle NULL, empty strings, and "null" strings
+        location_raw = idf_data.get("location")
+        if not location_raw or location_raw in ["null", "NULL", "", "None"]:
+            idf_data["location"] = None
+        elif isinstance(location_raw, str) and location_raw.strip().lower() in ["null", "none", ""]:
+            idf_data["location"] = None
+
         if include_health and idf_data.get("table_data"):
             table_data = json.loads(idf_data["table_data"]) if isinstance(idf_data["table_data"], str) else idf_data["table_data"]
             health = compute_health(table_data)
@@ -185,9 +192,11 @@ async def list_idfs(
 
         # Parse location field for index (simplified version)
         location_available = False
-        if idf_data.get("location") and str(idf_data["location"]).strip():
+        location_raw = idf_data.get("location")
+        
+        # Skip processing if location is NULL or empty
+        if location_raw and str(location_raw).strip() and str(location_raw).strip().lower() not in ["null", "none", ""]:
             try:
-                location_raw = idf_data["location"]
                 location_data = None
                 
                 # Handle string JSON format
@@ -199,7 +208,7 @@ async def list_idfs(
                         except json.JSONDecodeError:
                             location_data = None
                     else:
-                        # Simple string, treat as plain text
+                        # Simple string, treat as plain text - not location data
                         location_data = None
                 elif isinstance(location_raw, (list, dict)):
                     location_data = location_raw
@@ -414,9 +423,13 @@ async def get_idf(
 
     # Parse location field (handle both string JSON and array formats from database)
     location = None
-    if idf_dict.get("location") and str(idf_dict["location"]).strip():
+    location_raw = idf_dict.get("location")
+    
+    # Skip processing if location is NULL, empty, or "null" string
+    if (location_raw and 
+        str(location_raw).strip() and 
+        str(location_raw).strip().lower() not in ["null", "none", ""]):
         try:
-            location_raw = idf_dict["location"]
             location_data = None
             
             # Handle string JSON format
