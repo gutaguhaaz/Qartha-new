@@ -192,13 +192,11 @@ async def list_idfs(
                 
                 # Handle string JSON format
                 if isinstance(location_raw, str) and location_raw.strip():
-                    # Remove any extra quotes and clean the string
-                    cleaned_location = location_raw.strip().strip('"\'')
+                    cleaned_location = location_raw.strip()
                     if cleaned_location.startswith('[') or cleaned_location.startswith('{'):
                         try:
                             location_data = json.loads(cleaned_location)
                         except json.JSONDecodeError:
-                            # Try to handle malformed JSON
                             location_data = None
                     else:
                         # Simple string, treat as plain text
@@ -213,6 +211,7 @@ async def list_idfs(
                         location_available = True
                 elif isinstance(location_data, dict) and location_data.get("url"):
                     location_available = True
+                    
             except Exception as e:
                 print(f"Error parsing location for {idf_data['code']}: {e}")
                 location_available = False
@@ -422,8 +421,8 @@ async def get_idf(
             
             # Handle string JSON format
             if isinstance(location_raw, str) and location_raw.strip():
-                # Remove any extra quotes and clean the string
-                cleaned_location = location_raw.strip().strip('"\'')
+                cleaned_location = location_raw.strip()
+                # Check if it's JSON format
                 if cleaned_location.startswith('[') or cleaned_location.startswith('{'):
                     try:
                         location_data = json.loads(cleaned_location)
@@ -434,15 +433,29 @@ async def get_idf(
                     # Simple string, not JSON - skip
                     location_data = None
             elif isinstance(location_raw, (list, dict)):
+                # Already parsed data
                 location_data = location_raw
             
             # Handle both array and single object formats
             if isinstance(location_data, list) and len(location_data) > 0:
-                location_item = location_data[0]  # Take first item from array
+                # Take first item from array
+                location_item = location_data[0]  
                 if isinstance(location_item, dict) and location_item.get("url"):
-                    location = convert_relative_urls_to_absolute(location_item)
+                    # Create MediaItem from the location data
+                    location = {
+                        "url": location_item["url"],
+                        "name": location_item.get("name", "Location image"),
+                        "kind": location_item.get("kind", "image")
+                    }
+                    location = convert_relative_urls_to_absolute(location)
             elif isinstance(location_data, dict) and location_data.get("url"):
-                location = convert_relative_urls_to_absolute(location_data)
+                # Single object format
+                location = {
+                    "url": location_data["url"],
+                    "name": location_data.get("name", "Location image"),
+                    "kind": location_data.get("kind", "image")
+                }
+                location = convert_relative_urls_to_absolute(location)
                 
         except Exception as e:
             print(f"Error parsing location data for {idf_dict['code']}: {e}")
