@@ -379,7 +379,3 @@ select[data-testid="select-project-mobile"] {
 .odf-container * {
   visibility: hidden;
 }
-
-.hidden {
-  display: none !important;
-}
