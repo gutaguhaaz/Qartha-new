@@ -12,12 +12,12 @@ export const config = {
       {
         value: "sabinas",
         label: "Sabinas Project",
-        apiValue: "Sabinas",
+        apiValue: "Sabinas Project",
       },
       {
         value: "monclova",
         label: "Monclova Project",
-        apiValue: "Monclova",
+        apiValue: "Monclova Project",
       },
     ],
   },

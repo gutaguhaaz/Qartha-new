@@ -27,6 +27,10 @@ def map_url_project_to_db_project(project: str) -> str:
         "Sabinas": "Sabinas Project",
         "Sabinas Project": "Sabinas Project",
         "Sabinas%20Project": "Sabinas Project",  # Handle URL format
+        "monclova": "Monclova Project",
+        "Monclova": "Monclova Project", 
+        "Monclova Project": "Monclova Project",
+        "Monclova%20Project": "Monclova Project",  # Handle URL format
         "trinity": "Trinity",
         "Trinity": "Trinity",
         # Add mappings for trk cluster
@@ -41,8 +45,10 @@ def map_db_project_to_static_path(project: str) -> str:
     """Map database project name to static file path"""
     project_to_path = {
         "Sabinas Project": "sabinas",
+        "Monclova Project": "monclova",
         "Trinity": "trinity",
         "sabinas": "sabinas",
+        "monclova": "monclova",
         "trinity": "trinity"
     }
     return project_to_path.get(project, project.lower().replace(' ', ''))
