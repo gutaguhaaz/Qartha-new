@@ -359,11 +359,11 @@ a.bg-card.border.rounded-lg {
   display: none !important;
 }
 
-/* Hide any dropdown selectors in the header */
-select[value*="Cluster"],
-select[value*="Project"],
-.cluster-selector,
-.project-selector {
+/* Hide specific cluster and project dropdown selectors */
+select[data-testid="select-cluster"],
+select[data-testid="select-project"],
+select[data-testid="select-cluster-mobile"],
+select[data-testid="select-project-mobile"] {
   display: none !important;
 }
 
