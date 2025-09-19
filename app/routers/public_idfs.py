@@ -188,12 +188,17 @@ async def list_idfs(
         if idf_data.get("location"):
             try:
                 if isinstance(idf_data["location"], str):
-                    location_data = json.loads(idf_data["location"])
+                    try:
+                        location_data = json.loads(idf_data["location"])
+                    except json.JSONDecodeError:
+                        location_data = None
                 else:
                     location_data = idf_data["location"]
                 
                 if isinstance(location_data, list) and len(location_data) > 0:
-                    location_available = True
+                    first_item = location_data[0]
+                    if isinstance(first_item, dict) and first_item.get("url"):
+                        location_available = True
                 elif isinstance(location_data, dict) and location_data.get("url"):
                     location_available = True
             except (json.JSONDecodeError, TypeError):
@@ -395,24 +400,30 @@ async def get_idf(
     if table_data and isinstance(table_data, dict):
         health = compute_health(table_data)
 
-    # Parse location field (handle array format from database)
+    # Parse location field (handle both string JSON and array formats from database)
     location = None
     if idf_dict.get("location"):
         try:
             # Handle string JSON data
             if isinstance(idf_dict["location"], str):
-                location_data = json.loads(idf_dict["location"])
+                # Try to parse as JSON
+                try:
+                    location_data = json.loads(idf_dict["location"])
+                except json.JSONDecodeError:
+                    # If it's not valid JSON, treat as a plain string (shouldn't happen but safety)
+                    location_data = None
             else:
                 location_data = idf_dict["location"]
             
             # Handle both array and single object formats
             if isinstance(location_data, list) and len(location_data) > 0:
                 location_item = location_data[0]  # Take first item from array
-                location = convert_relative_urls_to_absolute(location_item)
-            elif isinstance(location_data, dict):
+                if isinstance(location_item, dict) and location_item.get("url"):
+                    location = convert_relative_urls_to_absolute(location_item)
+            elif isinstance(location_data, dict) and location_data.get("url"):
                 location = convert_relative_urls_to_absolute(location_data)
             else:
-                print(f"Unexpected location data format for {idf_dict['code']}: {type(location_data)}")
+                print(f"Unexpected location data format for {idf_dict['code']}: {type(location_data)} - {location_data}")
                 location = None
         except (json.JSONDecodeError, TypeError) as e:
             print(f"Error parsing location data for {idf_dict['code']}: {e}")
