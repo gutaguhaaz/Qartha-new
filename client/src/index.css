@@ -102,6 +102,21 @@
     @apply w-3 h-3 rounded-full;
   }
 
+  .health-indicator.active-animation {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 5px currentColor;
+    }
+    50% {
+      opacity: 0.7;
+      box-shadow: 0 0 10px currentColor, 0 0 15px currentColor;
+    }
+  }
+
   .nav-link {
     @apply px-3 py-2 rounded-md text-sm font-medium transition-colors;
   }

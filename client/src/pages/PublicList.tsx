@@ -305,7 +305,14 @@ export default function PublicList() {
                   </p>
                 </div>
                 <div
-                  className={`health-indicator ${getHealthIndicatorClass(idf.health?.level)}`}
+                  className={`health-indicator ${getHealthIndicatorClass(idf.health?.level)} ${
+                    (idf.gallery && idf.gallery.length > 0) || 
+                    (idf.documents && idf.documents.length > 0) || 
+                    (idf.diagram && idf.diagram.length > 0) || 
+                    (idf.table_data && Object.keys(idf.table_data).length > 0) || 
+                    (idf.location && idf.location.length > 0) 
+                      ? 'active-animation' : ''
+                  }`}
                   title={getHealthTitle(idf.health?.level)}
                   data-testid={`health-${idf.code}`}
                 ></div>
