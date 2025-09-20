@@ -1,0 +1,180 @@
+2025-09-19 19:35:28.15
+cf7656ad
+User
+INFO: 34.132.167.173:0 - "GET / HTTP/1.1" 200 OK
+2025-09-19 19:35:28.34
+cf7656ad
+User
+INFO: 34.59.60.32:0 - "GET /assets/index-BsodjiZq.js HTTP/1.1" 304 Not Modified
+2025-09-19 19:35:28.46
+cf7656ad
+User
+INFO: 104.154.151.15:0 - "GET /api/Trinity/trinity/logo HTTP/1.1" 200 OK
+2025-09-19 19:35:28.57
+cf7656ad
+User
+INFO: 34.132.167.173:0 - "GET /static/trk/logo.png HTTP/1.1" 304 Not Modified
+2025-09-19 19:35:28.60
+cf7656ad
+User
+INFO: 34.136.244.224:0 - "GET /null HTTP/1.1" 200 OK
+2025-09-19 19:36:15.53
+cf7656ad
+User
+INFO: 34.133.76.182:0 - "GET /api/Trinity/trinity/logo HTTP/1.1" 200 OK
+2025-09-19 19:36:15.57
+cf7656ad
+User
+Listing IDFs for cluster: Trinity, project: sabinas (db_project: Sabinas Project)
+2025-09-19 19:36:15.57
+cf7656ad
+User
+INFO: 34.133.76.182:0 - "GET /api/Trinity/sabinas/idfs?limit=50&include_health=1 HTTP/1.1" 200 OK
+2025-09-19 19:36:35.92
+cf7656ad
+User
+INFO: 34.133.76.182:0 - "GET /api/Trinity/trinity/logo HTTP/1.1" 200 OK
+2025-09-19 19:36:36.00
+cf7656ad
+User
+Listing IDFs for cluster: Trinity, project: sabinas (db_project: Sabinas Project)
+2025-09-19 19:36:36.00
+cf7656ad
+User
+INFO: 34.60.209.83:0 - "GET /api/Trinity/sabinas/idfs?limit=50&include_health=1 HTTP/1.1" 200 OK
+2025-09-19 19:51:45.77
+cf7656ad
+System
+system: received signal terminated
+2025-09-19 20:10:45.40
+cf7656ad
+System
+starting up user application
+2025-09-19 20:10:45.48
+cf7656ad
+System
+forwarding local port 5000 to external port 80 (mapped as 1104)
+2025-09-19 20:10:50.89
+cf7656ad
+User
+INFO: Started server process [28]
+2025-09-19 20:10:50.89
+cf7656ad
+User
+INFO: Waiting for application startup.
+2025-09-19 20:10:52.18
+cf7656ad
+User
+INFO: Application startup complete.
+2025-09-19 20:10:52.18
+cf7656ad
+User
+INFO: Uvicorn running on http://0.0.0.0:5000 (Press CTRL+C to quit)
+2025-09-19 20:10:53.35
+cf7656ad
+User
+INFO: 127.0.0.1:47950 - "GET / HTTP/1.1" 200 OK
+2025-09-19 20:33:19.11
+5e4d1c2c
+System
+starting up user application
+2025-09-19 20:33:19.30
+5e4d1c2c
+System
+forwarding local port 5000 to external port 80 (mapped as 1104)
+2025-09-19 20:33:26.54
+5e4d1c2c
+User
+INFO: Started server process [25]
+2025-09-19 20:33:26.54
+5e4d1c2c
+User
+INFO: Waiting for application startup.
+2025-09-19 20:33:27.50
+5e4d1c2c
+User
+INFO: Application startup complete.
+2025-09-19 20:33:27.50
+5e4d1c2c
+User
+INFO: Uvicorn running on http://0.0.0.0:5000 (Press CTRL+C to quit)
+2025-09-19 20:33:27.90
+5e4d1c2c
+User
+INFO: 127.0.0.1:35062 - "GET / HTTP/1.1" 404 Not Found
+2025-09-19 20:33:41.18
+5e4d1c2c
+User
+INFO: 34.133.76.182:0 - "GET /api/Trinity/trinity/logo HTTP/1.1" 200 OK
+2025-09-19 20:33:41.18
+5e4d1c2c
+User
+INFO: 34.133.76.182:0 - "GET /api/trk/trinity/logo HTTP/1.1" 200 OK
+2025-09-19 20:33:51.45
+5e4d1c2c
+User
+INFO: 34.133.76.182:0 - "GET /api/trk/trinity/logo HTTP/1.1" 200 OK
+2025-09-19 20:33:51.49
+5e4d1c2c
+User
+INFO: 34.31.165.60:0 - "GET /api/Trinity/trinity/logo HTTP/1.1" 200 OK
+2025-09-19 20:33:52.58
+5e4d1c2c
+User
+INFO: 34.133.76.182:0 - "GET / HTTP/1.1" 404 Not Found
+2025-09-19 20:33:54.94
+5e4d1c2c
+User
+INFO: 34.60.209.83:0 - "GET / HTTP/1.1" 404 Not Found
+2025-09-19 20:34:06.92
+5e4d1c2c
+User
+INFO: 34.60.209.83:0 - "GET / HTTP/1.1" 404 Not Found
+2025-09-19 20:34:49.86
+5e4d1c2c
+User
+INFO: 34.59.60.32:0 - "GET / HTTP/1.1" 404 Not Found
+2025-09-19 20:36:41.40
+5e4d1c2c
+User
+INFO: 104.154.151.15:0 - "GET / HTTP/1.1" 404 Not Found
+2025-09-19 20:38:46.57
+81707522
+System
+starting up user application
+2025-09-19 20:38:46.82
+81707522
+System
+forwarding local port 5000 to external port 80 (mapped as 1104)
+2025-09-19 20:38:52.27
+81707522
+User
+INFO: Started server process [26]
+2025-09-19 20:38:52.27
+81707522
+User
+INFO: Waiting for application startup.
+2025-09-19 20:38:53.23
+81707522
+User
+INFO: Application startup complete.
+2025-09-19 20:38:53.23
+81707522
+User
+INFO: Uvicorn running on http://0.0.0.0:5000 (Press CTRL+C to quit)
+2025-09-19 20:38:54.38
+81707522
+User
+INFO: 127.0.0.1:45176 - "GET / HTTP/1.1" 404 Not Found
+2025-09-19 20:39:12.35
+81707522
+User
+INFO: 34.136.244.224:0 - "GET / HTTP/1.1" 404 Not Found
+2025-09-19 20:39:16.01
+81707522
+User
+INFO: 104.154.151.15:0 - "GET /Trinity/Sabinas%20Project/idf/IDF-1004 HTTP/1.1" 404 Not Found
+2025-09-19 20:39:59.48
+81707522
+User
+INFO: 34.29.206.104:0 - "GET / HTTP/1.1" 404 Not Found
