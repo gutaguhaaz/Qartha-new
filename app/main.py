@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
@@ -59,9 +60,6 @@ async def debug_idfs():
 
 # Mount frontend static files for deployment
 if os.path.exists("dist") and os.path.exists("dist/index.html"):
-    from fastapi.staticfiles import StaticFiles
-    from fastapi.responses import FileResponse
-
     # Mount static assets only if the assets directory exists
     if os.path.exists("dist/assets"):
         app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")

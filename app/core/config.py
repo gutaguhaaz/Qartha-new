@@ -5,7 +5,7 @@ from typing import List
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = os.getenv("DATABASE_URL",
+    DATABASE_URL: str = os.getenv("DATABASE_URL_PROD") or os.getenv("DATABASE_URL", 
                                   "postgresql://localhost:5432/qartha")
     STATIC_DIR: str = os.getenv("STATIC_DIR", "static")
     ADMIN_TOKEN: str = os.getenv("ADMIN_TOKEN",
