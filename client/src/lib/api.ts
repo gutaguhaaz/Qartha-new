@@ -10,6 +10,78 @@ export interface IdfSearchParams {
   include_health?: number;
 }
 
+// Centralized API client
+const apiClient = {
+  get: async (url: string) => {
+    const response = await fetch(`/api${url}`, {
+      credentials: 'include'
+    });
+    if (response.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  },
+
+  post: async (url: string, data?: any) => {
+    const response = await fetch(`/api${url}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+    if (response.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  },
+
+  put: async (url: string, data: any) => {
+    const response = await fetch(`/api${url}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
+    if (response.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  },
+
+  delete: async (url: string) => {
+    const response = await fetch(`/api${url}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (response.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  },
+
+  upload: async (url: string, formData: FormData) => {
+    const response = await fetch(`/api${url}`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+    if (response.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  }
+};
+
 export async function getIdfs(cluster: string, project: string, options: IdfSearchParams = {}) {
   try {
     const { limit = 50, include_health = 1 } = options;
@@ -136,7 +208,7 @@ export async function uploadIdfLogo({
   const url = `${API_BASE}/api/${cluster}/${project}/assets/${code}/logo`;
   const headers: Record<string, string> = {};
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  
+
   const response = await fetch(url, {
     method: 'POST',
     headers,

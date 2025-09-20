@@ -15,6 +15,15 @@ class Settings(BaseSettings):
     DEFAULT_PROJECT: str = os.getenv("DEFAULT_PROJECT", "Sabinas")
     PUBLIC_BASE_URL: str | None = os.getenv(
         "PUBLIC_BASE_URL", "https://technicalfoinformation.replit.app/")
+    
+    # JWT Configuration
+    JWT_SECRET: str = os.getenv("JWT_SECRET", "change_me_in_production")
+    JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+    
+    # Default user credentials
+    DEFAULT_USER_EMAIL: str = os.getenv("DEFAULT_USER_EMAIL", "lgutierrez@example.com")
+    DEFAULT_USER_PASSWORD: str = os.getenv("DEFAULT_USER_PASSWORD", "123456789")
 
 
 settings = Settings()

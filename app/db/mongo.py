@@ -10,7 +10,22 @@ async def init_database():
     """Initialize database connection and create tables"""
     await database.connect()
 
-    # Create IDFs table
+    # Create users table
+    await database.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL CHECK (role IN ('admin','visitor')),
+            full_name TEXT,
+            is_active BOOLEAN NOT NULL DEFAULT TRUE,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            last_login_at TIMESTAMPTZ
+        )
+    """)
+
+    # Create IDFs table with additional columns
     await database.execute("""
         CREATE TABLE IF NOT EXISTS idfs (
             id SERIAL PRIMARY KEY,
@@ -23,12 +38,20 @@ async def init_database():
             room VARCHAR(255),
             gallery JSONB DEFAULT '[]',
             documents JSONB DEFAULT '[]',
+            diagrams JSONB DEFAULT '[]',
+            location JSONB DEFAULT '[]',
+            dfo JSONB,
             diagram JSONB,
             table_data JSONB,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(cluster, project, code)
         )
     """)
+
+    # Add new columns to existing idfs table if they don't exist
+    await database.execute("ALTER TABLE idfs ADD COLUMN IF NOT EXISTS diagrams JSONB DEFAULT '[]'")
+    await database.execute("ALTER TABLE idfs ADD COLUMN IF NOT EXISTS location JSONB DEFAULT '[]'")
+    await database.execute("ALTER TABLE idfs ADD COLUMN IF NOT EXISTS dfo JSONB")
 
     # Create devices table
     await database.execute("""
@@ -58,6 +81,24 @@ async def ensure_indexes():
 
 async def seed_data():
     """Create seed data if tables are empty"""
+    from app.core.security import hash_password
+    from app.core.config import settings
+    
+    # Create default admin user if no users exist
+    user_count = await database.fetch_val("SELECT COUNT(*) FROM users")
+    if user_count == 0:
+        await database.execute("""
+            INSERT INTO users (email, password_hash, role, full_name, is_active)
+            VALUES (:email, :password_hash, :role, :full_name, :is_active)
+        """, {
+            "email": settings.DEFAULT_USER_EMAIL,
+            "password_hash": hash_password(settings.DEFAULT_USER_PASSWORD),
+            "role": "admin",
+            "full_name": "Luis Gutierrez",
+            "is_active": True
+        })
+        print(f"✅ Default admin user created: {settings.DEFAULT_USER_EMAIL}")
+    
     # Check if we have any IDFs
     count = await database.fetch_val("SELECT COUNT(*) FROM idfs")
 

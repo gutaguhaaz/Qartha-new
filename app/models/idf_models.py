@@ -97,4 +97,3 @@ class Device(BaseModel):
     rack: Optional[str] = None
     site: Optional[str] = None
     notes: Optional[str] = None
-
