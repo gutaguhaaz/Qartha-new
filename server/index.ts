@@ -59,15 +59,8 @@ app.use('/api', async (req, res) => {
 
 const server = createServer(app);
 
-// Start FastAPI backend
-const fastapi = spawn('python', ['-m', 'uvicorn', 'app.main:app', '--host', '0.0.0.0', '--port', '8000', '--reload'], {
-  cwd: process.cwd(),
-  stdio: 'inherit'
-});
-
-fastapi.on('error', (error) => {
-  log(`FastAPI error: ${error.message}`);
-});
+// Note: FastAPI backend should be started separately
+// Run: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 // Setup frontend serving
 (async () => {
