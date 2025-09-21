@@ -108,16 +108,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', {
+      const response = await fetch('/api/auth/logout', {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
+      
+      if (!response.ok) {
+        console.error('Logout response not ok:', response.status, response.statusText);
+      }
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
+      // Always clear user state even if logout request fails
       setUser(null);
-      setIsAuthenticated(false); // Set isAuthenticated to false on logout
+      setIsAuthenticated(false);
       clearRedirectCookie();
+      
+      // Clear any stored tokens in localStorage/sessionStorage
+      localStorage.removeItem('access_token');
+      sessionStorage.removeItem('access_token');
     }
   };
 

@@ -102,9 +102,16 @@ async def login(user_data: UserLogin, response: Response):
 
 @router.post("/auth/logout")
 async def logout(response: Response):
-    """Logout user by clearing cookie"""
-    response.delete_cookie(key="access_token")
-    return {"message": "Logout successful"}
+    """Logout user by clearing the token cookie"""
+    response.delete_cookie(
+        key="access_token",
+        path="/",
+        domain=None,
+        secure=False,
+        httponly=True,
+        samesite="lax"
+    )
+    return {"message": "Logged out successfully"}
 
 
 @router.get("/auth/me", response_model=UserPublic)
