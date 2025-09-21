@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     ALLOWED_CLUSTERS: List[str] = ["Trinity"]
     DEFAULT_PROJECT: str = os.getenv("DEFAULT_PROJECT", "Sabinas")
     PUBLIC_BASE_URL: str | None = os.getenv(
-        "PUBLIC_BASE_URL", "https://technicalfoinformation.replit.app/")
+        "PUBLIC_BASE_URL", "https://technicalinformation.replit.app/")
     
     # JWT Configuration
     JWT_SECRET: str = os.getenv("JWT_SECRET", "change_me_in_production")
