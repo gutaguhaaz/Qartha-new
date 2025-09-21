@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import ThemeToggle from "./ThemeToggle";
 import AdminSidebar from "./AdminSidebar";
-import { Settings, Menu, X } from "lucide-react";
+import { Settings, Menu, X, LogOut } from "lucide-react";
 import { config, getProjectsForCluster } from "../config";
 import Logo from "./Logo"; // ajusta la ruta si tu Navbar está en otra carpeta
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,7 +17,7 @@ export default function Navbar() {
   );
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isAdmin } = useAuth();
+  const { isAdmin, logout } = useAuth();
 
   // Parse current route to update selectors
   useEffect(() => {
@@ -117,6 +117,14 @@ export default function Navbar() {
               </button>
             )}
             <ThemeToggle />
+            <button
+              onClick={() => logout()}
+              className="nav-link"
+              data-testid="button-logout"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Mobile menu button */}
@@ -194,6 +202,17 @@ export default function Navbar() {
               </button>
             )}
             <ThemeToggle />
+            <button
+              onClick={() => {
+                logout();
+                setIsMenuOpen(false);
+              }}
+              className="nav-link"
+              data-testid="button-logout-mobile"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </nav>
