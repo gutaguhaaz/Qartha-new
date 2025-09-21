@@ -54,35 +54,19 @@ async def get_current_admin(current_user: dict = Depends(get_current_user)) -> d
 
 
 @router.post("/auth/login")
-async def login(request: Request, response: Response):
+async def login(user_data: UserLogin, response: Response):
     """Login user and set HTTP-only cookie"""
     try:
-        # Parse request body
-        body = await request.body()
-        if not body:
-            raise HTTPException(status_code=422, detail="Request body is empty")
-        
-        # Parse JSON
-        import json
-        try:
-            json_data = json.loads(body)
-        except json.JSONDecodeError:
-            raise HTTPException(status_code=422, detail="Invalid JSON format")
-        
-        # Validate using Pydantic model
-        try:
-            user_data = UserLogin(**json_data)
-        except Exception as e:
-            print(f"Validation error: {e}")
-            raise HTTPException(status_code=422, detail="Invalid login data format")
+        print(f"Login attempt for email: {user_data.email}")
         
         # Verify user credentials
         user = await database.fetch_one(
             "SELECT id, email, password_hash, role, is_active FROM users WHERE email = :email",
             {"email": user_data.email}
         )
-    except HTTPException:
-        raise
+        
+        print(f"User found: {user is not None}")
+        
     except Exception as e:
         print(f"Database error during login: {e}")
         raise HTTPException(status_code=500, detail="Database error")
