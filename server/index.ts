@@ -6,6 +6,9 @@ import { serveStatic, log } from "./vite";
 
 const app = express();
 
+// Parse JSON request bodies so proxy requests can forward them correctly
+app.use(express.json());
+
 // Serve static files from the static directory for uploaded assets
 app.use('/static', express.static(path.resolve(process.cwd(), 'static')));
 
