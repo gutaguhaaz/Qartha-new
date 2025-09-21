@@ -1,10 +1,13 @@
 import csv
 import io
-from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Query
-from typing import List, Optional
-from app.db.mongo import database
-from app.models.idf_models import Device
+from typing import List
+
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+
 from app.core.config import settings
+from app.db.database import database
+from app.models.idf_models import Device
+from app.routers.auth import get_current_admin
 
 
 router = APIRouter(tags=["devices"])
@@ -17,19 +20,21 @@ def validate_cluster(cluster: str):
     return cluster
 
 
-def verify_admin_token(authorization: Optional[str] = None):
-    """Verify admin bearer token"""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Authorization header required")
-    
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Invalid authorization format")
-    
-    token = authorization.replace("Bearer ", "")
-    if token != settings.ADMIN_TOKEN:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    
-    return token
+def map_url_project_to_db_project(project: str) -> str:
+    import urllib.parse
+
+    decoded_project = urllib.parse.unquote(project)
+    project_mapping = {
+        "sabinas": "Sabinas Project",
+        "Sabinas": "Sabinas Project",
+        "Sabinas Project": "Sabinas Project",
+        "Sabinas%20Project": "Sabinas Project",
+        "trinity": "Trinity",
+        "Trinity": "Trinity",
+        "trinity/sabinas": "Sabinas Project",
+        "sabinas/trinity": "Sabinas Project",
+    }
+    return project_mapping.get(decoded_project, decoded_project)
 
 
 @router.post("/{cluster}/{project}/devices/upload_csv")
@@ -38,19 +43,18 @@ async def upload_csv_devices(
     code: str = Query(...),
     cluster: str = Depends(validate_cluster),
     project: str = "",
-    authorization: Optional[str] = None
+    _admin: dict = Depends(get_current_admin),
 ):
     """Upload devices from CSV file"""
-    verify_admin_token(authorization)
-    
     # Validate file type
     if not file.filename or not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="File must be a CSV")
-    
+
     # Check if IDF exists
+    db_project = map_url_project_to_db_project(project)
     idf = await database.fetch_one(
         "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"cluster": cluster, "project": project, "code": code}
+        {"cluster": cluster, "project": db_project, "code": code}
     )
     
     if not idf:
@@ -65,7 +69,7 @@ async def upload_csv_devices(
     for row in csv_reader:
         device = {
             "cluster": cluster,
-            "project": project,
+            "project": db_project,
             "idf_code": code,
             "name": row.get("name", ""),
             "model": row.get("model"),
@@ -79,20 +83,21 @@ async def upload_csv_devices(
     # Delete existing devices for this IDF
     await database.execute(
         "DELETE FROM devices WHERE cluster = :cluster AND project = :project AND idf_code = :idf_code",
-        {"cluster": cluster, "project": project, "idf_code": code}
+        {"cluster": cluster, "project": db_project, "idf_code": code}
     )
-    
+
     # Insert new devices
     if devices:
-        for device in devices:
-            await database.execute(
-                """INSERT INTO devices (cluster, project, idf_code, name, model, serial, rack, site, notes)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)""",
-                device["cluster"], device["project"], device["idf_code"],
-                device["name"], device["model"], device["serial"],
-                device["rack"], device["site"], device["notes"]
+        insert_query = """
+            INSERT INTO devices (
+                cluster, project, idf_code, name, model, serial, rack, site, notes
+            ) VALUES (
+                :cluster, :project, :idf_code, :name, :model, :serial, :rack, :site, :notes
             )
-    
+        """
+        for device in devices:
+            await database.execute(insert_query, device)
+
     return {"message": f"Uploaded {len(devices)} devices successfully"}
 
 
@@ -101,19 +106,33 @@ async def create_devices(
     devices: List[Device],
     cluster: str = Depends(validate_cluster),
     project: str = "",
-    authorization: Optional[str] = None
+    _admin: dict = Depends(get_current_admin),
 ):
     """Create devices manually"""
-    verify_admin_token(authorization)
-    
-    # Insert devices
+    db_project = map_url_project_to_db_project(project)
+
+    insert_query = """
+        INSERT INTO devices (
+            cluster, project, idf_code, name, model, serial, rack, site, notes
+        ) VALUES (
+            :cluster, :project, :idf_code, :name, :model, :serial, :rack, :site, :notes
+        )
+    """
+
     for device in devices:
         await database.execute(
-            """INSERT INTO devices (cluster, project, idf_code, name, model, serial, rack, site, notes)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)""",
-            device.cluster, device.project, device.idf_code,
-            device.name, device.model, device.serial,
-            device.rack, device.site, device.notes
+            insert_query,
+            {
+                "cluster": cluster,
+                "project": db_project,
+                "idf_code": device.idf_code,
+                "name": device.name,
+                "model": device.model,
+                "serial": device.serial,
+                "rack": device.rack,
+                "site": device.site,
+                "notes": device.notes,
+            },
         )
-    
+
     return {"message": f"Created {len(devices)} devices successfully"}

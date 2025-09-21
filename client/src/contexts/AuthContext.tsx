@@ -33,12 +33,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const readRedirectCookie = () => {
+    const match = document.cookie.match(/(?:^|; )redirect_to=([^;]+)/);
+    if (match) {
+      return decodeURIComponent(match[1]);
+    }
+    return null;
+  };
+
+  const clearRedirectCookie = () => {
+    document.cookie = 'redirect_to=; Max-Age=0; path=/; SameSite=Lax';
+  };
+
   const checkAuth = async () => {
     try {
       const response = await fetch('/api/auth/me', {
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
@@ -66,6 +78,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (response.ok) {
         await checkAuth(); // Refresh user data
+        const cookieRedirect = readRedirectCookie();
+        if (cookieRedirect) {
+          clearRedirectCookie();
+        }
         return true;
       }
       return false;
@@ -85,6 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Logout failed:', error);
     } finally {
       setUser(null);
+      clearRedirectCookie();
     }
   };
 

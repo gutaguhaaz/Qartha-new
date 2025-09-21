@@ -1,4 +1,4 @@
-from .mongo import (
+from .postgres import (
     database,
     init_database,
     ensure_indexes,

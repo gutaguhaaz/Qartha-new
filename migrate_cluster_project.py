@@ -1,10 +1,12 @@
 
 import asyncio
-from app.db.mongo import database, connect_database
+
+from app.db import close_database, init_database
+from app.db.database import database
 
 async def migrate_cluster_project():
     """Migrate cluster and project names to correct structure"""
-    await connect_database()
+    await init_database()
     
     # Update cluster from 'trk' to 'Trinity' and project from 'Trinity' to 'Sabinas Project'
     update_query = """
@@ -17,6 +19,8 @@ async def migrate_cluster_project():
     print(f"Updated {result} records with new cluster/project names")
     
     print("Cluster/Project migration completed!")
+
+    await close_database()
 
 if __name__ == "__main__":
     asyncio.run(migrate_cluster_project())

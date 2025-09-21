@@ -1,5 +1,7 @@
-from typing import Optional, List, Dict, Any, Union
-from datetime import datetime
+"""Pydantic models for IDF and user domain objects."""
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field, HttpUrl
 
@@ -63,11 +65,12 @@ class IdfPublic(BaseModel):
     description: Optional[str] = None
     site: Optional[str] = ""
     room: Optional[str] = ""
-    gallery: List[MediaItem] = []
-    documents: List[MediaItem] = []
-    diagrams: List[MediaItem] = []
+    gallery: List[MediaItem] = Field(default_factory=list)
+    documents: List[MediaItem] = Field(default_factory=list)
+    diagrams: List[MediaItem] = Field(default_factory=list)
     dfo: Optional[MediaItem] = None
     location: Optional[MediaItem] = None
+    location_items: List[MediaItem] = Field(default_factory=list)
     table: Optional[IdfTable] = None
     health: Optional[IdfHealth] = None
     media: Optional[IdfMedia] = None
@@ -78,13 +81,16 @@ class IdfUpsert(BaseModel):
     description: Optional[str] = None
     site: Optional[str] = None
     room: Optional[str] = None
+    gallery: List[MediaItem] = Field(default_factory=list)
+    documents: List[MediaItem] = Field(default_factory=list)
+    diagrams: List[MediaItem] = Field(default_factory=list)
+    location: List[MediaItem] = Field(default_factory=list)
     dfo: Optional[MediaItem] = None
     table: Optional[IdfTable] = None
 
 
 class IdfCreate(IdfUpsert):
     code: str
-    site: str
 
 
 class Device(BaseModel):

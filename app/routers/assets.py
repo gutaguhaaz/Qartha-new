@@ -1,81 +1,145 @@
-import os
-import json
-import glob
-import time  # Import the time module
-from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form, Header
-from typing import Optional
-from app.core.config import settings
-from app.db.mongo import database
+"""Asset management endpoints for media associated with IDFs."""
+from __future__ import annotations
 
+import json
+import time
+from pathlib import Path
+from typing import Optional
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+
+from app.core.config import settings
+from app.db.database import database
+from app.routers.auth import get_current_admin
 
 router = APIRouter(tags=["assets"])
 
+STATIC_ROOT = Path(settings.STATIC_DIR)
 
-def validate_cluster(cluster: str):
-    """Validate that cluster is in allowed clusters"""
+
+# ---------------------------------------------------------------------------
+# Helper utilities
+# ---------------------------------------------------------------------------
+
+def validate_cluster(cluster: str) -> str:
     if cluster not in settings.ALLOWED_CLUSTERS:
         raise HTTPException(status_code=404, detail="Cluster not found")
     return cluster
 
 
 def map_url_project_to_db_project(project: str) -> str:
-    """Map URL project name to database project name"""
     import urllib.parse
-    decoded_project = urllib.parse.unquote(project)
 
+    decoded_project = urllib.parse.unquote(project)
     project_mapping = {
         "sabinas": "Sabinas Project",
         "Sabinas": "Sabinas Project",
         "Sabinas Project": "Sabinas Project",
-        "Sabinas%20Project": "Sabinas Project",  # Handle URL format
+        "Sabinas%20Project": "Sabinas Project",
         "trinity": "Trinity",
         "Trinity": "Trinity",
-        # Add mappings for trk cluster
         "trinity/sabinas": "Sabinas Project",
         "sabinas/trinity": "Sabinas Project",
-        # Add more mappings as needed
     }
     return project_mapping.get(decoded_project, decoded_project)
 
+
 def map_db_project_to_folder_name(db_project_name: str) -> str:
-    """Map database project name to a folder-friendly name"""
     folder_name_mapping = {
         "Sabinas Project": "sabinas",
         "Trinity": "trinity",
-        # Add more mappings as needed
     }
-    return folder_name_mapping.get(db_project_name, db_project_name.lower().replace(" ", "-"))
+    return folder_name_mapping.get(
+        db_project_name, db_project_name.lower().replace(" ", "-")
+    )
 
 
-def verify_admin_token(authorization: Optional[str] = None):
-    """Verify admin bearer token"""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Authorization header required")
+def _load_media_list(value: Optional[object]) -> list[dict[str, str]]:
+    if not value:
+        return []
+    if isinstance(value, list):
+        return value
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+        except json.JSONDecodeError:
+            return []
+        return parsed if isinstance(parsed, list) else []
+    return []
 
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Invalid authorization format")
 
-    token = authorization.replace("Bearer ", "")
-    if token != settings.ADMIN_TOKEN:
-        raise HTTPException(status_code=401, detail=f"Invalid token. Expected: {settings.ADMIN_TOKEN}, Got: {token}")
+def _resolve_static_path(url: str | None) -> Optional[Path]:
+    if not url:
+        return None
+    if url.startswith("/static/"):
+        relative = url[len("/static/") :]
+        return STATIC_ROOT / relative
+    public_base = (settings.PUBLIC_BASE_URL or "").rstrip("/")
+    if public_base and url.startswith(public_base):
+        remainder = url[len(public_base) :]
+        if remainder.startswith("/static/"):
+            return STATIC_ROOT / remainder[len("/static/") :]
+    return None
 
-    return token
+
+def _remove_media_file(url: str | None) -> None:
+    path = _resolve_static_path(url)
+    if path and path.is_file():
+        try:
+            path.unlink()
+        except OSError:
+            # Ignore errors removing files; they may already be gone
+            pass
 
 
-async def save_file(file: UploadFile, file_path: str, folder_project: str, asset_type: str) -> str:
-    """Save uploaded file and return URL"""
-    # Ensure directory exists
-    folder_type = asset_type if asset_type != "diagram" else "diagrams"
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+async def _write_upload(file: UploadFile, destination: Path) -> str:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    content = await file.read()
+    destination.write_bytes(content)
+    return f"/static/{destination.relative_to(STATIC_ROOT).as_posix()}"
 
-    # Save file
-    with open(file_path, "wb") as buffer:
-        content = await file.read()
-        buffer.write(content)
 
-    # Return relative URL using proper folder structure
-    relative_url = f"/static/{os.path.dirname(file_path).replace(settings.STATIC_DIR, '').lstrip('/')}"
-    return relative_url
+async def _store_media_item(
+    cluster: str,
+    project: str,
+    code: str,
+    column: str,
+    media_items: list[dict[str, str]],
+) -> None:
+    query = f"""
+        UPDATE idfs
+           SET {column} = :value,
+               updated_at = NOW()
+         WHERE cluster = :cluster AND project = :project AND code = :code
+    """
+    await database.execute(
+        query,
+        {
+            "value": json.dumps(media_items),
+            "cluster": cluster,
+            "project": project,
+            "code": code,
+        },
+    )
+
+
+async def _get_idf(cluster: str, project: str, code: str) -> dict[str, object]:
+    row = await database.fetch_one(
+        """
+        SELECT gallery, documents, diagrams, location, media
+          FROM idfs
+         WHERE cluster = :cluster AND project = :project AND code = :code
+        """,
+        {"cluster": cluster, "project": project, "code": code},
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="IDF not found")
+    return dict(row)
+
+
+# ---------------------------------------------------------------------------
+# Upload endpoints
+# ---------------------------------------------------------------------------
 
 
 @router.post("/{cluster}/{project}/assets/images")
@@ -84,57 +148,30 @@ async def upload_image(
     project: str,
     file: UploadFile = File(...),
     code: str = Form(...),
-    authorization: Optional[str] = Header(None)
+    _admin: dict = Depends(get_current_admin),
 ):
-    """Upload image for IDF"""
     validate_cluster(cluster)
-    verify_admin_token(authorization)
-
-    # Validate file type
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
 
-    # Check if IDF exists
-    idf = await database.fetch_one(
-        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"cluster": cluster, "project": project, "code": code}
-    )
-
-    if not idf:
-        raise HTTPException(status_code=404, detail="IDF not found")
-
-    # Parse current gallery
-    gallery = json.loads(idf["gallery"]) if isinstance(idf["gallery"], str) else idf["gallery"]
-
-    # Create directory path using proper folder mapping
     db_project = map_url_project_to_db_project(project)
+    idf = await _get_idf(cluster, db_project, code)
+    gallery = _load_media_list(idf.get("gallery"))
+
     folder_project = map_db_project_to_folder_name(db_project)
-    folder_type = "images"
-    file_dir = os.path.join(settings.STATIC_DIR, cluster, folder_project, folder_type)
-    os.makedirs(file_dir, exist_ok=True)
+    dest_dir = STATIC_ROOT / cluster / folder_project / "images"
+    extension = Path(file.filename or "image.jpg").suffix or ".jpg"
+    filename = f"{code}_{len(gallery)}_{int(time.time() * 1000)}{extension}"
+    file_path = dest_dir / filename
 
-    # Generate unique filename
-    timestamp = int(time.time() * 1000)
-    file_extension = os.path.splitext(file.filename or "image.jpg")[1]
-    filename = f"{code}_{len(gallery)}_{timestamp}{file_extension}"
-    file_path = os.path.join(file_dir, filename)
-
-    url = await save_file(file, file_path, folder_project, folder_type)
-
-    # Update IDF gallery
-    media_item = {
+    url = await _write_upload(file, file_path)
+    gallery.append({
         "url": url,
-        "name": file.filename,
-        "kind": "image"
-    }
+        "name": file.filename or filename,
+        "kind": "image",
+    })
 
-    gallery.append(media_item)
-
-    await database.execute(
-        "UPDATE idfs SET gallery = :gallery WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"gallery": json.dumps(gallery), "cluster": cluster, "project": project, "code": code}
-    )
-
+    await _store_media_item(cluster, db_project, code, "gallery", gallery)
     return {"url": url, "message": "Image uploaded successfully"}
 
 
@@ -144,48 +181,28 @@ async def upload_location_image(
     project: str,
     file: UploadFile = File(...),
     code: str = Form(...),
-    authorization: Optional[str] = Header(None)
+    _admin: dict = Depends(get_current_admin),
 ):
-    """Upload location image for IDF"""
     validate_cluster(cluster)
-    verify_admin_token(authorization)
 
-    # Check if IDF exists
-    idf = await database.fetch_one(
-        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"cluster": cluster, "project": project, "code": code}
-    )
-
-    if not idf:
-        raise HTTPException(status_code=404, detail="IDF not found")
-
-    # Create directory path using proper folder mapping
     db_project = map_url_project_to_db_project(project)
+    idf = await _get_idf(cluster, db_project, code)
+    locations = _load_media_list(idf.get("location"))
+
     folder_project = map_db_project_to_folder_name(db_project)
-    folder_type = "location"
-    file_dir = os.path.join(settings.STATIC_DIR, cluster, folder_project, folder_type)
-    os.makedirs(file_dir, exist_ok=True)
+    dest_dir = STATIC_ROOT / cluster / folder_project / "location"
+    extension = Path(file.filename or "location.jpg").suffix or ".jpg"
+    filename = f"{code}_location_{int(time.time() * 1000)}{extension}"
+    file_path = dest_dir / filename
 
-    # Generate unique filename
-    timestamp = int(time.time() * 1000)
-    file_extension = os.path.splitext(file.filename or "location.jpg")[1]
-    filename = f"{code}_location_{timestamp}{file_extension}"
-    file_path = os.path.join(file_dir, filename)
-
-    url = await save_file(file, file_path, folder_project, folder_type)
-
-    # Update IDF location (store as array to match database format)
-    location_item = {
+    url = await _write_upload(file, file_path)
+    locations.append({
         "url": url,
-        "name": file.filename,
-        "kind": "image"
-    }
+        "name": file.filename or filename,
+        "kind": "image",
+    })
 
-    await database.execute(
-        "UPDATE idfs SET location = :location WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"location": json.dumps([location_item]), "cluster": cluster, "project": project, "code": code}
-    )
-
+    await _store_media_item(cluster, db_project, code, "location", locations)
     return {"url": url, "message": "Location image uploaded successfully"}
 
 
@@ -195,53 +212,28 @@ async def upload_document(
     project: str,
     file: UploadFile = File(...),
     code: str = Form(...),
-    authorization: Optional[str] = Header(None)
+    _admin: dict = Depends(get_current_admin),
 ):
-    """Upload document for IDF"""
     validate_cluster(cluster)
-    verify_admin_token(authorization)
 
-    # Check if IDF exists
-    idf = await database.fetch_one(
-        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"cluster": cluster, "project": project, "code": code}
-    )
-
-    if not idf:
-        raise HTTPException(status_code=404, detail="IDF not found")
-
-    # Parse current documents
-    documents = json.loads(idf["documents"]) if isinstance(idf["documents"], str) else idf["documents"]
-
-    # Create directory path using proper folder mapping
     db_project = map_url_project_to_db_project(project)
+    idf = await _get_idf(cluster, db_project, code)
+    documents = _load_media_list(idf.get("documents"))
+
     folder_project = map_db_project_to_folder_name(db_project)
-    folder_type = "documents"
-    file_dir = os.path.join(settings.STATIC_DIR, cluster, folder_project, folder_type)
-    os.makedirs(file_dir, exist_ok=True)
+    dest_dir = STATIC_ROOT / cluster / folder_project / "documents"
+    extension = Path(file.filename or "document.pdf").suffix or ".pdf"
+    filename = f"{code}_{len(documents)}_{int(time.time() * 1000)}{extension}"
+    file_path = dest_dir / filename
 
-    # Generate unique filename
-    timestamp = int(time.time() * 1000)
-    file_extension = os.path.splitext(file.filename or "document.pdf")[1]
-    filename = f"{code}_{len(documents)}_{timestamp}{file_extension}"
-    file_path = os.path.join(file_dir, filename)
-
-    url = await save_file(file, file_path, folder_project, folder_type)
-
-    # Update IDF documents
-    media_item = {
+    url = await _write_upload(file, file_path)
+    documents.append({
         "url": url,
-        "name": file.filename,
-        "kind": "document"
-    }
+        "name": file.filename or filename,
+        "kind": "document",
+    })
 
-    documents.append(media_item)
-
-    await database.execute(
-        "UPDATE idfs SET documents = :documents WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"documents": json.dumps(documents), "cluster": cluster, "project": project, "code": code}
-    )
-
+    await _store_media_item(cluster, db_project, code, "documents", documents)
     return {"url": url, "message": "Document uploaded successfully"}
 
 
@@ -251,63 +243,34 @@ async def upload_diagram(
     project: str,
     file: UploadFile = File(...),
     code: str = Form(...),
-    authorization: Optional[str] = Header(None)
+    _admin: dict = Depends(get_current_admin),
 ):
-    """Upload diagram for IDF"""
     validate_cluster(cluster)
-    verify_admin_token(authorization)
 
-    # Check if IDF exists
-    idf = await database.fetch_one(
-        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"cluster": cluster, "project": project, "code": code}
-    )
-
-    if not idf:
-        raise HTTPException(status_code=404, detail="IDF not found")
-
-    # Create directory path using proper folder mapping
     db_project = map_url_project_to_db_project(project)
+    idf = await _get_idf(cluster, db_project, code)
+    diagrams = _load_media_list(idf.get("diagrams"))
+
     folder_project = map_db_project_to_folder_name(db_project)
-    folder_type = "diagrams"
-    file_dir = os.path.join(settings.STATIC_DIR, cluster, folder_project, folder_type)
-    os.makedirs(file_dir, exist_ok=True)
+    dest_dir = STATIC_ROOT / cluster / folder_project / "diagrams"
+    extension = Path(file.filename or "diagram.png").suffix or ".png"
+    filename = f"{code}_diagram_{int(time.time() * 1000)}{extension}"
+    file_path = dest_dir / filename
 
-    # Generate unique filename
-    timestamp = int(time.time() * 1000)
-    file_extension = os.path.splitext(file.filename or "diagram.pdf")[1]
-    filename = f"{code}_diagram_{timestamp}{file_extension}"
-    file_path = os.path.join(file_dir, filename)
-
-    url = await save_file(file, file_path, folder_project, folder_type)
-
-    # Get current diagrams array
-    current_idf = await database.fetch_one(
-        "SELECT diagrams FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"cluster": cluster, "project": project, "code": code}
-    )
-
-    current_diagrams = []
-    if current_idf and current_idf["diagrams"]:
-        if isinstance(current_idf["diagrams"], str):
-            current_diagrams = json.loads(current_idf["diagrams"])
-        else:
-            current_diagrams = current_idf["diagrams"]
-
-    # Add new diagram to array
-    new_diagram = {
+    url = await _write_upload(file, file_path)
+    diagrams.append({
         "url": url,
-        "name": file.filename,
-        "kind": "diagram"
-    }
-    current_diagrams.append(new_diagram)
+        "name": file.filename or filename,
+        "kind": "diagram",
+    })
 
-    await database.execute(
-        "UPDATE idfs SET diagrams = :diagrams WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"diagrams": json.dumps(current_diagrams), "cluster": cluster, "project": project, "code": code}
-    )
-
+    await _store_media_item(cluster, db_project, code, "diagrams", diagrams)
     return {"url": url, "message": "Diagram uploaded successfully"}
+
+
+# ---------------------------------------------------------------------------
+# Logo management
+# ---------------------------------------------------------------------------
 
 
 @router.post("/{cluster}/{project}/assets/logo")
@@ -315,72 +278,50 @@ async def upload_logo(
     cluster: str,
     project: str,
     file: UploadFile = File(...),
-    authorization: Optional[str] = Header(None),
+    _admin: dict = Depends(get_current_admin),
 ):
-    """Upload cluster logo"""
     validate_cluster(cluster)
-    verify_admin_token(authorization)
-
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
 
-    # Create directory path using proper folder mapping
     db_project = map_url_project_to_db_project(project)
     folder_project = map_db_project_to_folder_name(db_project)
-    logo_dir = os.path.join(settings.STATIC_DIR, cluster, folder_project)
-    os.makedirs(logo_dir, exist_ok=True)
+    logo_dir = STATIC_ROOT / cluster / folder_project
+    logo_dir.mkdir(parents=True, exist_ok=True)
 
-    # Remove existing logos for this cluster/project
-    for existing in glob.glob(os.path.join(logo_dir, "logo.*")):
+    for existing in logo_dir.glob("logo.*"):
         try:
-            os.remove(existing)
+            existing.unlink()
         except OSError:
             pass
 
-    file_extension = os.path.splitext(file.filename or "logo.png")[1]
-    file_path = os.path.join(logo_dir, f"logo{file_extension}")
-
-    url = await save_file(file, file_path, folder_project, "logo")
-
+    extension = Path(file.filename or "logo.png").suffix or ".png"
+    file_path = logo_dir / f"logo{extension}"
+    url = await _write_upload(file, file_path)
     return {"url": url, "message": "Logo uploaded successfully"}
 
 
 @router.get("/{cluster}/logo")
 async def get_cluster_logo(cluster: str):
-    """Get cluster logo"""
-    logo_dir = os.path.join(settings.STATIC_DIR, cluster)
-
-    # Look for common image formats
-    for ext in ['png', 'jpg', 'jpeg', 'gif', 'svg']:
-        logo_path = os.path.join(logo_dir, f"logo.{ext}")
-        if os.path.exists(logo_path):
-            return {"url": f"/static/{cluster}/logo.{ext}"}
-
+    logo_dir = STATIC_ROOT / cluster
+    for ext in ["png", "jpg", "jpeg", "gif", "svg"]:
+        logo_path = logo_dir / f"logo.{ext}"
+        if logo_path.exists():
+            return {"url": f"/static/{logo_path.relative_to(STATIC_ROOT).as_posix()}"}
     return {"url": None, "message": "No logo found"}
 
 
 @router.get("/{cluster}/{project}/logo")
 async def get_logo(cluster: str, project: str):
-    """Get project logo"""
-    # Create directory path using proper folder mapping
     db_project = map_url_project_to_db_project(project)
     folder_project = map_db_project_to_folder_name(db_project)
+    search_dirs = [STATIC_ROOT / cluster / folder_project, STATIC_ROOT / cluster]
 
-    # Check both cluster-level and project-level logo locations
-    logo_locations = [
-        os.path.join(settings.STATIC_DIR, cluster, folder_project),
-        os.path.join(settings.STATIC_DIR, cluster)
-    ]
-
-    # Look for common image formats in both locations
-    for logo_dir in logo_locations:
-        for ext in ['png', 'jpg', 'jpeg', 'gif', 'svg']:
-            logo_path = os.path.join(logo_dir, f"logo.{ext}")
-            if os.path.exists(logo_path):
-                relative_path = logo_path.replace(settings.STATIC_DIR, "")
-                return {"url": f"/static{relative_path}"}
-
-    # Return a default or placeholder response instead of 404
+    for directory in search_dirs:
+        for ext in ["png", "jpg", "jpeg", "gif", "svg"]:
+            logo_path = directory / f"logo.{ext}"
+            if logo_path.exists():
+                return {"url": f"/static/{logo_path.relative_to(STATIC_ROOT).as_posix()}"}
     return {"url": None, "message": "No logo found"}
 
 
@@ -390,68 +331,91 @@ async def upload_idf_logo(
     project: str,
     code: str,
     file: UploadFile = File(...),
-    authorization: Optional[str] = Header(None)
+    _admin: dict = Depends(get_current_admin),
 ):
-    """Upload logo for specific IDF"""
     validate_cluster(cluster)
-    verify_admin_token(authorization)
-
-    # Validate file type
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
 
-    # Check if file is PNG or JPG
-    allowed_types = ["image/png", "image/jpeg", "image/jpg"]
-    if file.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="Only PNG and JPG files are allowed")
-
-    # Check if IDF exists
-    idf = await database.fetch_one(
-        "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"cluster": cluster, "project": project, "code": code}
-    )
-
-    if not idf:
-        raise HTTPException(status_code=404, detail="IDF not found")
-
-    # Create directory path using proper folder mapping
     db_project = map_url_project_to_db_project(project)
-    folder_project = map_db_project_to_folder_name(db_project)
-    logo_dir = os.path.join(settings.STATIC_DIR, cluster, folder_project, "logos")
-    os.makedirs(logo_dir, exist_ok=True)
-
-    # Remove existing logo for this IDF
-    for existing in glob.glob(os.path.join(logo_dir, f"{code}-logo.*")):
+    idf = await _get_idf(cluster, db_project, code)
+    media = idf.get("media") or {}
+    if isinstance(media, str):
         try:
-            os.remove(existing)
-        except OSError:
-            pass
+            media = json.loads(media)
+        except json.JSONDecodeError:
+            media = {}
 
-    # Save new logo
-    file_extension = os.path.splitext(file.filename or "logo.png")[1]
-    if not file_extension:
-        file_extension = ".png" if file.content_type == "image/png" else ".jpg"
+    folder_project = map_db_project_to_folder_name(db_project)
+    logo_dir = STATIC_ROOT / cluster / folder_project / "logos"
+    logo_dir.mkdir(parents=True, exist_ok=True)
 
-    file_path = os.path.join(
-        logo_dir,
-        f"{code}-logo{file_extension}"
-    )
+    extension = Path(file.filename or "logo.png").suffix or ".png"
+    file_path = logo_dir / f"{code}-logo{extension}"
+    url = await _write_upload(file, file_path)
 
-    url = await save_file(file, file_path, folder_project, "logos")
-
-    # Update IDF media.logo
-    media_item = {
-        "name": file.filename or f"{code}-logo{file_extension}",
-        "url": url
+    media["logo"] = {
+        "name": file.filename or f"{code}-logo{extension}",
+        "url": url,
     }
 
-    # Parse current media or create new
-    media = json.loads(idf["media"]) if isinstance(idf["media"], str) and idf["media"] else {}
-    media["logo"] = media_item
-
     await database.execute(
-        "UPDATE idfs SET media = :media WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"media": json.dumps(media), "cluster": cluster, "project": project, "code": code}
+        """
+        UPDATE idfs
+           SET media = :media,
+               updated_at = NOW()
+         WHERE cluster = :cluster AND project = :project AND code = :code
+        """,
+        {
+            "media": json.dumps(media),
+            "cluster": cluster,
+            "project": db_project,
+            "code": code,
+        },
     )
 
-    return {"name": media_item["name"], "url": url}
+    return {"name": media["logo"]["name"], "url": url}
+
+
+# ---------------------------------------------------------------------------
+# Delete assets
+# ---------------------------------------------------------------------------
+
+
+ASSET_COLUMN_MAP = {
+    "images": "gallery",
+    "documents": "documents",
+    "diagrams": "diagrams",
+    "location": "location",
+}
+
+
+@router.delete("/{cluster}/{project}/assets/{code}/{asset_type}/{index}")
+async def delete_media_asset(
+    cluster: str,
+    project: str,
+    code: str,
+    asset_type: str,
+    index: int,
+    _admin: dict = Depends(get_current_admin),
+):
+    validate_cluster(cluster)
+    if asset_type not in ASSET_COLUMN_MAP:
+        raise HTTPException(status_code=400, detail="Unsupported asset type")
+
+    db_project = map_url_project_to_db_project(project)
+    idf = await _get_idf(cluster, db_project, code)
+    column = ASSET_COLUMN_MAP[asset_type]
+    media_items = _load_media_list(idf.get(column))
+
+    if index < 0 or index >= len(media_items):
+        raise HTTPException(status_code=404, detail="Asset not found")
+
+    removed = media_items.pop(index)
+    await _store_media_item(cluster, db_project, code, column, media_items)
+    _remove_media_file(removed.get("url"))
+
+    return {"message": "Asset deleted", "item": removed}
+
+
+__all__ = ["router"]

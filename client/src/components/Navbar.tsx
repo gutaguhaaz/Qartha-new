@@ -5,6 +5,7 @@ import AdminSidebar from "./AdminSidebar";
 import { Settings, Menu, X } from "lucide-react";
 import { config, getProjectsForCluster } from "../config";
 import Logo from "./Logo"; // ajusta la ruta si tu Navbar está en otra carpeta
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Navbar() {
   const [location] = useLocation();
@@ -16,6 +17,7 @@ export default function Navbar() {
   );
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAdmin } = useAuth();
 
   // Parse current route to update selectors
   useEffect(() => {
@@ -104,15 +106,14 @@ export default function Navbar() {
             >
               <i className="fas fa-list"></i>
             </Link>
-            {/* Only show admin button in CMS routes */}
-            {location.includes("/admin") && (
+            {isAdmin && (
               <button
                 onClick={() => setIsAdminOpen(true)}
                 className="nav-link"
                 data-testid="button-admin"
                 title="Admin Panel"
               >
-                <Settings className="w-4 h-4 animate-spin" />
+                <Settings className="w-4 h-4" />
               </button>
             )}
             <ThemeToggle />
@@ -179,8 +180,7 @@ export default function Navbar() {
             >
               <i className="fas fa-list"></i>
             </Link>
-            {/* Only show admin button in CMS routes */}
-            {location.includes("/admin") && (
+            {isAdmin && (
               <button
                 onClick={() => {
                   setIsAdminOpen(true);
@@ -190,7 +190,7 @@ export default function Navbar() {
                 data-testid="button-admin-mobile"
                 title="Admin Panel"
               >
-                <Settings className="w-4 h-4 animate-spin" />
+                <Settings className="w-4 h-4" />
               </button>
             )}
             <ThemeToggle />
