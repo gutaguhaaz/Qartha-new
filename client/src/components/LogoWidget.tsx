@@ -10,7 +10,6 @@ interface LogoWidgetProps {
   project: string;
   code: string;
   currentLogo?: { name: string; url: string } | null;
-  adminToken: string;
 }
 
 export default function LogoWidget({
@@ -18,7 +17,6 @@ export default function LogoWidget({
   project,
   code,
   currentLogo,
-  adminToken,
 }: LogoWidgetProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
@@ -26,7 +24,7 @@ export default function LogoWidget({
   const queryClient = useQueryClient();
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) => uploadIdfLogo({ cluster, project, code, file, token: adminToken }),
+    mutationFn: (file: File) => uploadIdfLogo(cluster, project, code, file),
     onSuccess: (data) => {
       toast({
         title: "Success",

@@ -1,11 +1,13 @@
 
 import json
 import asyncio
-from app.db.mongo import database, connect_database
+
+from app.db import close_database, init_database
+from app.db.database import database
 
 async def migrate_asset_urls():
     """Migrate asset URLs from old structure to new structure"""
-    await connect_database()
+    await init_database()
     
     # Update all IDFs with asset URLs
     query = "SELECT id, gallery, documents, diagrams FROM idfs WHERE cluster = 'trk' AND project = 'Trinity'"
@@ -54,6 +56,8 @@ async def migrate_asset_urls():
             print(f"Updated IDF {row_id}")
 
     print("Migration completed!")
+
+    await close_database()
 
 if __name__ == "__main__":
     asyncio.run(migrate_asset_urls())

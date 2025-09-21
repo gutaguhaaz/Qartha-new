@@ -17,6 +17,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin 
       if (!user) {
         // Save current location for redirect after login
         sessionStorage.setItem('redirect_to', location);
+        document.cookie = `redirect_to=${encodeURIComponent(location)}; path=/; max-age=300; SameSite=Lax`;
         setLocation('/login');
       } else if (requireAdmin && !isAdmin) {
         // User is authenticated but not admin

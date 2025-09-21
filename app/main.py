@@ -6,15 +6,15 @@ from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
-from app.db.mongo import ensure_indexes, seed_data, close_database, init_database # Assuming init_database is in mongo.py
-from app.routers import assets, devices, qr, public_idfs, admin_idfs, auth
-from app.db.database import database # Assuming database is imported from app.db.database
+from app.db import close_database, ensure_indexes, init_database, seed_data
+from app.db.database import database
+from app.routers import admin_idfs, assets, auth, devices, public_idfs, qr
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    await init_database() # Call init_database here
+    await init_database()
     await ensure_indexes()
     await seed_data()
     yield

@@ -1,8 +1,10 @@
 import json
-from fastapi import APIRouter, HTTPException, Query, Depends
-from typing import List, Optional, Dict, Any
-from app.db.mongo import database
-from app.models.idf_models import IdfIndex, IdfPublic, IdfHealth, HealthCounts
+from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import Any, Dict, List, Optional
+
+from app.db.database import database
+from app.models.idf_models import IdfHealth, HealthCounts, IdfIndex, IdfPublic
+from app.routers.auth import get_current_user
 from app.core.config import settings
 
 
@@ -114,7 +116,8 @@ async def list_idfs(
     q: Optional[str] = Query(None, description="Search query"),
     limit: int = Query(50, ge=1, le=100),
     skip: int = Query(0, ge=0),
-    include_health: int = Query(0, description="Include health computation")
+    include_health: int = Query(0, description="Include health computation"),
+    _current_user: dict = Depends(get_current_user),
 ):
     """Get list of IDFs for a cluster/project"""
     # Map URL project to database project
@@ -283,7 +286,8 @@ def convert_relative_urls_to_absolute(data: Any) -> Any:
 async def get_idf(
     code: str,
     cluster: str = Depends(validate_cluster),
-    project: str = ""
+    project: str = "",
+    _current_user: dict = Depends(get_current_user),
 ):
     """Get a specific IDF by code"""
     # Map URL project to database project
@@ -429,6 +433,7 @@ async def get_idf(
 
     # Parse location field (handle both string JSON and array formats from database)
     location = None
+    location_items: List[Dict[str, Any]] = []
     location_raw = idf_dict.get("location")
 
     # Skip processing if location is NULL, empty, or "null" string
@@ -457,24 +462,18 @@ async def get_idf(
 
             # Handle both array and single object formats
             if isinstance(location_data, list) and len(location_data) > 0:
-                # Take first item from array
-                location_item = location_data[0]  
-                if isinstance(location_item, dict) and location_item.get("url"):
-                    # Create MediaItem from the location data
-                    location = {
-                        "url": location_item["url"],
-                        "name": location_item.get("name", "Location image"),
-                        "kind": location_item.get("kind", "image")
-                    }
-                    location = convert_relative_urls_to_absolute(location)
+                converted_items = [
+                    convert_relative_urls_to_absolute(item)
+                    for item in location_data
+                    if isinstance(item, dict) and item.get("url")
+                ]
+                if converted_items:
+                    location_items = converted_items
+                    location = converted_items[0]
             elif isinstance(location_data, dict) and location_data.get("url"):
-                # Single object format
-                location = {
-                    "url": location_data["url"],
-                    "name": location_data.get("name", "Location image"),
-                    "kind": location_data.get("kind", "image")
-                }
-                location = convert_relative_urls_to_absolute(location)
+                converted_item = convert_relative_urls_to_absolute(location_data)
+                location = converted_item
+                location_items = [converted_item] if isinstance(converted_item, dict) else []
 
         except Exception as e:
             print(f"Error parsing location data for {idf_dict['code']}: {e}")
@@ -510,6 +509,7 @@ async def get_idf(
         diagrams=convert_relative_urls_to_absolute(idf_dict["diagrams"]),
         dfo=dfo,
         location=location,
+        location_items=location_items,
         table=table_data,
         health=health,
         media=media

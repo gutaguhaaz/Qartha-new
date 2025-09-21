@@ -1,16 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { getIdf, getLogo } from "@/lib/api";
-import { IdfPublic } from "@shared/schema";
 import Gallery from "@/components/Gallery";
 import DocList from "@/components/DocList";
 import PdfOrImage from "@/components/PdfOrImage";
-import DataTable from "@/components/DataTable";
 import DfoImageViewer from "@/components/DfoImageViewer";
 import AdminSidebar from "@/components/AdminSidebar";
 import AddIdfDialog from "@/components/AddIdfDialog";
 import LocationViewer from "@/components/LocationViewer";
+import { useAuth } from "@/contexts/AuthContext";
+import type { MediaItem } from "@shared/schema";
 
 interface PublicDetailProps {
   cluster: string;
@@ -27,24 +27,26 @@ export default function PublicDetail({
   const [activeTab, setActiveTab] = useState<string>("table");
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isAddIdfDialogOpen, setIsAddIdfDialogOpen] = useState(false);
+  const { isAdmin, loading: authLoading } = useAuth();
+  const canManage = isAdmin && !authLoading;
 
   // Listen for admin panel open events
   useEffect(() => {
-    const handleOpenAdmin = (event: CustomEvent) => {
+    if (!canManage) {
+      setIsAdminOpen(false);
+      setIsAddIdfDialogOpen(false);
+      return;
+    }
+
+    const handleOpenAdmin = () => {
       setIsAdminOpen(true);
     };
 
-    window.addEventListener(
-      "openAdminWithIdf",
-      handleOpenAdmin as EventListener,
-    );
+    window.addEventListener("openAdminWithIdf", handleOpenAdmin);
     return () => {
-      window.removeEventListener(
-        "openAdminWithIdf",
-        handleOpenAdmin as EventListener,
-      );
+      window.removeEventListener("openAdminWithIdf", handleOpenAdmin);
     };
-  }, []);
+  }, [canManage]);
 
   const {
     data: idf,
@@ -134,6 +136,13 @@ export default function PublicDetail({
 
   const apiProject = getApiProject(project);
   const qrUrl = `${window.location.origin}/api/${encodeURIComponent(cluster)}/${encodeURIComponent(apiProject)}/idfs/${encodeURIComponent(code)}/qr.png`;
+  const documents = useMemo(() => {
+    const items = [...(idf.documents ?? [])];
+    if (idf.dfo && idf.dfo.kind === "document") {
+      items.push(idf.dfo);
+    }
+    return items;
+  }, [idf.documents, idf.dfo]);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8" data-testid="public-detail">
@@ -156,15 +165,17 @@ export default function PublicDetail({
               <i className="fas fa-arrow-left"></i>
               <span>Back to Directory</span>
             </Link>
-            <button
-              onClick={() => setIsAddIdfDialogOpen(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-              data-testid="button-add-idf"
-              title="Add new IDF"
-            >
-              <i className="fas fa-plus"></i>
-              <span>Add IDF</span>
-            </button>
+            {canManage && (
+              <button
+                onClick={() => setIsAddIdfDialogOpen(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                data-testid="button-add-idf"
+                title="Add new IDF"
+              >
+                <i className="fas fa-plus"></i>
+                <span>Add IDF</span>
+              </button>
+            )}
           </div>
 
           <nav className="text-sm" data-testid="breadcrumb">
@@ -253,21 +264,23 @@ export default function PublicDetail({
 
           <div className="flex flex-col items-end space-y-4">
             {/* Admin Button */}
-            <button
-              onClick={() => {
-                // Pre-load the admin panel with current IDF data
-                const event = new CustomEvent("openAdminWithIdf", {
-                  detail: { cluster, project, code },
-                });
-                window.dispatchEvent(event);
-              }}
-              className="flex items-center space-x-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm"
-              data-testid="button-admin-edit"
-              title="Edit this IDF"
-            >
-              <i className="fas fa-edit"></i>
-              <span>Edit IDF</span>
-            </button>
+            {canManage && (
+              <button
+                onClick={() => {
+                  // Pre-load the admin panel with current IDF data
+                  const event = new CustomEvent("openAdminWithIdf", {
+                    detail: { cluster, project, code },
+                  });
+                  window.dispatchEvent(event);
+                }}
+                className="flex items-center space-x-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm"
+                data-testid="button-admin-edit"
+                title="Edit this IDF"
+              >
+                <i className="fas fa-edit"></i>
+                <span>Edit IDF</span>
+              </button>
+            )}
 
             {/* QR Code */}
             <div
@@ -395,7 +408,7 @@ export default function PublicDetail({
                   <div className="text-sm text-muted-foreground mb-4">
                     {idf.diagrams.length} diagram{idf.diagrams.length !== 1 ? 's' : ''} available
                   </div>
-                  {idf.diagrams.map((diagram, index) => (
+                  {idf.diagrams.map((diagram: MediaItem, index: number) => (
                     <div key={index} className="bg-card rounded-lg border p-6">
                       <div className="mb-4">
                         <h3 className="text-lg font-semibold text-foreground">
@@ -420,10 +433,7 @@ export default function PublicDetail({
 
         {activeTab === "documents" && (
           <div data-testid="tab-content-documents">
-            <DocList documents={[
-              ...idf.documents.filter(doc => doc.kind === 'document'),
-              ...(idf.diagram && idf.diagram.kind === 'document' ? [idf.diagram] : [])
-            ]} />
+            <DocList documents={documents} />
           </div>
         )}
 
@@ -537,24 +547,28 @@ export default function PublicDetail({
       </div>
 
       {/* Add IDF Dialog */}
-      <AddIdfDialog
-        cluster={cluster}
-        project={project}
-        open={isAddIdfDialogOpen}
-        onOpenChange={setIsAddIdfDialogOpen}
-        onCreated={(newIdf) => {
-          setIsAddIdfDialogOpen(false);
-          // Navigate to the new IDF
-          window.location.href = `/${cluster}/${project}/idf/${newIdf.code}`;
-        }}
-      />
+      {canManage && (
+        <AddIdfDialog
+          cluster={cluster}
+          project={project}
+          open={isAddIdfDialogOpen}
+          onOpenChange={setIsAddIdfDialogOpen}
+          onCreated={(newIdf) => {
+            setIsAddIdfDialogOpen(false);
+            // Navigate to the new IDF
+            window.location.href = `/${cluster}/${project}/idf/${newIdf.code}`;
+          }}
+        />
+      )}
 
       {/* Admin Sidebar */}
-      <AdminSidebar
-        isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
-        preloadIdf={{ cluster, project, code }}
-      />
+      {canManage && (
+        <AdminSidebar
+          isOpen={isAdminOpen}
+          onClose={() => setIsAdminOpen(false)}
+          preloadIdf={{ cluster, project, code }}
+        />
+      )}
     </div>
   );
 }

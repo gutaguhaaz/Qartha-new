@@ -1,7 +1,4 @@
-import { apiRequest } from "./queryClient";
-
-// Base URL for API requests - use relative paths to leverage proxy
-const API_BASE = "";
+import { config } from "@/config";
 
 export interface IdfSearchParams {
   q?: string;
@@ -10,227 +7,174 @@ export interface IdfSearchParams {
   include_health?: number;
 }
 
-// Centralized API client
-const apiClient = {
-  get: async (url: string) => {
-    const response = await fetch(`/api${url}`, {
-      credentials: 'include'
-    });
-    if (response.status === 401) {
-      window.location.href = '/login';
-      return;
-    }
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-  },
+const API_PREFIX = (config.api.baseUrl || "").replace(/\/$/, "");
+const API_ROOT = `${API_PREFIX}/api`;
 
-  post: async (url: string, data?: any) => {
-    const response = await fetch(`/api${url}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: data ? JSON.stringify(data) : undefined,
-    });
-    if (response.status === 401) {
-      window.location.href = '/login';
-      return;
-    }
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-  },
-
-  put: async (url: string, data: any) => {
-    const response = await fetch(`/api${url}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(data),
-    });
-    if (response.status === 401) {
-      window.location.href = '/login';
-      return;
-    }
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-  },
-
-  delete: async (url: string) => {
-    const response = await fetch(`/api${url}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    });
-    if (response.status === 401) {
-      window.location.href = '/login';
-      return;
-    }
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-  },
-
-  upload: async (url: string, formData: FormData) => {
-    const response = await fetch(`/api${url}`, {
-      method: 'POST',
-      credentials: 'include',
-      body: formData,
-    });
-    if (response.status === 401) {
-      window.location.href = '/login';
-      return;
-    }
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-  }
+const buildUrl = (path: string) => {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${API_ROOT}${normalized}`;
 };
 
-export async function getIdfs(cluster: string, project: string, options: IdfSearchParams = {}) {
-  try {
-    const { limit = 50, include_health = 1 } = options;
-    const response = await fetch(`${API_BASE}/api/${cluster}/${project}/idfs?limit=${limit}&include_health=${include_health}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch IDFs: ${response.status} ${response.statusText}`);
-    }
-    return response.json();
-  } catch (error) {
-    console.error('API Error:', error);
-    throw error;
+const handleUnauthorized = () => {
+  const loginPath = "/login";
+  const currentPath = window.location.pathname + window.location.search + window.location.hash;
+
+  if (!window.location.pathname.startsWith(loginPath)) {
+    sessionStorage.setItem("redirect_to", currentPath || "/");
+    document.cookie = `redirect_to=${encodeURIComponent(currentPath || "/")}; path=/; max-age=300; SameSite=Lax`;
+    window.location.href = loginPath;
   }
+
+  throw new Error("Unauthorized");
+};
+
+async function request(path: string, options: RequestInit = {}) {
+  const response = await fetch(buildUrl(path), {
+    credentials: "include",
+    ...options,
+    headers: {
+      "X-Requested-With": "fetch",
+      ...(options.headers || {}),
+    },
+  });
+
+  if (response.status === 401) {
+    handleUnauthorized();
+  }
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `HTTP ${response.status}`);
+  }
+
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return response.json();
+  }
+  return response.text();
+}
+
+async function requestJson(path: string, data?: unknown, method: string = "POST") {
+  return request(path, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: data ? JSON.stringify(data) : undefined,
+  });
+}
+
+async function requestForm(path: string, formData: FormData, method: string = "POST") {
+  return request(path, {
+    method,
+    body: formData,
+  });
+}
+
+export async function getIdfs(cluster: string, project: string, options: IdfSearchParams = {}) {
+  const params = new URLSearchParams();
+  const { limit = 50, skip = 0, include_health = 1, q } = options;
+
+  params.set("limit", limit.toString());
+  params.set("skip", skip.toString());
+  params.set("include_health", include_health.toString());
+  if (q) params.set("q", q);
+
+  return request(`/${cluster}/${project}/idfs?${params.toString()}`, { method: "GET" });
 }
 
 export async function getIdf(cluster: string, project: string, code: string) {
-  const url = `${API_BASE}/api/${cluster}/${project}/idfs/${code}`;
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Failed to fetch IDF: ${response.statusText}`);
-  return response.json();
+  return request(`/${cluster}/${project}/idfs/${code}`, { method: "GET" });
 }
 
-export async function createIdf({
-  cluster,
-  project,
-  body,
-  token,
-}: {
-  cluster: string;
-  project: string;
-  body: { code: string; title: string; site: string; room?: string };
-  token?: string;
-}) {
-  const url = `${API_BASE}/api/${cluster}/${project}/idfs`;
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || 'Failed to create IDF');
-  }
-  return response.json();
+export interface MediaPayload {
+  url: string;
+  name?: string;
+  kind: string;
 }
 
-export async function uploadCsv(cluster: string, project: string, code: string, file: File, token: string) {
+export interface IdfUpsertPayload {
+  title: string;
+  description?: string;
+  site?: string;
+  room?: string;
+  gallery?: MediaPayload[];
+  documents?: MediaPayload[];
+  diagrams?: MediaPayload[];
+  location?: MediaPayload[];
+  dfo?: MediaPayload | null;
+  table?: any | null;
+}
+
+export type IdfCreatePayload = IdfUpsertPayload & { code: string };
+
+export async function createIdf(cluster: string, project: string, payload: IdfCreatePayload) {
+  return requestJson(`/${cluster}/${project}/idfs`, payload, "POST");
+}
+
+export async function updateIdf(cluster: string, project: string, code: string, payload: IdfUpsertPayload) {
+  return requestJson(`/${cluster}/${project}/idfs/${code}`, payload, "PUT");
+}
+
+export async function uploadCsv(cluster: string, project: string, code: string, file: File) {
   const formData = new FormData();
-  formData.append('file', file);
-  formData.append('code', code);
-
-  const url = `${API_BASE}/api/${cluster}/${project}/devices/upload_csv`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    },
-    body: formData
-  });
-
-  if (!response.ok) throw new Error(`Failed to upload CSV: ${response.statusText}`);
-  return response.json();
+  formData.append("file", file);
+  formData.append("code", code);
+  return requestForm(`/${cluster}/${project}/devices/upload_csv`, formData);
 }
 
-export async function uploadAsset(cluster: string, project: string, code: string, file: File, assetType: 'images' | 'documents' | 'diagram', token: string) {
+export async function uploadAsset(
+  cluster: string,
+  project: string,
+  code: string,
+  file: File,
+  assetType: "images" | "documents" | "diagram" | "location",
+) {
   const formData = new FormData();
-  formData.append('file', file);
-  formData.append('code', code);
-
-  const url = `${API_BASE}/api/${cluster}/${project}/assets/${assetType}`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    },
-    body: formData
-  });
-
-  if (!response.ok) throw new Error(`Failed to upload asset: ${response.statusText}`);
-  return response.json();
+  formData.append("file", file);
+  formData.append("code", code);
+  return requestForm(`/${cluster}/${project}/assets/${assetType}`, formData);
 }
 
-export async function uploadLogo(cluster: string, project: string, file: File, token: string) {
+export async function deleteAsset(
+  cluster: string,
+  project: string,
+  code: string,
+  assetType: "images" | "documents" | "diagrams" | "location",
+  index: number,
+) {
+  return request(`/${cluster}/${project}/assets/${code}/${assetType}/${index}`, { method: "DELETE" });
+}
+
+export async function uploadLogo(cluster: string, project: string, file: File) {
   const formData = new FormData();
-  formData.append('file', file);
-
-  const url = `${API_BASE}/api/${cluster}/${project}/assets/logo`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    },
-    body: formData
-  });
-
-  if (!response.ok) throw new Error(`Failed to upload logo: ${response.statusText}`);
-  return response.json();
+  formData.append("file", file);
+  return requestForm(`/${cluster}/${project}/assets/logo`, formData);
 }
 
-export async function getLogo(cluster: string, project: string = 'trinity') {
-  const url = `${API_BASE}/api/${cluster}/${project}/logo`;
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Failed to fetch logo: ${response.statusText}`);
-  return response.json();
+export async function getLogo(cluster: string, project: string) {
+  return request(`/${cluster}/${project}/logo`, { method: "GET" });
 }
 
-export async function uploadIdfLogo({
-  cluster,
-  project,
-  code,
-  file,
-  token,
-}: {
-  cluster: string;
-  project: string;
-  code: string;
-  file: File;
-  token?: string;
-}) {
+export async function uploadIdfLogo(cluster: string, project: string, code: string, file: File) {
   const formData = new FormData();
-  formData.append('file', file);
-
-  const url = `${API_BASE}/api/${cluster}/${project}/assets/${code}/logo`;
-  const headers: Record<string, string> = {};
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || 'Failed to upload IDF logo');
-  }
-  return response.json();
+  formData.append("file", file);
+  return requestForm(`/${cluster}/${project}/assets/${code}/logo`, formData);
 }
 
 export function downloadCsvTemplate() {
-  const headers = ['name', 'model', 'serial', 'rack', 'site', 'notes'];
-  const csvContent = headers.join(',') + '\n';
+  const headers = ["name", "model", "serial", "rack", "site", "notes"];
+  const csvContent = `${headers.join(",")}\n`;
 
-  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const blob = new Blob([csvContent], { type: "text/csv" });
   const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
-  a.download = 'device-template.csv';
+  a.download = "device-template.csv";
   a.click();
   window.URL.revokeObjectURL(url);
 }

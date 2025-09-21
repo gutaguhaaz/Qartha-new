@@ -1,8 +1,10 @@
 import io
 import qrcode
-from fastapi import APIRouter, Response, HTTPException, Request
-from app.db.mongo import database
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+
 from app.core.config import settings
+from app.db.database import database
+from app.routers.auth import get_current_user
 
 
 router = APIRouter(tags=["qr"])
@@ -32,7 +34,13 @@ def _absolute_frontend_url(request: Request, cluster: str, project: str, code: s
 
 
 @router.get("/{cluster}/{project}/idfs/{code}/qr.png")
-async def get_idf_qr_png(cluster: str, project: str, code: str, request: Request):
+async def get_idf_qr_png(
+    cluster: str,
+    project: str,
+    code: str,
+    request: Request,
+    _current_user: dict = Depends(get_current_user),
+):
     # verifica existencia
     doc = await database.fetch_one(
         "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",

@@ -31,7 +31,6 @@ export const config = {
   // Configuración de API
   api: {
     baseUrl: import.meta.env.VITE_API_BASE_URL || "",
-    adminToken: import.meta.env.VITE_ADMIN_TOKEN || "changeme-demo-token",
   },
 
   // Mapeo de URLs

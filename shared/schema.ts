@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Media Item Schema
 export const mediaItemSchema = z.object({
-  url: z.string().url(),
+  url: z.string(),
   name: z.string().optional(),
   kind: z.enum(["image", "document", "diagram"]),
 });
@@ -72,6 +72,8 @@ export const idfPublicSchema = z.object({
   documents: z.array(mediaItemSchema),
   diagrams: z.array(mediaItemSchema),
   dfo: mediaItemSchema.optional(),
+  location: mediaItemSchema.optional(),
+  location_items: z.array(mediaItemSchema).optional(),
   table: idfTableSchema.optional(),
   health: idfHealthSchema.optional(),
   media: idfMediaSchema.optional(),
@@ -83,6 +85,10 @@ export const idfUpsertSchema = z.object({
   description: z.string().optional(),
   site: z.string().optional(),
   room: z.string().optional(),
+  gallery: z.array(mediaItemSchema).optional(),
+  documents: z.array(mediaItemSchema).optional(),
+  diagrams: z.array(mediaItemSchema).optional(),
+  location: z.array(mediaItemSchema).optional(),
   dfo: mediaItemSchema.optional(),
   table: idfTableSchema.optional(),
 });

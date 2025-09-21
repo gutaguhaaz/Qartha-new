@@ -23,9 +23,15 @@ const Login: React.FC = () => {
     try {
       const success = await login(email, password);
       if (success) {
-        // Check for redirect URL in sessionStorage or cookie
-        const redirectTo = sessionStorage.getItem('redirect_to') || '/Trinity/sabinas';
+        const cookieMatch = document.cookie.match(/(?:^|; )redirect_to=([^;]+)/);
+        const cookieRedirect = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
+        const sessionRedirect = sessionStorage.getItem('redirect_to');
+
+        const redirectTo = sessionRedirect || cookieRedirect || '/Trinity/sabinas';
+
         sessionStorage.removeItem('redirect_to');
+        document.cookie = 'redirect_to=; Max-Age=0; path=/; SameSite=Lax';
+
         setLocation(redirectTo);
       } else {
         setError('Invalid credentials. Please try again.');
