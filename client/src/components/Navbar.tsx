@@ -17,7 +17,7 @@ export default function Navbar() {
   );
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isAdmin, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
 
   // Parse current route to update selectors
   useEffect(() => {
@@ -117,14 +117,16 @@ export default function Navbar() {
               </button>
             )}
             <ThemeToggle />
-            <button
-              onClick={() => logout()}
-              className="nav-link"
-              data-testid="button-logout"
-              title="Logout"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            {user && (
+              <button
+                onClick={() => logout()}
+                className="nav-link"
+                data-testid="button-logout"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -202,17 +204,19 @@ export default function Navbar() {
               </button>
             )}
             <ThemeToggle />
-            <button
-              onClick={() => {
-                logout();
-                setIsMenuOpen(false);
-              }}
-              className="nav-link"
-              data-testid="button-logout-mobile"
-              title="Logout"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            {user && (
+              <button
+                onClick={() => {
+                  logout();
+                  setIsMenuOpen(false);
+                }}
+                className="nav-link"
+                data-testid="button-logout-mobile"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </nav>
