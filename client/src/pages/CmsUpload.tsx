@@ -51,15 +51,7 @@ export default function CmsUpload() {
         </p>
       </header>
 
-      <Card>
-        <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <CardTitle>Create a new IDF</CardTitle>
-            <p className="text-sm text-muted-foreground">Launch the wizard to register a new IDF with all associated assets.</p>
-          </div>
-          <AddIdfDialog cluster={cluster} project={project} />
-        </CardHeader>
-      </Card>
+      
 
       <Card>
         <CardHeader>
