@@ -64,6 +64,16 @@ export default function PublicDetail({
     retry: false,
   });
 
+  // Move useMemo before conditional returns to avoid hook order issues
+  const documents = useMemo(() => {
+    if (!idf) return [];
+    const items = [...(idf.documents ?? [])];
+    if (idf.dfo && idf.dfo.kind === "document") {
+      items.push(idf.dfo);
+    }
+    return items;
+  }, [idf]);
+
   const getHealthIndicatorClass = (level?: string) => {
     switch (level) {
       case "green":
@@ -112,7 +122,7 @@ export default function PublicDetail({
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="text-center py-12">
           <i className="fas fa-exclamation-triangle text-4xl text-destructive mb-4"></i>
-          <h2 className="text-xl font-semibold mb-2">Error Loading IDF</h2>
+          <h2 className="text-xl font-semibent mb-2">Error Loading IDF</h2>
           <p className="text-muted-foreground">
             {error instanceof Error ? error.message : "IDF not found"}
           </p>
@@ -136,13 +146,6 @@ export default function PublicDetail({
 
   const apiProject = getApiProject(project);
   const qrUrl = `${window.location.origin}/api/${encodeURIComponent(cluster)}/${encodeURIComponent(apiProject)}/idfs/${encodeURIComponent(code)}/qr.png`;
-  const documents = useMemo(() => {
-    const items = [...(idf.documents ?? [])];
-    if (idf.dfo && idf.dfo.kind === "document") {
-      items.push(idf.dfo);
-    }
-    return items;
-  }, [idf.documents, idf.dfo]);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8" data-testid="public-detail">
