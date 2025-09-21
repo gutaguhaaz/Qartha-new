@@ -1,6 +1,6 @@
-from pydantic import BaseModel, field_validator
-from typing import Optional
+from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
+from typing import Optional
 import re
 
 
@@ -39,5 +39,13 @@ class TokenPayload(BaseModel):
 
 
 class UserLogin(BaseModel):
-    email: str
-    password: str
+    email: EmailStr = Field(..., description="User email address")
+    password: str = Field(..., min_length=1, description="User password")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "email": "lgutierrez@example.com",
+                "password": "123456789"
+            }
+        }
