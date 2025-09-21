@@ -54,36 +54,14 @@ async def get_current_admin(current_user: dict = Depends(get_current_user)) -> d
 
 
 @router.post("/auth/login")
-async def login(request: Request, response: Response):
+async def login(user_data: UserLogin, response: Response):
     """Login user and set HTTP-only cookie"""
     try:
-        # Parse request body manually for debugging
-        body = await request.body()
-        print(f"Raw request body: {body}")
-        
-        if not body:
-            raise HTTPException(status_code=422, detail="Request body is empty")
-        
-        try:
-            json_data = json.loads(body)
-            print(f"Parsed JSON: {json_data}")
-        except json.JSONDecodeError as e:
-            print(f"JSON decode error: {e}")
-            raise HTTPException(status_code=422, detail="Invalid JSON format")
-        
-        # Validate required fields
-        if 'email' not in json_data or 'password' not in json_data:
-            raise HTTPException(status_code=422, detail="Email and password are required")
-        
-        user_data = UserLogin(email=json_data['email'], password=json_data['password'])
-        
         # Verify user credentials
         user = await database.fetch_one(
             "SELECT id, email, password_hash, role, is_active FROM users WHERE email = :email",
             {"email": user_data.email}
         )
-    except HTTPException:
-        raise
     except Exception as e:
         print(f"Database error during login: {e}")
         raise HTTPException(status_code=500, detail="Database error")

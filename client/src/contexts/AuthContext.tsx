@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
@@ -32,6 +31,7 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Added state to track authentication
 
   const readRedirectCookie = () => {
     const match = document.cookie.match(/(?:^|; )redirect_to=([^;]+)/);
@@ -54,12 +54,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
+        setIsAuthenticated(true); // Set isAuthenticated to true if user data is retrieved
       } else {
         setUser(null);
+        setIsAuthenticated(false); // Set isAuthenticated to false if no user data
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       setUser(null);
+      setIsAuthenticated(false); // Set isAuthenticated to false on error
     } finally {
       setLoading(false);
     }
@@ -67,26 +70,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
+      const loginData = { email, password };
+      console.log('Sending login data:', loginData);
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(loginData),
       });
 
+      console.log('Login response status:', response.status);
+
       if (response.ok) {
-        await checkAuth(); // Refresh user data
+        const result = await response.json();
+        console.log('Login successful:', result);
+        setIsAuthenticated(true); // Set isAuthenticated to true on successful login
+        await checkAuth(); // Refresh user data after successful login
         const cookieRedirect = readRedirectCookie();
         if (cookieRedirect) {
           clearRedirectCookie();
         }
         return true;
+      } else {
+        const errorText = await response.text();
+        console.error('Login failed:', errorText);
+        return false;
       }
-      return false;
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Login error:', error);
       return false;
     }
   };
@@ -101,6 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Logout failed:', error);
     } finally {
       setUser(null);
+      setIsAuthenticated(false); // Set isAuthenticated to false on logout
       clearRedirectCookie();
     }
   };
