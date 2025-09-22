@@ -8,6 +8,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { downloadCsvTemplate, uploadCsv } from "@/lib/api";
+import { AdminSidebar } from '../components/AdminSidebar';
+import { DataTable } from '../components/DataTable';
+import { Badge } from '../components/ui/badge';
+
+
+interface IDF {
+  id: number;
+  cluster: string;
+  project: string;
+  code: string;
+  title: string;
+  description: string;
+  site: string;
+  room: string;
+  gallery: string[];
+  documents: string[];
+  diagram: string[];
+  table_data: string[];
+  created_at: string;
+  location: string | null;
+}
+
 
 interface RouteParams {
   cluster: string;
@@ -22,6 +44,11 @@ export default function CmsUpload() {
   const [idfCode, setIdfCode] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+
+  const [idfs, setIdfs] = useState<IDF[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedIdf, setSelectedIdf] = useState<IDF | null>(null);
+
 
   const handleCsvUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -42,6 +69,42 @@ export default function CmsUpload() {
     }
   };
 
+  const loadIdfs = async () => {
+    try {
+      setLoading(true);
+      const data = await api.getAdminIdfs();
+      setIdfs(data);
+    } catch (error) {
+      console.error('Failed to load IDFs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadIdfs();
+  }, []);
+
+  const handleIdfAdded = () => {
+    loadIdfs(); // Reload the list when a new IDF is added
+  };
+
+  const handleIdfSelected = (idf: IDF | null) => {
+    setSelectedIdf(idf);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen">
+        <AdminSidebar onIdfAdded={handleIdfAdded} onIdfSelected={handleIdfSelected} />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-lg">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-8" data-testid="cms-upload">
       <header className="flex flex-col gap-2">
@@ -51,7 +114,7 @@ export default function CmsUpload() {
         </p>
       </header>
 
-      
+
 
       <Card>
         <CardHeader>
