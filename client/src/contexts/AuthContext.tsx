@@ -130,6 +130,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Clear any stored tokens in localStorage/sessionStorage
       localStorage.removeItem('access_token');
       sessionStorage.removeItem('access_token');
+      
+      // Force redirect to login page
+      window.location.href = '/login';
     }
   };
 
