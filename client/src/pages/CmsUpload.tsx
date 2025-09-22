@@ -72,7 +72,7 @@ export default function CmsUpload() {
   const loadIdfs = async () => {
     try {
       setLoading(true);
-      const data = await getIdfs(cluster, project, { limit: 200, include_health: 0 });
+      const data = await getIdfs(cluster, project, { limit: 100, include_health: 0 });
       setIdfs(data);
     } catch (error) {
       console.error('Failed to load IDFs:', error);
