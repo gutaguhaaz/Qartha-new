@@ -148,6 +148,15 @@
     @apply bg-primary text-primary-foreground;
   }
 
+  /* Admin panel tabs improvements */
+  .admin-tabs .tab-trigger {
+    @apply flex-1 text-xs whitespace-nowrap overflow-hidden text-ellipsis;
+  }
+
+  .admin-tabs [data-state="active"] {
+    @apply bg-primary text-primary-foreground;
+  }
+
   /* Custom spinning animation for admin gear */
   .animate-spin {
     animation: spin 3s linear infinite !important;

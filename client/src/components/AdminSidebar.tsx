@@ -345,10 +345,14 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
               </div>
 
               {detail ? (
-                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)}>
-                  <TabsList className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)} className="admin-tabs">
+                  <TabsList className="grid grid-cols-6 w-full gap-1 h-auto p-1">
                     {TABS.map((tab) => (
-                      <TabsTrigger key={tab.value} value={tab.value} className="text-xs">
+                      <TabsTrigger 
+                        key={tab.value} 
+                        value={tab.value} 
+                        className="text-xs px-1.5 py-2 min-w-0 tab-trigger whitespace-nowrap"
+                      >
                         {tab.label}
                       </TabsTrigger>
                     ))}
