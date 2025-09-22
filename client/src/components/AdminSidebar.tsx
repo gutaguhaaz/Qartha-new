@@ -89,7 +89,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
   const idfsQuery = useQuery({
     queryKey: ["admin", "idfs", selectedCluster, selectedProject],
     queryFn: async () => {
-      const response = await getIdfs(selectedCluster, selectedProject, { limit: 200, include_health: 0 });
+      const response = await getIdfs(selectedCluster, selectedProject, { limit: 100, include_health: 0 });
       return response as IdfPublic[];
     },
     enabled: isOpen,
