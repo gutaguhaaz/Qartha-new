@@ -55,8 +55,31 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Background Video */}
+      <div className="absolute inset-0 z-0">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          poster="/static/assets/intro-login.jpg"
+        >
+          <source src="/static/assets/intro-login.webm" type="video/webm" />
+          <source src="/static/assets/intro-login.mp4" type="video/mp4" />
+          {/* Fallback image if video doesn't load */}
+          <img 
+            src="/static/assets/intro-login.jpg" 
+            alt="Login background" 
+            className="w-full h-full object-cover"
+          />
+        </video>
+        {/* Dark overlay for better readability */}
+        <div className="absolute inset-0 bg-black/40"></div>
+      </div>
+
+      <Card className="w-full max-w-md relative z-10 backdrop-blur-sm bg-white/95 border-white/20 shadow-2xl">
         <CardHeader>
           <CardTitle className="text-center text-2xl">
             Access Technical Fiber Optic Information Portal Login
