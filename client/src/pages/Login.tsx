@@ -79,7 +79,7 @@ const Login: React.FC = () => {
         <div className="absolute inset-0 bg-black/40"></div>
       </div>
 
-      <Card className="w-full max-w-md relative z-10 backdrop-blur-sm bg-white/95 border-white/20 shadow-2xl">
+      <Card className="w-full max-w-md relative z-10 backdrop-blur-sm bg-white/95 border-white/20 shadow-2xl dark:bg-primary dark:border-primary/20">
         <CardHeader>
           <CardTitle className="text-center text-2xl">
             Access Technical Fiber Optic Information Portal Login
