@@ -6,6 +6,7 @@ import { Settings, Menu, X, LogOut } from "lucide-react";
 import { config, getProjectsForCluster } from "../config";
 import Logo from "./Logo"; // ajusta la ruta si tu Navbar está en otra carpeta
 import { useAuth } from "@/contexts/AuthContext";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export default function Navbar() {
   const [location] = useLocation();
@@ -17,6 +18,7 @@ export default function Navbar() {
   );
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const { user, isAdmin, logout } = useAuth();
 
   // Parse current route to update selectors
@@ -119,7 +121,7 @@ export default function Navbar() {
             <ThemeToggle />
             {user && (
               <button
-                onClick={() => logout()}
+                onClick={() => setShowLogoutConfirm(true)}
                 className="nav-link"
                 data-testid="button-logout"
                 title="Logout"
@@ -207,7 +209,7 @@ export default function Navbar() {
             {user && (
               <button
                 onClick={() => {
-                  logout();
+                  setShowLogoutConfirm(true);
                   setIsMenuOpen(false);
                 }}
                 className="nav-link"
@@ -224,6 +226,17 @@ export default function Navbar() {
       <AdminSidebar
         isOpen={isAdminOpen}
         onClose={() => setIsAdminOpen(false)}
+      />
+
+      <ConfirmDialog
+        open={showLogoutConfirm}
+        onOpenChange={setShowLogoutConfirm}
+        title="Sign Out"
+        description="Are you sure you want to sign out? You will need to log in again to access the system."
+        confirmText="Yes, Sign Out"
+        cancelText="Cancel"
+        onConfirm={logout}
+        variant="destructive"
       />
     </>
   );
