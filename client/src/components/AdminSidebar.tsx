@@ -56,8 +56,8 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
   const { isAdmin } = useAuth();
 
   const [activeTab, setActiveTab] = useState<TabValue>("general");
-  const [selectedCluster, setSelectedCluster] = useState(preloadIdf?.cluster ?? config.defaults.cluster);
-  const [selectedProject, setSelectedProject] = useState(normalizeProject(preloadIdf?.project ?? config.defaults.project));
+  const [selectedCluster, setSelectedCluster] = useState(preloadIdf?.cluster ?? "Trinity");
+  const [selectedProject, setSelectedProject] = useState(preloadIdf?.project ?? "Sabinas Project");
   const [selectedCode, setSelectedCode] = useState(preloadIdf?.code ?? "");
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -301,11 +301,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                     }}
                     className="w-full rounded border border-border bg-input px-3 py-2 text-sm"
                   >
-                    {config.clusters.available.map((cluster) => (
-                      <option key={cluster} value={cluster}>
-                        {cluster}
-                      </option>
-                    ))}
+                    <option value="Trinity">Trinity</option>
                   </select>
                 </div>
                 <div className="space-y-2">

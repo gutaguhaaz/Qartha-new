@@ -2,30 +2,21 @@
 export const config = {
   // Configuración de clusters y proyectos
   clusters: {
-    available: ["Trinity"],
-    default: "Trinity",
+    available: ["Trinity"] as const,
   },
 
   // Configuración de proyectos por cluster
   projects: {
     Trinity: [
-      {
-        value: "sabinas",
-        label: "Sabinas Project",
-        apiValue: "Sabinas Project",
-      },
-      {
-        value: "monclova",
-        label: "Monclova Project",
-        apiValue: "Monclova Project",
-      },
+      { value: "Sabinas Project", label: "Sabinas Project" },
+      { value: "Monclova Project", label: "Monclova Project" },
     ],
-  },
+  } as const,
 
   // Configuración por defecto
   defaults: {
-    cluster: "Trinity",
-    project: "sabinas",
+    cluster: "Trinity" as const,
+    project: "Sabinas Project" as const,
   },
 
   // Configuración de API
