@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { X, Trash2, Save, ImageIcon, FileIcon } from "lucide-react";
+import { X, Trash2, Save, ImageIcon, FileIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +59,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
   const [selectedCluster, setSelectedCluster] = useState(preloadIdf?.cluster ?? config.defaults.cluster);
   const [selectedProject, setSelectedProject] = useState(normalizeProject(preloadIdf?.project ?? config.defaults.project));
   const [selectedCode, setSelectedCode] = useState(preloadIdf?.code ?? "");
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const [generalForm, setGeneralForm] = useState({ title: "", description: "", site: "", room: "" });
   const [gallery, setGallery] = useState<MediaList>([]);
@@ -261,237 +264,249 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
   const detail = idfDetailQuery.data;
 
   return (
-    <div className="fixed inset-0 z-50 flex">
-      <div className="fixed inset-0 bg-black/40" onClick={closeSidebar} />
-      <aside className="relative ml-auto flex h-full w-full max-w-3xl flex-col bg-background shadow-xl">
-        <header className="flex items-center justify-between border-b border-border px-6 py-4">
-          <div>
-            <h2 className="text-lg font-semibold">Admin Panel</h2>
-            <p className="text-sm text-muted-foreground">Manage IDF content and assets</p>
-          </div>
-          <Button variant="ghost" size="icon" onClick={closeSidebar}>
-            <X className="h-5 w-5" />
-          </Button>
-        </header>
-
-        <ScrollArea className="flex-1 px-6 py-4">
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label>Cluster</Label>
-                <select
-                  value={selectedCluster}
-                  onChange={(event) => {
-                    setSelectedCluster(event.target.value);
-                    setSelectedCode("");
-                  }}
-                  className="w-full rounded border border-border bg-input px-3 py-2 text-sm"
-                >
-                  {config.clusters.available.map((cluster) => (
-                    <option key={cluster} value={cluster}>
-                      {cluster}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label>Project</Label>
-                <select
-                  value={selectedProject}
-                  onChange={(event) => {
-                    setSelectedProject(event.target.value);
-                    setSelectedCode("");
-                  }}
-                  className="w-full rounded border border-border bg-input px-3 py-2 text-sm"
-                >
-                  {projects.map((project) => (
-                    <option key={project.value} value={project.value}>
-                      {project.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label>IDF</Label>
-                <select
-                  value={selectedCode}
-                  onChange={(event) => setSelectedCode(event.target.value)}
-                  className="w-full rounded border border-border bg-input px-3 py-2 text-sm"
-                >
-                  <option value="" disabled>
-                    Select IDF
-                  </option>
-                  {idfList.map((idf) => (
-                    <option key={idf.code} value={idf.code}>
-                      {idf.code} — {idf.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
+    <TooltipProvider>
+      <div className={`fixed inset-0 z-50 flex transition-all duration-300 ${isExpanded ? "w-full" : "w-auto"}`}>
+        <div className={`fixed inset-0 bg-black/40 transition-opacity duration-300 ${isExpanded ? "opacity-100" : "opacity-0"}`} onClick={isExpanded ? closeSidebar : undefined} />
+        <aside className={`relative flex h-full flex-col bg-background shadow-xl transition-all duration-300 ${isExpanded ? "ml-0 w-full" : "ml-auto w-full max-w-3xl"}`}>
+          <header className="flex items-center justify-between border-b border-border px-6 py-4">
+            <div>
+              <h2 className="text-lg font-semibold">Admin Panel</h2>
+              <p className="text-sm text-muted-foreground">Manage IDF content and assets</p>
             </div>
+            <div className="flex items-center space-x-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" onClick={() => setIsExpanded((prev) => !prev)}>
+                    {isExpanded ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">{isExpanded ? "Collapse Panel" : "Expand Panel"}</TooltipContent>
+              </Tooltip>
+              <Button variant="ghost" size="icon" onClick={closeSidebar}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+          </header>
 
-            {detail ? (
-              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)}>
-                <TabsList className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {TABS.map((tab) => (
-                    <TabsTrigger key={tab.value} value={tab.value} className="text-xs">
-                      {tab.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
+          <ScrollArea className="flex-1 px-6 py-4">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <Label>Cluster</Label>
+                  <select
+                    value={selectedCluster}
+                    onChange={(event) => {
+                      setSelectedCluster(event.target.value);
+                      setSelectedCode("");
+                    }}
+                    className="w-full rounded border border-border bg-input px-3 py-2 text-sm"
+                  >
+                    {config.clusters.available.map((cluster) => (
+                      <option key={cluster} value={cluster}>
+                        {cluster}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Project</Label>
+                  <select
+                    value={selectedProject}
+                    onChange={(event) => {
+                      setSelectedProject(event.target.value);
+                      setSelectedCode("");
+                    }}
+                    className="w-full rounded border border-border bg-input px-3 py-2 text-sm"
+                  >
+                    {projects.map((project) => (
+                      <option key={project.value} value={project.value}>
+                        {project.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label>IDF</Label>
+                  <select
+                    value={selectedCode}
+                    onChange={(event) => setSelectedCode(event.target.value)}
+                    className="w-full rounded border border-border bg-input px-3 py-2 text-sm"
+                  >
+                    <option value="" disabled>
+                      Select IDF
+                    </option>
+                    {idfList.map((idf) => (
+                      <option key={idf.code} value={idf.code}>
+                        {idf.code} — {idf.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-                <TabsContent value="general" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>General information</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                          <Label htmlFor="idf-title">Title</Label>
-                          <Input
-                            id="idf-title"
-                            value={generalForm.title}
-                            onChange={(event) => setGeneralForm((prev) => ({ ...prev, title: event.target.value }))}
-                          />
+              {detail ? (
+                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)}>
+                  <TabsList className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {TABS.map((tab) => (
+                      <TabsTrigger key={tab.value} value={tab.value} className="text-xs">
+                        {tab.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+
+                  <TabsContent value="general" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>General information</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                          <div>
+                            <Label htmlFor="idf-title">Title</Label>
+                            <Input
+                              id="idf-title"
+                              value={generalForm.title}
+                              onChange={(event) => setGeneralForm((prev) => ({ ...prev, title: event.target.value }))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="idf-site">Site</Label>
+                            <Input
+                              id="idf-site"
+                              value={generalForm.site}
+                              onChange={(event) => setGeneralForm((prev) => ({ ...prev, site: event.target.value }))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="idf-room">Room</Label>
+                            <Input
+                              id="idf-room"
+                              value={generalForm.room}
+                              onChange={(event) => setGeneralForm((prev) => ({ ...prev, room: event.target.value }))}
+                            />
+                          </div>
                         </div>
                         <div>
-                          <Label htmlFor="idf-site">Site</Label>
-                          <Input
-                            id="idf-site"
-                            value={generalForm.site}
-                            onChange={(event) => setGeneralForm((prev) => ({ ...prev, site: event.target.value }))}
+                          <Label htmlFor="idf-description">Description</Label>
+                          <Textarea
+                            id="idf-description"
+                            rows={4}
+                            value={generalForm.description}
+                            onChange={(event) => setGeneralForm((prev) => ({ ...prev, description: event.target.value }))}
                           />
                         </div>
-                        <div>
-                          <Label htmlFor="idf-room">Room</Label>
-                          <Input
-                            id="idf-room"
-                            value={generalForm.room}
-                            onChange={(event) => setGeneralForm((prev) => ({ ...prev, room: event.target.value }))}
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="idf-description">Description</Label>
-                        <Textarea
-                          id="idf-description"
-                          rows={4}
-                          value={generalForm.description}
-                          onChange={(event) => setGeneralForm((prev) => ({ ...prev, description: event.target.value }))}
-                        />
-                      </div>
-                      <div className="flex justify-end">
-                        <Button onClick={handleSaveGeneral}>
-                          <Save className="mr-2 h-4 w-4" /> Save changes
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="dfo" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Logo</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {logoPreview ? (
-                        <img src={logoPreview} alt="IDF logo" className="h-20 w-20 rounded border border-border object-contain" />
-                      ) : (
-                        <p className="text-sm text-muted-foreground">No logo uploaded</p>
-                      )}
-                      <div>
-                        <Label htmlFor="idf-logo-upload">Upload logo</Label>
-                        <Input
-                          id="idf-logo-upload"
-                          type="file"
-                          accept="image/*"
-                          onChange={(event) => handleUploadLogo(event.target.files)}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>DFO</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {dfo ? (
-                        <div className="flex items-center justify-between rounded border border-border px-3 py-2 text-sm">
-                          <span>{dfo.name ?? dfo.url}</span>
-                          <Button variant="ghost" size="sm" onClick={handleRemoveDfo}>
-                            Remove
+                        <div className="flex justify-end">
+                          <Button onClick={handleSaveGeneral}>
+                            <Save className="mr-2 h-4 w-4" /> Save changes
                           </Button>
                         </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">No DFO associated</p>
-                      )}
-                      <div>
-                        <Label htmlFor="dfo-upload">Upload new DFO</Label>
-                        <Input
-                          id="dfo-upload"
-                          type="file"
-                          accept="image/*,application/pdf"
-                          onChange={(event) => handleUploadDfo(event.target.files)}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
 
-                <TabsContent value="gallery" className="space-y-4">
-                  <AssetSection
-                    title="Gallery images"
-                    description="Upload high quality images for the gallery"
-                    items={gallery}
-                    onUpload={(files) => handleUploadAsset("images", files)}
-                    onDelete={(index) => handleDeleteAsset("images", index)}
-                    accept="image/*"
-                  />
-                </TabsContent>
+                  <TabsContent value="dfo" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Logo</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {logoPreview ? (
+                          <img src={logoPreview} alt="IDF logo" className="h-20 w-20 rounded border border-border object-contain" />
+                        ) : (
+                          <p className="text-sm text-muted-foreground">No logo uploaded</p>
+                        )}
+                        <div>
+                          <Label htmlFor="idf-logo-upload">Upload logo</Label>
+                          <Input
+                            id="idf-logo-upload"
+                            type="file"
+                            accept="image/*"
+                            onChange={(event) => handleUploadLogo(event.target.files)}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                <TabsContent value="location" className="space-y-4">
-                  <AssetSection
-                    title="Location"
-                    description="Upload blueprints or location photos"
-                    items={locationItems}
-                    onUpload={(files) => handleUploadAsset("location", files)}
-                    onDelete={(index) => handleDeleteAsset("location", index)}
-                    accept="image/*"
-                  />
-                </TabsContent>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>DFO</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {dfo ? (
+                          <div className="flex items-center justify-between rounded border border-border px-3 py-2 text-sm">
+                            <span>{dfo.name ?? dfo.url}</span>
+                            <Button variant="ghost" size="sm" onClick={handleRemoveDfo}>
+                              Remove
+                            </Button>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">No DFO associated</p>
+                        )}
+                        <div>
+                          <Label htmlFor="dfo-upload">Upload new DFO</Label>
+                          <Input
+                            id="dfo-upload"
+                            type="file"
+                            accept="image/*,application/pdf"
+                            onChange={(event) => handleUploadDfo(event.target.files)}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
 
-                <TabsContent value="diagrams" className="space-y-4">
-                  <AssetSection
-                    title="Diagrams"
-                    description="Upload network diagrams"
-                    items={diagrams}
-                    onUpload={(files) => handleUploadAsset("diagram", files)}
-                    onDelete={(index) => handleDeleteAsset("diagrams", index)}
-                    accept="image/*,application/pdf"
-                  />
-                </TabsContent>
+                  <TabsContent value="gallery" className="space-y-4">
+                    <AssetSection
+                      title="Gallery images"
+                      description="Upload high quality images for the gallery"
+                      items={gallery}
+                      onUpload={(files) => handleUploadAsset("images", files)}
+                      onDelete={(index) => handleDeleteAsset("images", index)}
+                      accept="image/*"
+                    />
+                  </TabsContent>
 
-                <TabsContent value="documents" className="space-y-4">
-                  <AssetSection
-                    title="Documents"
-                    description="Upload related documentation"
-                    items={documents}
-                    onUpload={(files) => handleUploadAsset("documents", files)}
-                    onDelete={(index) => handleDeleteAsset("documents", index)}
-                    accept=".pdf,.doc,.docx,.xls,.xlsx"
-                  />
-                </TabsContent>
-              </Tabs>
-            ) : (
-              <p className="text-sm text-muted-foreground">Select an IDF to begin editing.</p>
-            )}
-          </div>
-        </ScrollArea>
-      </aside>
-    </div>
+                  <TabsContent value="location" className="space-y-4">
+                    <AssetSection
+                      title="Location"
+                      description="Upload blueprints or location photos"
+                      items={locationItems}
+                      onUpload={(files) => handleUploadAsset("location", files)}
+                      onDelete={(index) => handleDeleteAsset("location", index)}
+                      accept="image/*"
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="diagrams" className="space-y-4">
+                    <AssetSection
+                      title="Diagrams"
+                      description="Upload network diagrams"
+                      items={diagrams}
+                      onUpload={(files) => handleUploadAsset("diagram", files)}
+                      onDelete={(index) => handleDeleteAsset("diagrams", index)}
+                      accept="image/*,application/pdf"
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="documents" className="space-y-4">
+                    <AssetSection
+                      title="Documents"
+                      description="Upload related documentation"
+                      items={documents}
+                      onUpload={(files) => handleUploadAsset("documents", files)}
+                      onDelete={(index) => handleDeleteAsset("documents", index)}
+                      accept=".pdf,.doc,.docx,.xls,.xlsx"
+                    />
+                  </TabsContent>
+                </Tabs>
+              ) : (
+                <p className="text-sm text-muted-foreground">Select an IDF to begin editing.</p>
+              )}
+            </div>
+          </ScrollArea>
+        </aside>
+      </div>
+    </TooltipProvider>
   );
 }
 
