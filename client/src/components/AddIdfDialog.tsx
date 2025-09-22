@@ -262,6 +262,28 @@ export default function AddIdfDialog({
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Show current cluster and project context */}
+          <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg border">
+            <div className="space-y-2">
+              <Label htmlFor="cluster-context">Cluster</Label>
+              <Input
+                id="cluster-context"
+                value={cluster}
+                disabled
+                className="bg-muted"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="project-context">Project</Label>
+              <Input
+                id="project-context"
+                value={project}
+                disabled
+                className="bg-muted"
+              />
+            </div>
+          </div>
+
           <Tabs value={step} onValueChange={(value) => setStep(value as Step)}>
             <TabsList className="grid grid-cols-3 lg:grid-cols-6 gap-2">
               {steps.map((item) => (
