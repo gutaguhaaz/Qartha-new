@@ -1,0 +1,47 @@
+PROMPT PARA CODEX
+
+Corrige la carga del “GET” de IDF y conecta los 3 selects del Admin Panel sin modificar nada del backend que ya funciona ni la estructura/UX actual.
+
+Reglas estrictas:
+
+No cambies ni elimines métodos/endpoints existentes del backend.
+
+Si ya existen métodos para obtener idfs/opciones, reutilízalos tal cual (mismos nombres, firmas y modelos).
+
+Si un endpoint devuelve la lista completa, deduplica en el frontend para poblar selects (no crees ni cambies endpoints del back).
+
+Selects (mantener etiqueta visible “IDF” para el tercero):
+
+Cluster: poblar con valores únicos (string) de la columna cluster presentes en la data de idfs.
+
+Project: poblar con valores únicos (string) de project, filtrados por el cluster seleccionado (si ya hay endpoint de opciones, úsalo; si no, filtra en frontend).
+
+IDF (etiqueta “IDF”): poblar con valores únicos (string) de code, filtrados por cluster y project (reutiliza métodos vigentes; si no hay endpoint de opciones, filtra en frontend).
+
+Consulta final:
+
+Cuando estén seleccionados cluster, project y code, invoca el GET existente que devuelve registros de la tabla idfs (usa los parámetros tal como ya los espera ese método; si el método devuelve todo, filtra en el frontend por esos tres campos).
+
+Renderiza abajo la(s) fila(s) retornadas, usando el componente de detalle/lista ya existente (sin cambiar su layout ni estilos).
+
+Lógica de datos en el frontend:
+
+Todas las columnas son string (cluster, project, code).
+
+Para llenar selects: mapear y deduplicar (únicos) y ordenar alfabéticamente.
+
+Las iguales solo aparecen una vez.
+
+No tocar:
+
+No modifiques contratos del back, rutas, modelos, controladores ni servicios existentes.
+
+No cambies estilos, layout, ni la etiqueta del tercer select (“IDF”).
+
+Solo “wirea” los selects y la carga del detalle usando los métodos actuales.
+
+Entrega:
+
+Reutiliza los métodos ya presentes para obtener idfs y mostrar opciones únicas en los 3 selects.
+
+Al tener las 3 selecciones, muestra el registro correspondiente de idfs debajo, usando el componente actual.
