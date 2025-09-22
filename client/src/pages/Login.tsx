@@ -69,9 +69,9 @@ const Login: React.FC = () => {
           <source src="/static/assets/intro-login.webm" type="video/webm" />
           <source src="/static/assets/intro-login.mp4" type="video/mp4" />
           {/* Fallback image if video doesn't load */}
-          <img 
-            src="/static/assets/intro-login.jpg" 
-            alt="Login background" 
+          <img
+            src="/static/assets/intro-login.jpg"
+            alt="Login background"
             className="w-full h-full object-cover"
           />
         </video>
@@ -79,7 +79,7 @@ const Login: React.FC = () => {
         <div className="absolute inset-0 bg-black/40"></div>
       </div>
 
-      <Card className="w-full max-w-md relative z-10 backdrop-blur-sm bg-white/95 border-white/20 shadow-2xl dark:bg-primary dark:border-primary/20">
+      <Card className="w-full max-w-md relative z-10 backdrop-blur-sm ">
         <CardHeader>
           <CardTitle className="text-center text-2xl">
             Access Technical Fiber Optic Information Portal Login
