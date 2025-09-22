@@ -1,4 +1,4 @@
-import { Route, Router, useLocation } from "wouter";
+import { Route, Router } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -12,40 +12,7 @@ import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/not-found";
 import { AuthProvider } from "./contexts/AuthContext";
-import { useEffect } from "react";
-
 const queryClient = new QueryClient();
-
-function RouteHandler() {
-  const [location, navigate] = useLocation();
-
-  useEffect(() => {
-    // If user is at root or just cluster/project without trailing slash, redirect to list
-    const pathParts = location.split("/").filter(Boolean);
-
-    // Handle root path - show cluster directory
-    if (location === "/") {
-      // Stay on root to show cluster directory
-      return;
-    }
-
-    // Handle cluster/project path without specific route
-    if (pathParts.length === 2 && !location.includes("/idf/") && !location.includes("/admin")) {
-      // Already at the correct path for PublicList
-      return;
-    }
-  }, [location, navigate]);
-
-  return (
-    <>
-      <Route path="/" component={ClusterDirectory} />
-      <Route path="/:cluster/:project" component={PublicList} />
-      <Route path="/:cluster/:project/idf/:code" component={PublicDetail} />
-      <Route path="/:cluster/:project/admin" component={CmsUpload} />
-      <Route component={NotFound} />
-    </>
-  );
-}
 
 function App() {
   const currentYear = new Date().getFullYear();
@@ -61,8 +28,28 @@ function App() {
                 <Route path="/login" component={Login} />
                 <Route path="/403" component={() => <div className="min-h-screen flex items-center justify-center"><div className="text-lg">Access Denied - Admin required</div></div>} />
                 <Route path="/" component={ClusterDirectory} />
-                <Route path="/:cluster/:project" component={PublicList} />
-                <Route path="/:cluster/:project/idf/:code" component={PublicDetail} />
+                <Route path="/:cluster/:project/idf/:code">
+                  {(params) => (
+                    <ProtectedRoute>
+                      <PublicDetail
+                        params={
+                          params as {
+                            cluster: string;
+                            project: string;
+                            code: string;
+                          }
+                        }
+                      />
+                    </ProtectedRoute>
+                  )}
+                </Route>
+                <Route path="/:cluster/:project">
+                  {() => (
+                    <ProtectedRoute>
+                      <PublicList />
+                    </ProtectedRoute>
+                  )}
+                </Route>
                 <Route path="/:cluster/:project/cms">
                   {() => (
                     <ProtectedRoute requireAdmin>

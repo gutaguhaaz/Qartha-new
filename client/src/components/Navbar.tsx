@@ -8,7 +8,7 @@ import Logo from "./Logo"; // ajusta la ruta si tu Navbar está en otra carpeta
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Navbar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [selectedCluster, setSelectedCluster] = useState(
     config.defaults.cluster,
   );
@@ -17,7 +17,12 @@ export default function Navbar() {
   );
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isAdmin, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
+
+  const handleLogout = async () => {
+    setLocation('/login');
+    await logout();
+  };
 
   // Parse current route to update selectors
   useEffect(() => {
@@ -117,14 +122,16 @@ export default function Navbar() {
               </button>
             )}
             <ThemeToggle />
-            <button
-              onClick={() => logout()}
-              className="nav-link"
-              data-testid="button-logout"
-              title="Logout"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            {user && (
+              <button
+                onClick={handleLogout}
+                className="nav-link"
+                data-testid="button-logout"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -202,17 +209,19 @@ export default function Navbar() {
               </button>
             )}
             <ThemeToggle />
-            <button
-              onClick={() => {
-                logout();
-                setIsMenuOpen(false);
-              }}
-              className="nav-link"
-              data-testid="button-logout-mobile"
-              title="Logout"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            {user && (
+              <button
+                onClick={async () => {
+                  setIsMenuOpen(false);
+                  await handleLogout();
+                }}
+                className="nav-link"
+                data-testid="button-logout-mobile"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </nav>

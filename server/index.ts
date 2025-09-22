@@ -16,22 +16,62 @@ app.use('/static', express.static(path.resolve(process.cwd(), 'static')));
 app.use('/api', async (req, res) => {
   try {
     const proxyUrl = `http://0.0.0.0:8000${req.originalUrl}`;
-    
+
+    const headers: Record<string, string> = {};
+    for (const [key, value] of Object.entries(req.headers)) {
+      if (value === undefined) continue;
+      if (Array.isArray(value)) {
+        headers[key] = value.join(',');
+      } else {
+        headers[key] = value;
+      }
+    }
+
+    delete headers['content-length'];
+    headers['host'] = '0.0.0.0:8000';
+
+    const method = req.method ?? 'GET';
+    const hasBody =
+      method !== 'GET' &&
+      method !== 'HEAD' &&
+      req.body !== undefined &&
+      !(typeof req.body === 'object' && !Buffer.isBuffer(req.body) && Object.keys(req.body).length === 0);
+
+    let body: BodyInit | undefined;
+    if (hasBody) {
+      if (Buffer.isBuffer(req.body)) {
+        body = req.body;
+      } else if (typeof req.body === 'string') {
+        body = req.body;
+      } else {
+        body = JSON.stringify(req.body);
+        if (!headers['content-type']) {
+          headers['content-type'] = 'application/json';
+        }
+      }
+    }
+
     const response = await fetch(proxyUrl, {
-      method: req.method,
-      headers: {
-        ...req.headers,
-        'host': '0.0.0.0:8000'
-      },
-      body: req.method === 'GET' || req.method === 'HEAD' ? undefined : JSON.stringify(req.body)
+      method,
+      headers,
+      body,
     });
 
     // Copy status and headers
     res.status(response.status);
+    const responseHeaders = response.headers as Headers & {
+      getSetCookie?: () => string[];
+    };
+    const setCookies = responseHeaders.getSetCookie?.();
+    if (setCookies && setCookies.length > 0) {
+      res.setHeader('set-cookie', setCookies);
+    }
     response.headers.forEach((value, key) => {
-      if (key.toLowerCase() !== 'content-encoding') {
-        res.setHeader(key, value);
+      const lowerKey = key.toLowerCase();
+      if (lowerKey === 'set-cookie' || lowerKey === 'content-encoding') {
+        return;
       }
+      res.setHeader(key, value);
     });
 
     // Stream the response
@@ -52,7 +92,8 @@ app.use('/api', async (req, res) => {
       res.end();
     }
   } catch (error) {
-    log(`Proxy error: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    log(`Proxy error: ${message}`);
     res.status(500).json({ error: 'Proxy error' });
   }
 });

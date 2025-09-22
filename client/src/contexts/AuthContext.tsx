@@ -31,7 +31,6 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Added state to track authentication
 
   const readRedirectCookie = () => {
     const match = document.cookie.match(/(?:^|; )redirect_to=([^;]+)/);
@@ -54,15 +53,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
-        setIsAuthenticated(true); // Set isAuthenticated to true if user data is retrieved
       } else {
         setUser(null);
-        setIsAuthenticated(false); // Set isAuthenticated to false if no user data
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       setUser(null);
-      setIsAuthenticated(false); // Set isAuthenticated to false on error
     } finally {
       setLoading(false);
     }
@@ -88,7 +84,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (response.ok) {
         const result = await response.json();
         console.log('Login successful:', result);
-        setIsAuthenticated(true); // Set isAuthenticated to true on successful login
         await checkAuth(); // Refresh user data after successful login
         const cookieRedirect = readRedirectCookie();
         if (cookieRedirect) {
@@ -124,12 +119,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       // Always clear user state even if logout request fails
       setUser(null);
-      setIsAuthenticated(false);
       clearRedirectCookie();
-      
+
       // Clear any stored tokens in localStorage/sessionStorage
       localStorage.removeItem('access_token');
       sessionStorage.removeItem('access_token');
+      sessionStorage.removeItem('redirect_to');
     }
   };
 

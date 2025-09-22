@@ -13,16 +13,29 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin 
   const [location, setLocation] = useLocation();
 
   useEffect(() => {
-    if (!loading) {
-      if (!user) {
+    if (loading) {
+      return;
+    }
+
+    const isAuthRoute = location === '/login';
+    const isForbiddenRoute = location === '/403';
+
+    if (!user) {
+      if (!isAuthRoute && !isForbiddenRoute) {
         // Save current location for redirect after login
         sessionStorage.setItem('redirect_to', location);
         document.cookie = `redirect_to=${encodeURIComponent(location)}; path=/; max-age=300; SameSite=Lax`;
-        setLocation('/login');
-      } else if (requireAdmin && !isAdmin) {
-        // User is authenticated but not admin
-        setLocation('/403');
       }
+
+      if (!isAuthRoute) {
+        setLocation('/login');
+      }
+      return;
+    }
+
+    if (requireAdmin && !isAdmin && !isForbiddenRoute) {
+      // User is authenticated but not admin
+      setLocation('/403');
     }
   }, [user, loading, location, setLocation, requireAdmin, isAdmin]);
 
