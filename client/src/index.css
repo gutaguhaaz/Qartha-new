@@ -461,3 +461,7 @@ a[data-testid="link-directory-mobile"] {
     animation: none;
   }
 }
+
+.dark footer {
+  color: white !important;
+}
