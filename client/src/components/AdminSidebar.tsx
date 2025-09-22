@@ -277,7 +277,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="outline" size="icon" onClick={() => setIsExpanded((prev) => !prev)}>
-                    {isExpanded ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                    <i className={`${isExpanded ? 'fa fa-compress' : 'fa fa-expand'} text-sm`}></i>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">{isExpanded ? "Collapse Panel" : "Expand Panel"}</TooltipContent>
