@@ -469,3 +469,13 @@ a[data-testid="link-directory-mobile"] {
 button.create-idf {
   display: none !important;
 }
+
+.bg-card .tracking-tight {
+  color: #002b99;
+  font-weight: bold;
+}
+
+.dark .bg-card .tracking-tight {
+  color: #ffffff !important;
+  font-weight: bold;
+}
