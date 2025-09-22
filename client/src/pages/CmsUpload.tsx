@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRoute } from "wouter";
 
 import AddIdfDialog from "@/components/AddIdfDialog";
@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { downloadCsvTemplate, uploadCsv } from "@/lib/api";
-import { AdminSidebar } from '../components/AdminSidebar';
-import { DataTable } from '../components/DataTable';
-import { Badge } from '../components/ui/badge';
+import { downloadCsvTemplate, uploadCsv, getIdfs } from "@/lib/api";
+import AdminSidebar from '@/components/AdminSidebar';
+import DataTable from '@/components/DataTable';
+import { Badge } from '@/components/ui/badge';
 
 
 interface IDF {
@@ -72,7 +72,7 @@ export default function CmsUpload() {
   const loadIdfs = async () => {
     try {
       setLoading(true);
-      const data = await api.getAdminIdfs();
+      const data = await getIdfs(cluster, project, { limit: 200, include_health: 0 });
       setIdfs(data);
     } catch (error) {
       console.error('Failed to load IDFs:', error);
@@ -93,18 +93,6 @@ export default function CmsUpload() {
     setSelectedIdf(idf);
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-screen">
-        <AdminSidebar onIdfAdded={handleIdfAdded} onIdfSelected={handleIdfSelected} />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-lg">Loading...</div>
-        </div>
-      </div>
-    );
-  }
-
-
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-8" data-testid="cms-upload">
       <header className="flex flex-col gap-2">
@@ -113,6 +101,46 @@ export default function CmsUpload() {
           Create new IDFs, upload device inventories, and manage media assets using the admin panel.
         </p>
       </header>
+
+      {loading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-lg">Loading IDFs...</div>
+        </div>
+      )}
+
+      {selectedIdf && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Selected IDF Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Code</Label>
+                <p className="font-mono">{selectedIdf.code}</p>
+              </div>
+              <div>
+                <Label>Title</Label>
+                <p>{selectedIdf.title}</p>
+              </div>
+              <div>
+                <Label>Site</Label>
+                <p>{selectedIdf.site}</p>
+              </div>
+              <div>
+                <Label>Room</Label>
+                <p>{selectedIdf.room}</p>
+              </div>
+            </div>
+            {selectedIdf.description && (
+              <div className="mt-4">
+                <Label>Description</Label>
+                <p className="text-sm text-muted-foreground">{selectedIdf.description}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
 
 
@@ -168,6 +196,17 @@ export default function CmsUpload() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Admin Sidebar - Always rendered but managed by global state */}
+      <AdminSidebar 
+        isOpen={false} 
+        onClose={() => {}} 
+        preloadIdf={selectedIdf ? {
+          cluster: selectedIdf.cluster,
+          project: selectedIdf.project,
+          code: selectedIdf.code
+        } : undefined}
+      />
     </div>
   );
 }
