@@ -251,7 +251,7 @@ export default function AddIdfDialog({
     <Dialog open={open} onOpenChange={(value) => { setOpen(value); if (!value) resetState(); }}>
       {!controlledOpen && (
         <DialogTrigger asChild>
-          <Button size="sm" disabled={disabled}>
+          <Button size="sm" disabled={disabled} className="create-idf">
             Create IDF
           </Button>
         </DialogTrigger>
