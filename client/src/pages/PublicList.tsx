@@ -254,18 +254,16 @@ export default function PublicList() {
         </div>
       </div>
 
-      {/* IDFs Grid */}
-      {filteredAndSortedIdfs.length === 0 && idfs && idfs.length > 0 && (
-        <div
-          className="text-center py-12 text-muted-foreground"
-          data-testid="empty-state"
-        >
-          <i className="fas fa-search text-4xl mb-4"></i>
-          <h3 className="text-lg font-semibold mb-2">No IDFs Found</h3>
-          <p>Try adjusting your search terms</p>
+      {/* IDF Count */}
+      {filteredAndSortedIdfs.length > 0 && (
+        <div className="text-center py-6 text-muted-foreground">
+          <p className="text-sm">
+            Showing {filteredAndSortedIdfs.length} IDF{filteredAndSortedIdfs.length !== 1 ? 's' : ''} total
+          </p>
         </div>
       )}
 
+      {/* Empty State */}
       {filteredAndSortedIdfs.length === 0 && (!idfs || idfs.length === 0) && (
         <div
           className="text-center py-12 text-muted-foreground"
@@ -274,6 +272,18 @@ export default function PublicList() {
           <i className="fas fa-info-circle text-4xl mb-4"></i>
           <h3 className="text-lg font-semibold mb-2">No IDFs Available</h3>
           <p>There are currently no IDFs to display for this project and cluster.</p>
+        </div>
+      )}
+
+      {/* No Results State */}
+      {filteredAndSortedIdfs.length === 0 && idfs && idfs.length > 0 && (
+        <div
+          className="text-center py-12 text-muted-foreground"
+          data-testid="no-results-state"
+        >
+          <i className="fas fa-search text-4xl mb-4"></i>
+          <h3 className="text-lg font-semibold mb-2">No Results Found</h3>
+          <p>No IDFs match your current search criteria.</p>
         </div>
       )}
 
