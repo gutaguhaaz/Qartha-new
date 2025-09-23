@@ -92,19 +92,58 @@ async def upload_idf_logo_admin(
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=422, detail="File must be an image")
     
+    # Get current IDF to update media field
+    idf = await _get_idf(cluster, db_project, code)
+    media = idf.get("media") or {}
+    if isinstance(media, str):
+        try:
+            media = json.loads(media)
+        except json.JSONDecodeError:
+            media = {}
+    
     # Create directory structure  
     logos_dir = STATIC_ROOT / cluster / project.lower() / "logos"
     logos_dir.mkdir(parents=True, exist_ok=True)
     
     # Save file
-    filename = f"{code}_logo{Path(file.filename or '').suffix}"
+    extension = Path(file.filename or "").suffix or ".png"
+    filename = f"{code}_logo{extension}"
     file_path = logos_dir / filename
     
     with open(file_path, "wb") as f:
         content = await file.read()
         f.write(content)
     
-    return {"message": "IDF logo uploaded successfully", "path": str(file_path.relative_to(STATIC_ROOT))}
+    # Generate URL
+    url = f"/static/{file_path.relative_to(STATIC_ROOT).as_posix()}"
+    
+    # Update media field
+    media["logo"] = {
+        "name": file.filename or filename,
+        "url": url,
+    }
+    
+    # Update database
+    await database.execute(
+        """
+        UPDATE idfs
+           SET media = :media,
+               updated_at = NOW()
+         WHERE cluster = :cluster AND project = :project AND code = :code
+        """,
+        {
+            "media": json.dumps(media),
+            "cluster": cluster,
+            "project": db_project,
+            "code": code,
+        },
+    )
+    
+    return {
+        "message": "IDF logo uploaded successfully", 
+        "name": media["logo"]["name"],
+        "url": url
+    }
 
 
 @admin_router.post("/{cluster}/{project}/assets/{asset_type}")

@@ -314,9 +314,14 @@ export default function PublicList() {
                       src={idf.media.logo.url.startsWith('http') ? idf.media.logo.url : `${API_BASE}${idf.media.logo.url}`}
                       alt={`${idf.code} logo`}
                       className="h-10 w-10 object-contain rounded border border-border flex-shrink-0"
+                      onLoad={() => {
+                        console.log('IDF logo loaded in list:', idf.media.logo.url);
+                      }}
                       onError={(e) => {
                         console.error('Failed to load IDF logo in list:', idf.media.logo.url);
-                        (e.target as HTMLImageElement).style.display = "none";
+                        console.error('Full URL attempted:', idf.media.logo.url.startsWith('http') ? idf.media.logo.url : `${API_BASE}${idf.media.logo.url}`);
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
                       }}
                     />
                   )}

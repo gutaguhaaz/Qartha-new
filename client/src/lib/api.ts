@@ -189,14 +189,21 @@ export async function getLogo(cluster: string, project: string) {
 
 export async function uploadIdfLogo(cluster: string, project: string, code: string, file: File) {
   const formData = new FormData();
-  formData.append("file", file);
-  
-  // Debug logging
-  console.log("FormData contents:", Array.from(formData.entries()));
-  console.log("File details:", { name: file.name, size: file.size, type: file.type });
-  
-  return requestForm(`/admin/${cluster}/${project}/assets/${code}/logo`, formData);
-}
+  formData.append('file', file);
+
+  const response = await requestForm(
+    `/api/admin/${encodeURIComponent(cluster)}/${encodeURIComponent(project)}/assets/${encodeURIComponent(code)}/logo`,
+    formData,
+    'POST'
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Upload failed: ${error}`);
+  }
+
+  return response.json();
+};
 
 export function downloadCsvTemplate() {
   const headers = ["name", "model", "serial", "rack", "site", "notes"];

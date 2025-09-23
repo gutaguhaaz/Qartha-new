@@ -30,11 +30,16 @@ export default function LogoWidget({
         description: `Logo uploaded successfully`,
       });
       setPreview(null);
-      // Invalidate queries to refresh the IDF data
+      // Invalidate all relevant queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['admin', 'idf-detail', cluster, project, code] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'idfs', cluster, project] });
       queryClient.invalidateQueries({ queryKey: ['/api', cluster, project, 'idfs', code] });
       queryClient.invalidateQueries({ queryKey: ['idfs', cluster, project] });
+      queryClient.invalidateQueries({ queryKey: ['idfs', cluster, project, 'list'] });
+      // Force a complete refetch
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     },
     onError: (error) => {
       toast({
@@ -42,6 +47,7 @@ export default function LogoWidget({
         description: error instanceof Error ? error.message : "Failed to upload logo",
         variant: "destructive",
       });
+      setPreview(null);
     },
   });
 
@@ -109,13 +115,19 @@ export default function LogoWidget({
       {currentLogo && !preview && (
         <div className="relative">
           <img
-            src={currentLogo.url}
+            src={currentLogo.url.startsWith('http') ? currentLogo.url : `${import.meta.env.VITE_API_BASE_URL || ''}${currentLogo.url}`}
             alt={currentLogo.name || 'IDF Logo'}
             className="h-16 w-auto object-contain border rounded"
+            onError={(e) => {
+              console.error('Failed to load logo in widget:', currentLogo.url);
+              const target = e.target as HTMLImageElement;
+              target.src = '/static/assets/placeholder-logo.png';
+              target.onerror = null; // Prevent infinite loop
+            }}
           />
           <div className="text-xs text-muted-foreground mt-1">{currentLogo.name || 'IDF Logo'}</div>
         </div>
-      )}
+      )}</pre>
 
       {/* No Logo State */}
       {!currentLogo && !preview && (
