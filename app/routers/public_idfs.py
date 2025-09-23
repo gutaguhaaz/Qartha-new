@@ -1,6 +1,8 @@
 import json
-from fastapi import APIRouter, Depends, HTTPException, Query
+from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.db.database import database
 from app.models.idf_models import IdfHealth, HealthCounts, IdfIndex, IdfPublic
@@ -53,7 +55,7 @@ def compute_health(table_data: Optional[Dict[str, Any]]):
     rows = table_data.get("rows", [])
     if not rows:
         return {
-            "level": "green", 
+            "level": "green",
             "counts": {"ok": 1, "revision": 0, "falla": 0, "libre": 0, "reservado": 0}
         }
 
@@ -146,17 +148,17 @@ async def get_logo(
 ):
     """Get cluster/project logo from media column"""
     db_project = map_url_project_to_db_project(project)
-    
+
     # Query for any IDF in this cluster/project that has a logo in media
     idf = await database.fetch_one(
-        """SELECT media FROM idfs 
-           WHERE cluster = :cluster AND project = :project 
-           AND media IS NOT NULL 
+        """SELECT media FROM idfs
+           WHERE cluster = :cluster AND project = :project
+           AND media IS NOT NULL
            AND media::text LIKE '%logo%'
            LIMIT 1""",
         {"cluster": cluster, "project": db_project}
     )
-    
+
     if idf and idf["media"]:
         try:
             media_data = json.loads(idf["media"]) if isinstance(idf["media"], str) else idf["media"]
@@ -166,20 +168,19 @@ async def get_logo(
                     return {"url": logo_url}
         except (json.JSONDecodeError, KeyError, TypeError):
             pass
-    
+
     # Fallback to filesystem logo
-    import os
-    project_path = project.lower().replace(" ", "")
-    logo_path = f"static/{cluster}/{project_path}/logo.png"
-    
-    if os.path.exists(logo_path):
-        return {"url": f"/static/{cluster}/{project_path}/logo.png"}
-    
+    project_path_str = project.lower().replace(" ", "")
+    logo_path = Path(f"static/{cluster}/{project_path_str}/logo.png")
+
+    if logo_path.exists():
+        return {"url": f"/static/{cluster}/{project_path_str}/logo.png"}
+
     # Fallback to cluster logo
-    cluster_logo_path = f"static/{cluster}/logo.png"
-    if os.path.exists(cluster_logo_path):
+    cluster_logo_path = Path(f"static/{cluster}/logo.png")
+    if cluster_logo_path.exists():
         return {"url": f"/static/{cluster}/logo.png"}
-    
+
     raise HTTPException(status_code=404, detail="Logo not found")
 
 
@@ -217,7 +218,7 @@ async def get_idf(
                 table_data = json.loads(idf_dict["table_data"])
             else:
                 table_data = idf_dict["table_data"]
-            
+
             # Ensure table_data is either None or a proper dict with columns and rows
             if isinstance(table_data, list):
                 table_data = None

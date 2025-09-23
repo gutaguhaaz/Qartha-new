@@ -21,7 +21,7 @@ const Logo: React.FC<LogoProps> = ({ height = 45, className = "" }) => {
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 3035 233"
         height={height}
-        width="auto"
+        style={{width: 'auto'}}
         aria-label="Trinity Rail Logo"
         role="img"
       >
