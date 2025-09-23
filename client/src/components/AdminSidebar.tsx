@@ -610,25 +610,14 @@ export default function AdminSidebar({
                       <CardContent className="space-y-3">
                         {dfo ? (
                           <div className="space-y-3">
-                            <div className="flex items-center justify-between rounded border border-border px-3 py-2 text-sm">
-                              <span>{dfo.name ?? dfo.url}</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={handleRemoveDfo}
-                              >
-                                Remove
-                              </Button>
-                            </div>
-                            {/* DFO Preview */}
-                            <div className="mt-3">
-                              <Label className="text-sm font-medium">Preview</Label>
-                              <div className="mt-2 rounded border border-border overflow-hidden">
+                            <div className="flex items-start space-x-3 rounded border border-border p-3">
+                              {/* DFO Preview */}
+                              <div className="flex-shrink-0">
                                 {dfo.url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                                   <img
                                     src={dfo.url}
                                     alt={dfo.name || 'DFO Preview'}
-                                    className="w-full h-48 object-contain bg-muted"
+                                    className="w-16 h-16 object-cover rounded border border-border"
                                     onError={(e) => {
                                       const target = e.target as HTMLImageElement;
                                       target.style.display = 'none';
@@ -636,18 +625,37 @@ export default function AdminSidebar({
                                     }}
                                   />
                                 ) : (
-                                  <div className="w-full h-48 flex items-center justify-center bg-muted">
-                                    <div className="text-center">
-                                      <i className="fas fa-file-pdf text-4xl text-red-500 mb-2"></i>
-                                      <p className="text-sm text-muted-foreground">PDF Document</p>
-                                    </div>
+                                  <div className="w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
+                                    <i className="fas fa-file-pdf text-red-500"></i>
                                   </div>
                                 )}
-                                <div className="hidden w-full h-48 flex items-center justify-center bg-muted">
-                                  <div className="text-center">
-                                    <i className="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-2"></i>
-                                    <p className="text-sm text-muted-foreground">Preview not available</p>
-                                  </div>
+                                <div className="hidden w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
+                                  <i className="fas fa-exclamation-triangle text-yellow-500"></i>
+                                </div>
+                              </div>
+                              
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium">DFO Document</span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleRemoveDfo}
+                                  >
+                                    Remove
+                                  </Button>
+                                </div>
+                                <div>
+                                  <Label htmlFor="dfo-name" className="text-xs">Display Name</Label>
+                                  <Input
+                                    id="dfo-name"
+                                    value={dfo.name || ''}
+                                    onChange={(e) => {
+                                      setDfo(prev => prev ? { ...prev, name: e.target.value } : null);
+                                    }}
+                                    placeholder="Enter DFO name"
+                                    className="text-xs"
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -697,31 +705,49 @@ export default function AdminSidebar({
                           {gallery.map((item, index) => (
                             <div
                               key={index}
-                              className="space-y-2 rounded border border-border p-3"
+                              className="flex items-start space-x-3 rounded border border-border p-3"
                             >
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium">Gallery Image {index + 1}</span>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRemoveGalleryItem(index)}
-                                >
-                                  Remove
-                                </Button>
-                              </div>
-                              <div>
-                                <Label htmlFor={`gallery-name-${index}`} className="text-xs">Display Name</Label>
-                                <Input
-                                  id={`gallery-name-${index}`}
-                                  value={item.name || ''}
-                                  onChange={(e) => {
-                                    const newGallery = [...gallery];
-                                    newGallery[index] = { ...item, name: e.target.value };
-                                    setGallery(newGallery);
+                              <div className="flex-shrink-0">
+                                <img
+                                  src={item.url}
+                                  alt={item.name || `Gallery image ${index + 1}`}
+                                  className="w-16 h-16 object-cover rounded border border-border"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    target.nextElementSibling!.style.display = 'flex';
                                   }}
-                                  placeholder="Enter display name"
-                                  className="text-xs"
                                 />
+                                <div className="hidden w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
+                                  <i className="fas fa-exclamation-triangle text-yellow-500"></i>
+                                </div>
+                              </div>
+                              
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium">Gallery Image {index + 1}</span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveGalleryItem(index)}
+                                  >
+                                    Remove
+                                  </Button>
+                                </div>
+                                <div>
+                                  <Label htmlFor={`gallery-name-${index}`} className="text-xs">Display Name</Label>
+                                  <Input
+                                    id={`gallery-name-${index}`}
+                                    value={item.name || ''}
+                                    onChange={(e) => {
+                                      const newGallery = [...gallery];
+                                      newGallery[index] = { ...item, name: e.target.value };
+                                      setGallery(newGallery);
+                                    }}
+                                    placeholder="Enter display name"
+                                    className="text-xs"
+                                  />
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -755,31 +781,49 @@ export default function AdminSidebar({
                           {locationItems.map((item, index) => (
                             <div
                               key={index}
-                              className="space-y-2 rounded border border-border p-3"
+                              className="flex items-start space-x-3 rounded border border-border p-3"
                             >
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium">Location Image {index + 1}</span>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRemoveLocationItem(index)}
-                                >
-                                  Remove
-                                </Button>
-                              </div>
-                              <div>
-                                <Label htmlFor={`location-name-${index}`} className="text-xs">Display Name</Label>
-                                <Input
-                                  id={`location-name-${index}`}
-                                  value={item.name || ''}
-                                  onChange={(e) => {
-                                    const newLocationItems = [...locationItems];
-                                    newLocationItems[index] = { ...item, name: e.target.value };
-                                    setLocationItems(newLocationItems);
+                              <div className="flex-shrink-0">
+                                <img
+                                  src={item.url}
+                                  alt={item.name || `Location image ${index + 1}`}
+                                  className="w-16 h-16 object-cover rounded border border-border"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    target.nextElementSibling!.style.display = 'flex';
                                   }}
-                                  placeholder="Enter location name"
-                                  className="text-xs"
                                 />
+                                <div className="hidden w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
+                                  <i className="fas fa-exclamation-triangle text-yellow-500"></i>
+                                </div>
+                              </div>
+                              
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium">Location Image {index + 1}</span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveLocationItem(index)}
+                                  >
+                                    Remove
+                                  </Button>
+                                </div>
+                                <div>
+                                  <Label htmlFor={`location-name-${index}`} className="text-xs">Display Name</Label>
+                                  <Input
+                                    id={`location-name-${index}`}
+                                    value={item.name || ''}
+                                    onChange={(e) => {
+                                      const newLocationItems = [...locationItems];
+                                      newLocationItems[index] = { ...item, name: e.target.value };
+                                      setLocationItems(newLocationItems);
+                                    }}
+                                    placeholder="Enter location name"
+                                    className="text-xs"
+                                  />
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -817,35 +861,59 @@ export default function AdminSidebar({
                             return (
                               <div
                                 key={index}
-                                className="space-y-2 rounded border border-border p-3"
+                                className="flex items-start space-x-3 rounded border border-border p-3"
                               >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-2">
-                                    {isImage && <i className="fas fa-image text-blue-500"></i>}
-                                    {isPdf && <i className="fas fa-file-pdf text-red-500"></i>}
-                                    <span className="text-sm font-medium">Diagram {index + 1}</span>
+                                <div className="flex-shrink-0">
+                                  {isImage ? (
+                                    <img
+                                      src={item.url}
+                                      alt={item.name || `Diagram ${index + 1}`}
+                                      className="w-16 h-16 object-cover rounded border border-border"
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                        target.nextElementSibling!.style.display = 'flex';
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
+                                      <i className="fas fa-file-pdf text-red-500"></i>
+                                    </div>
+                                  )}
+                                  <div className="hidden w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
+                                    <i className="fas fa-exclamation-triangle text-yellow-500"></i>
                                   </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleRemoveDiagramItem(index)}
-                                  >
-                                    Remove
-                                  </Button>
                                 </div>
-                                <div>
-                                  <Label htmlFor={`diagram-name-${index}`} className="text-xs">Display Name</Label>
-                                  <Input
-                                    id={`diagram-name-${index}`}
-                                    value={item.name || ''}
-                                    onChange={(e) => {
-                                      const newDiagrams = [...diagrams];
-                                      newDiagrams[index] = { ...item, name: e.target.value };
-                                      setDiagrams(newDiagrams);
-                                    }}
-                                    placeholder="Enter diagram name"
-                                    className="text-xs"
-                                  />
+                                
+                                <div className="flex-1 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-2">
+                                      {isImage && <i className="fas fa-image text-blue-500"></i>}
+                                      {isPdf && <i className="fas fa-file-pdf text-red-500"></i>}
+                                      <span className="text-sm font-medium">Diagram {index + 1}</span>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleRemoveDiagramItem(index)}
+                                    >
+                                      Remove
+                                    </Button>
+                                  </div>
+                                  <div>
+                                    <Label htmlFor={`diagram-name-${index}`} className="text-xs">Display Name</Label>
+                                    <Input
+                                      id={`diagram-name-${index}`}
+                                      value={item.name || ''}
+                                      onChange={(e) => {
+                                        const newDiagrams = [...diagrams];
+                                        newDiagrams[index] = { ...item, name: e.target.value };
+                                        setDiagrams(newDiagrams);
+                                      }}
+                                      placeholder="Enter diagram name"
+                                      className="text-xs"
+                                    />
+                                  </div>
                                 </div>
                               </div>
                             );
