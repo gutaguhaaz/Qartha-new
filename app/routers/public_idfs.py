@@ -82,12 +82,26 @@ def convert_relative_to_absolute(paths: Any) -> Any:
     """Convert relative paths to absolute URLs"""
     if paths is None:
         return []
+    elif isinstance(paths, str):
+        if not paths:
+            return []
+        # Try to parse as JSON first
+        try:
+            parsed_paths = json.loads(paths)
+            # If it's a list, process each item
+            if isinstance(parsed_paths, list):
+                return [f"{settings.PUBLIC_BASE_URL}/static/{path}" for path in parsed_paths if path]
+            # If it's a single string, wrap in list
+            elif isinstance(parsed_paths, str) and parsed_paths:
+                return [f"{settings.PUBLIC_BASE_URL}/static/{parsed_paths}"]
+            return []
+        except (json.JSONDecodeError, TypeError):
+            # If not JSON, treat as single path
+            return [f"{settings.PUBLIC_BASE_URL}/static/{paths}"]
     elif isinstance(paths, list):
         if not paths:  # Empty list
             return []
         return [f"{settings.PUBLIC_BASE_URL}/static/{path}" for path in paths if path]
-    elif isinstance(paths, str) and paths:
-        return f"{settings.PUBLIC_BASE_URL}/static/{paths}"
     return []
 
 
@@ -227,6 +241,17 @@ async def get_idf(
         except (json.JSONDecodeError, TypeError):
             table_data = None
 
+    # Helper function to parse JSON fields safely
+    def parse_asset_field(field_data):
+        if field_data is None:
+            return []
+        if isinstance(field_data, str):
+            try:
+                return json.loads(field_data)
+            except (json.JSONDecodeError, TypeError):
+                return field_data
+        return field_data
+
     return IdfPublic(
         cluster=idf_dict["cluster"],
         project=idf_dict["project"],
@@ -235,12 +260,12 @@ async def get_idf(
         description=idf_dict.get("description"),
         site=idf_dict.get("site", ""),
         room=idf_dict.get("room", ""),
-        images=convert_relative_to_absolute(idf_dict.get("images", [])),
-        documents=convert_relative_to_absolute(idf_dict.get("documents", [])),
-        diagrams=convert_relative_to_absolute(idf_dict.get("diagrams", [])),
-        location=convert_relative_to_absolute(idf_dict.get("location")) if idf_dict.get("location") else None,
-        dfo=convert_relative_to_absolute(idf_dict.get("dfo", [])),
-        logo=convert_relative_to_absolute(idf_dict.get("logo")) if idf_dict.get("logo") else None,
+        images=convert_relative_to_absolute(parse_asset_field(idf_dict.get("images", []))),
+        documents=convert_relative_to_absolute(parse_asset_field(idf_dict.get("documents", []))),
+        diagrams=convert_relative_to_absolute(parse_asset_field(idf_dict.get("diagrams", []))),
+        location=convert_relative_to_absolute(parse_asset_field(idf_dict.get("location"))) if idf_dict.get("location") else None,
+        dfo=convert_relative_to_absolute(parse_asset_field(idf_dict.get("dfo", []))),
+        logo=convert_relative_to_absolute(parse_asset_field(idf_dict.get("logo"))) if idf_dict.get("logo") else None,
         table=table_data,
         health=health
     )
