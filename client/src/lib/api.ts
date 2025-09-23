@@ -195,7 +195,7 @@ export async function uploadIdfLogo(cluster: string, project: string, code: stri
   console.log("FormData contents:", Array.from(formData.entries()));
   console.log("File details:", { name: file.name, size: file.size, type: file.type });
   
-  return requestForm(`/${cluster}/${project}/assets/${code}/logo`, formData);
+  return requestForm(`/admin/${cluster}/${project}/assets/${code}/logo`, formData);
 }
 
 export function downloadCsvTemplate() {
