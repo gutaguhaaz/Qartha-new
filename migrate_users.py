@@ -52,30 +52,30 @@ def migrate_users():
             SELECT COUNT(*) FROM information_schema.tables 
             WHERE table_schema = 'public' AND table_name = 'users'
         """)
-            if dev_cur.fetchone()[0] == 0:
+        if dev_cur.fetchone()[0] == 0:
                 print("❌ La tabla 'users' no existe en desarrollo")
                 return False
             
             # 2. Obtener datos de desarrollo
-            dev_cur.execute("SELECT COUNT(*) FROM users")
-            dev_count = dev_cur.fetchone()[0]
-            print(f"📊 Usuarios en desarrollo: {dev_count}")
+        dev_cur.execute("SELECT COUNT(*) FROM users")
+        dev_count = dev_cur.fetchone()[0]
+        print(f"📊 Usuarios en desarrollo: {dev_count}")
             
-            if dev_count == 0:
+        if dev_count == 0:
                 print("⚠️  No hay usuarios en desarrollo para migrar")
                 return False
             
             # 3. Verificar producción y crear backup usando Python en lugar de pg_dump
-            prod_cur.execute("""
+        prod_cur.execute("""
                 SELECT COUNT(*) FROM information_schema.tables 
                 WHERE table_schema = 'public' AND table_name = 'users'
             """)
-            if prod_cur.fetchone()[0] > 0:
-                prod_cur.execute("SELECT COUNT(*) FROM users")
-                prod_count = prod_cur.fetchone()[0]
-                print(f"📊 Usuarios en producción (antes): {prod_count}")
+        if prod_cur.fetchone()[0] > 0:
+        prod_cur.execute("SELECT COUNT(*) FROM users")
+        prod_count = prod_cur.fetchone()[0]
+        print(f"📊 Usuarios en producción (antes): {prod_count}")
                 
-                if prod_count > 0:
+        if prod_count > 0:
                     # Backup usando Python en lugar de pg_dump para evitar problemas de versión
                     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                     backup_file = f"backup_users_{ts}.csv"
