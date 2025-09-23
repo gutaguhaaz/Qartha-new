@@ -59,7 +59,14 @@ function App() {
               <Navbar />
               <main className="flex-1">
                 <Route path="/login" component={Login} />
-                <Route path="/403" component={() => <div className="min-h-screen flex items-center justify-center"><div className="text-lg">Access Denied - Admin required</div></div>} />
+                <Route
+                  path="/403"
+                  component={() => (
+                    <div className="min-h-screen flex items-center justify-center">
+                      <div className="text-lg">Access Denied - Admin required</div>
+                    </div>
+                  )}
+                />
                 <Route path="/" component={ClusterDirectory} />
                 <Route path="/:cluster/:project" component={PublicList} />
                 <Route path="/:cluster/:project/idf/:code" component={PublicDetail} />

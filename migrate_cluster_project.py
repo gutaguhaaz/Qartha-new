@@ -1,8 +1,8 @@
-
 import asyncio
 
 from app.db import close_database, init_database
 from app.db.database import database
+
 
 async def migrate_cluster_project():
     """Migrate cluster and project names to correct structure"""

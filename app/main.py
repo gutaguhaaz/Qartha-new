@@ -1,9 +1,10 @@
 import os
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.db import close_database, ensure_indexes, init_database, seed_data
@@ -13,6 +14,8 @@ from app.routers import admin_idfs, assets, auth, devices, public_idfs, qr
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Manage application startup and shutdown tasks."""
+
     # Startup
     await init_database()
     await ensure_indexes()
@@ -57,7 +60,9 @@ app.include_router(devices.router, prefix="/api")
 @app.get("/api/debug/idfs")
 async def debug_idfs():
     """Debug endpoint to see all IDFs in database"""
-    rows = await database.fetch_all("SELECT cluster, project, code, title FROM idfs LIMIT 20")
+    rows = await database.fetch_all(
+        "SELECT cluster, project, code, title FROM idfs LIMIT 20"
+    )
     return [dict(row) for row in rows]
 
 # Mount frontend static files for deployment
@@ -71,7 +76,6 @@ if os.path.exists("dist") and os.path.exists("dist/index.html"):
     async def serve_spa(full_path: str):
         # If it's an API route, let it 404 naturally
         if full_path.startswith("api/"):
-            from fastapi import HTTPException
             raise HTTPException(status_code=404, detail="Not Found")
 
         # For all other routes, serve the SPA

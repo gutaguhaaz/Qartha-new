@@ -1,10 +1,12 @@
-
 import asyncio
+
 import psycopg2
+
 from app.core.config import settings
 
+
 async def clean_location_data():
-    """Clean location data - convert empty strings and 'null' strings to actual NULL"""
+    """Convert empty or placeholder location values to actual NULL entries."""
     
     # Connect to PostgreSQL directly
     conn = psycopg2.connect(settings.DATABASE_URL)
@@ -55,3 +57,4 @@ async def clean_location_data():
 
 if __name__ == "__main__":
     asyncio.run(clean_location_data())
+
