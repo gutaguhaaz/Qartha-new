@@ -608,11 +608,11 @@ export default function AdminSidebar({
                             <div className="flex items-start space-x-3 rounded border border-border p-3">
                               {/* DFO Preview */}
                               <div className="flex-shrink-0">
-                                {dfo.url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                {dfo.url && dfo.url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                                   <img
                                     src={dfo.url}
-                                    alt={dfo.name || 'DFO Preview'}
-                                    className="w-16 h-16 object-cover rounded border border-border"
+                                    alt="DFO Preview"
+                                    className="w-16 h-16 object-cover rounded border"
                                     onError={(e) => {
                                       const target = e.target as HTMLImageElement;
                                       target.style.display = 'none';
@@ -621,7 +621,7 @@ export default function AdminSidebar({
                                   />
                                 ) : (
                                   <div className="w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
-                                    <i className="fas fa-file-pdf text-red-500"></i>
+                                    <i className="fas fa-file text-muted-foreground"></i>
                                   </div>
                                 )}
                                 <div className="hidden w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
