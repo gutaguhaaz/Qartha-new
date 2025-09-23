@@ -606,15 +606,48 @@ export default function AdminSidebar({
                       </CardHeader>
                       <CardContent className="space-y-3">
                         {dfo ? (
-                          <div className="flex items-center justify-between rounded border border-border px-3 py-2 text-sm">
-                            <span>{dfo.name ?? dfo.url}</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={handleRemoveDfo}
-                            >
-                              Remove
-                            </Button>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between rounded border border-border px-3 py-2 text-sm">
+                              <span>{dfo.name ?? dfo.url}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleRemoveDfo}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                            {/* DFO Preview */}
+                            <div className="mt-3">
+                              <Label className="text-sm font-medium">Preview</Label>
+                              <div className="mt-2 rounded border border-border overflow-hidden">
+                                {dfo.url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                  <img
+                                    src={dfo.url}
+                                    alt={dfo.name || 'DFO Preview'}
+                                    className="w-full h-48 object-contain bg-muted"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.style.display = 'none';
+                                      target.nextElementSibling!.style.display = 'flex';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-48 flex items-center justify-center bg-muted">
+                                    <div className="text-center">
+                                      <i className="fas fa-file-pdf text-4xl text-red-500 mb-2"></i>
+                                      <p className="text-sm text-muted-foreground">PDF Document</p>
+                                    </div>
+                                  </div>
+                                )}
+                                <div className="hidden w-full h-48 flex items-center justify-center bg-muted">
+                                  <div className="text-center">
+                                    <i className="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-2"></i>
+                                    <p className="text-sm text-muted-foreground">Preview not available</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         ) : (
                           <p className="text-sm text-muted-foreground">
