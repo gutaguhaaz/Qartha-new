@@ -308,19 +308,31 @@ export default function PublicList() {
               data-testid={`card-${idf.code}`}
             >
               <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3
-                    className="font-semibold text-foreground"
-                    data-testid={`title-${idf.code}`}
-                  >
-                    {idf.title}
-                  </h3>
-                  <p
-                    className="text-sm text-muted-foreground mt-1"
-                    data-testid={`code-${idf.code}`}
-                  >
-                    {idf.code}
-                  </p>
+                <div className="flex items-start space-x-3">
+                  {idf.media?.logo && (
+                    <img
+                      src={`${API_BASE}${idf.media.logo.url}`}
+                      alt={`${idf.code} logo`}
+                      className="h-10 w-10 object-contain rounded border border-border flex-shrink-0"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  )}
+                  <div>
+                    <h3
+                      className="font-semibold text-foreground"
+                      data-testid={`title-${idf.code}`}
+                    >
+                      {idf.title}
+                    </h3>
+                    <p
+                      className="text-sm text-muted-foreground mt-1"
+                      data-testid={`code-${idf.code}`}
+                    >
+                      {idf.code}
+                    </p>
+                  </div>
                 </div>
                 <div
                   className={`health-indicator ${getHealthIndicatorClass(idf.health?.level)} ${

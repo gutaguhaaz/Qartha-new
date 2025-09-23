@@ -589,31 +589,12 @@ export default function AdminSidebar({
                         <CardTitle>Logo</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        {logoPreview ? (
-                          <img
-                            src={logoPreview}
-                            alt="IDF logo"
-                            className="h-20 w-20 rounded border border-border object-contain"
-                          />
-                        ) : (
-                          <p className="text-sm text-muted-foreground">
-                            No logo uploaded
-                          </p>
-                        )}
-                        <div>
-                          <Label htmlFor="idf-logo-upload">Upload logo</Label>
-                          <Input
-                            id="idf-logo-upload"
-                            type="file"
-                            accept="image/*"
-                            onChange={(event) => {
-                              const files = event.target.files;
-                              if (files && files.length > 0) {
-                                handleUploadLogo(files);
-                              }
-                            }}
-                          />
-                        </div>
+                        <LogoWidget
+                          cluster={selectedCluster}
+                          project={selectedProject}
+                          code={selectedCode}
+                          currentLogo={detail?.media?.logo}
+                        />
                       </CardContent>
                     </Card>
 

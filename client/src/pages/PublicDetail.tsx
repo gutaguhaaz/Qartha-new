@@ -195,16 +195,28 @@ export default function PublicDetail({
 
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-4">
-            {logo && (
-              <img
-                src={`${API_BASE}${logo.url}`}
-                alt={`${cluster} logo`}
-                className="h-12 w-auto mt-1"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
-              />
-            )}
+            <div className="flex items-center space-x-4">
+              {logo && (
+                <img
+                  src={`${API_BASE}${logo.url}`}
+                  alt={`${cluster} logo`}
+                  className="h-12 w-auto"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              )}
+              {idf.media?.logo && (
+                <img
+                  src={`${API_BASE}${idf.media.logo.url}`}
+                  alt={`${idf.code} logo`}
+                  className="h-12 w-auto"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              )}
+            </div>
             <div>
               <h1
                 className="text-3xl font-bold text-foreground mb-2"
