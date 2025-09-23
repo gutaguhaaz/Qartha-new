@@ -53,6 +53,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(public_idfs.router, prefix="/api")
 app.include_router(admin_idfs.router, prefix="/api/admin")
 app.include_router(assets.router, prefix="/api")
+app.include_router(assets.admin_router, prefix="/api/admin")
 app.include_router(qr.router, prefix="/api")
 app.include_router(devices.router, prefix="/api")
 

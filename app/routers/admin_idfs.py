@@ -130,6 +130,7 @@ async def _fetch_idf(cluster: str, project: str, code: str) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
+# Admin endpoints - these are mounted under /api/admin prefix
 @router.post("/{cluster}/{project}/idfs/{code}", response_model=IdfPublic)
 async def create_idf_with_code(
     idf_data: IdfUpsert,

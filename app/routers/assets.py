@@ -14,6 +14,9 @@ from app.routers.auth import get_current_admin
 
 router = APIRouter(tags=["assets"])
 
+# Admin asset management endpoints
+admin_router = APIRouter(tags=["admin-assets"])
+
 STATIC_ROOT = Path(settings.STATIC_DIR)
 
 
@@ -42,6 +45,105 @@ def map_url_project_to_db_project(project: str) -> str:
         "sabinas/trinity": "Sabinas Project",
     }
     return project_mapping.get(decoded_project, decoded_project)
+
+
+# Admin endpoints for asset management
+@admin_router.post("/{cluster}/{project}/assets/logo")
+async def upload_project_logo_admin(
+    file: UploadFile = File(...),
+    cluster: str = Depends(validate_cluster),
+    project: str = "",
+    _admin: dict = Depends(get_current_admin),
+):
+    """Upload project logo (admin only)"""
+    db_project = map_url_project_to_db_project(project)
+    
+    # Validate file type
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=422, detail="File must be an image")
+    
+    # Create directory structure
+    project_dir = STATIC_ROOT / cluster / project.lower()
+    project_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Save file
+    filename = f"logo{Path(file.filename or '').suffix}"
+    file_path = project_dir / filename
+    
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+    
+    return {"message": "Logo uploaded successfully", "path": str(file_path.relative_to(STATIC_ROOT))}
+
+
+@admin_router.post("/{cluster}/{project}/assets/{code}/logo") 
+async def upload_idf_logo_admin(
+    file: UploadFile = File(...),
+    cluster: str = Depends(validate_cluster),
+    project: str = "",
+    code: str = "",
+    _admin: dict = Depends(get_current_admin),
+):
+    """Upload IDF-specific logo (admin only)"""
+    db_project = map_url_project_to_db_project(project)
+    
+    # Validate file type
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=422, detail="File must be an image")
+    
+    # Create directory structure  
+    idf_dir = STATIC_ROOT / cluster / project.lower() / "idfs"
+    idf_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Save file
+    filename = f"{code}_logo{Path(file.filename or '').suffix}"
+    file_path = idf_dir / filename
+    
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+    
+    return {"message": "IDF logo uploaded successfully", "path": str(file_path.relative_to(STATIC_ROOT))}
+
+
+@admin_router.post("/{cluster}/{project}/assets/{asset_type}")
+async def upload_asset_admin(
+    file: UploadFile = File(...),
+    code: str = Form(...),
+    asset_type: str = "",
+    cluster: str = Depends(validate_cluster),
+    project: str = "",
+    _admin: dict = Depends(get_current_admin),
+):
+    """Upload asset for IDF (admin only)"""
+    db_project = map_url_project_to_db_project(project)
+    
+    # Validate asset type
+    if asset_type not in ["images", "documents", "diagrams", "location", "dfo"]:
+        raise HTTPException(status_code=422, detail="Invalid asset type")
+    
+    # Create directory structure
+    asset_dir = STATIC_ROOT / cluster / project.lower() / asset_type
+    asset_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Generate filename
+    timestamp = int(time.time())
+    file_extension = Path(file.filename or "").suffix
+    filename = f"{code}_{timestamp}{file_extension}"
+    file_path = asset_dir / filename
+    
+    # Save file
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+    
+    return {
+        "message": "Asset uploaded successfully",
+        "url": f"/static/{cluster}/{project.lower()}/{asset_type}/{filename}",
+        "name": file.filename,
+        "kind": asset_type.rstrip('s')  # Remove plural 's'
+    }
 
 
 def map_db_project_to_folder_name(db_project_name: str) -> str:
@@ -418,4 +520,4 @@ async def delete_media_asset(
     return {"message": "Asset deleted", "item": removed}
 
 
-__all__ = ["router"]
+__all__ = ["router", "admin_router"]

@@ -113,11 +113,15 @@ export interface IdfUpsertPayload {
 export type IdfCreatePayload = IdfUpsertPayload & { code: string };
 
 export async function createIdf(cluster: string, project: string, payload: IdfCreatePayload) {
-  return requestJson(`/${cluster}/${project}/idfs`, payload, "POST");
+  return requestJson(`/admin/${cluster}/${project}/idfs`, payload, "POST");
 }
 
 export async function updateIdf(cluster: string, project: string, code: string, payload: IdfUpsertPayload) {
-  return requestJson(`/${cluster}/${project}/idfs/${code}`, payload, "PUT");
+  return requestJson(`/admin/${cluster}/${project}/idfs/${code}`, payload, "PUT");
+}
+
+export async function deleteIdf(cluster: string, project: string, code: string) {
+  return request(`/admin/${cluster}/${project}/idfs/${code}`, { method: "DELETE" });
 }
 
 export async function uploadCsv(cluster: string, project: string, code: string, file: File) {
@@ -137,7 +141,7 @@ export async function uploadAsset(
   const formData = new FormData();
   formData.append("file", file);
   formData.append("code", code);
-  return requestForm(`/${cluster}/${project}/assets/${assetType}`, formData);
+  return requestForm(`/admin/${cluster}/${project}/assets/${assetType}`, formData);
 }
 
 export async function deleteAsset(
@@ -147,13 +151,13 @@ export async function deleteAsset(
   assetType: "images" | "documents" | "diagrams" | "location",
   index: number,
 ) {
-  return request(`/${cluster}/${project}/assets/${code}/${assetType}/${index}`, { method: "DELETE" });
+  return request(`/admin/${cluster}/${project}/assets/${code}/${assetType}/${index}`, { method: "DELETE" });
 }
 
 export async function uploadLogo(cluster: string, project: string, file: File) {
   const formData = new FormData();
   formData.append("file", file);
-  return requestForm(`/${cluster}/${project}/assets/logo`, formData);
+  return requestForm(`/admin/${cluster}/${project}/assets/logo`, formData);
 }
 
 export async function getLogo(cluster: string, project: string) {
@@ -163,7 +167,7 @@ export async function getLogo(cluster: string, project: string) {
 export async function uploadIdfLogo(cluster: string, project: string, code: string, file: File) {
   const formData = new FormData();
   formData.append("file", file);
-  return requestForm(`/${cluster}/${project}/assets/${code}/logo`, formData);
+  return requestForm(`/admin/${cluster}/${project}/assets/${code}/logo`, formData);
 }
 
 export function downloadCsvTemplate() {
