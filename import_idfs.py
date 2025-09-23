@@ -1,7 +1,12 @@
 # import_idfs.py
-import os, io, csv, json, sys
-import psycopg2
+import csv
+import io
+import json
+import os
+import sys
 from datetime import datetime
+
+import psycopg2
 
 CSV_PATH = os.getenv("CSV_PATH", "idfs.csv")  # CSV fuente
 TABLE = os.getenv("TABLE", "public.idfs")  # tabla destino
@@ -81,8 +86,12 @@ def main():
             clean["created_at"] = ""
 
         # location: si está vacío, usa fallback; y siempre JSON válido
-        loc_val = row.get("location") or row.get("site") or row.get(
-            "project") or "N/A"
+        loc_val = (
+            row.get("location")
+            or row.get("site")
+            or row.get("project")
+            or "N/A"
+        )
         try:
             # si ya es JSON, respétalo
             json.loads(loc_val)
@@ -101,12 +110,16 @@ def main():
             with conn.cursor() as cur:
                 # backup previo (solo destino) por si hay que revertir manual
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-                backup_file = f"backup_{TABLE.replace('.','_')}_{ts}.csv"
+                backup_file = f"backup_{TABLE.replace('.', '_')}_{ts}.csv"
                 print(f"🛟 Backup tabla destino → {backup_file}")
                 with open(backup_file, "w", encoding="utf-8", newline="") as f:
                     cur.copy_expert(
-                        f"COPY (SELECT * FROM {TABLE} ORDER BY id) TO STDOUT WITH CSV HEADER",
-                        f)
+                        (
+                            f"COPY (SELECT * FROM {TABLE} ORDER BY id) "
+                            "TO STDOUT WITH CSV HEADER"
+                        ),
+                        f,
+                    )
 
                 if MODE == "replace":
                     print("🧹 TRUNCATE + RESTART IDENTITY")
@@ -120,8 +133,10 @@ def main():
 
                 # Ajustar secuencia del id (si existe)
                 print("🔧 Ajustando secuencia…")
-                cur.execute("SELECT pg_get_serial_sequence(%s,%s)",
-                            (TABLE, "id"))
+                cur.execute(
+                    "SELECT pg_get_serial_sequence(%s, %s)",
+                    (TABLE, "id"),
+                )
                 seq = cur.fetchone()[0]
                 if seq:
                     cur.execute(f"SELECT COALESCE(MAX(id),0) FROM {TABLE}")

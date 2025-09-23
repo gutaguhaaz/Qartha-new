@@ -1,9 +1,9 @@
-
-import json
 import asyncio
+import json
 
 from app.db import close_database, init_database
 from app.db.database import database
+
 
 async def migrate_asset_urls():
     """Migrate asset URLs from old structure to new structure"""
@@ -47,12 +47,15 @@ async def migrate_asset_urls():
                 SET gallery = :gallery, documents = :documents, diagrams = :diagrams 
                 WHERE id = :id
             """
-            await database.execute(update_query, {
-                "id": row_id,
-                "gallery": json.dumps(gallery) if row["gallery"] else row["gallery"],
-                "documents": json.dumps(documents) if row["documents"] else row["documents"],
-                "diagrams": json.dumps(diagrams) if row["diagrams"] else row["diagrams"]
-            })
+            await database.execute(
+                update_query,
+                {
+                    "id": row_id,
+                    "gallery": json.dumps(gallery) if row["gallery"] else row["gallery"],
+                    "documents": json.dumps(documents) if row["documents"] else row["documents"],
+                    "diagrams": json.dumps(diagrams) if row["diagrams"] else row["diagrams"],
+                },
+            )
             print(f"Updated IDF {row_id}")
 
     print("Migration completed!")
