@@ -87,7 +87,8 @@ def migrate_users():
                                 if field is None:
                                     escaped_row.append('')
                                 else:
-                                    escaped_row.append(f'"{str(field).replace(\'"\'', \'""\'"\'}"')
+                                    field_str = str(field).replace('"', '""')
+                                    escaped_row.append(f'"{field_str}"')
                             f.write(','.join(escaped_row) + '\n')
                     
                     print(f"✅ Backup creado: {backup_file}")
