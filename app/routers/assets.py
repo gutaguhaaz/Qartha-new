@@ -93,12 +93,12 @@ async def upload_idf_logo_admin(
         raise HTTPException(status_code=422, detail="File must be an image")
     
     # Create directory structure  
-    idf_dir = STATIC_ROOT / cluster / project.lower() / "idfs"
-    idf_dir.mkdir(parents=True, exist_ok=True)
+    logos_dir = STATIC_ROOT / cluster / project.lower() / "logos"
+    logos_dir.mkdir(parents=True, exist_ok=True)
     
     # Save file
     filename = f"{code}_logo{Path(file.filename or '').suffix}"
-    file_path = idf_dir / filename
+    file_path = logos_dir / filename
     
     with open(file_path, "wb") as f:
         content = await file.read()
@@ -453,7 +453,7 @@ async def upload_idf_logo(
     logo_dir.mkdir(parents=True, exist_ok=True)
 
     extension = Path(file.filename or "logo.png").suffix or ".png"
-    file_path = logo_dir / f"{code}-logo{extension}"
+    file_path = logo_dir / f"{code}_logo{extension}"
     url = await _write_upload(file, file_path)
 
     media["logo"] = {

@@ -6,6 +6,14 @@ import { IdfIndex } from "@shared/schema";
 import AddIdfDialog from "@/components/AddIdfDialog";
 import { config, getProjectsForCluster } from "@/config";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 
 interface PublicListProps {
   cluster: string;

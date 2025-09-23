@@ -15,14 +15,20 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -36,6 +42,7 @@ import {
 } from "@/lib/api";
 import { config, getProjectsForCluster } from "../config";
 import type { IdfPublic, MediaItem } from "@shared/schema";
+import LogoWidget from "@/components/LogoWidget";
 
 const TABS = [
   { value: "general", label: "General" },
@@ -640,7 +647,7 @@ export default function AdminSidebar({
                                   <i className="fas fa-exclamation-triangle text-yellow-500"></i>
                                 </div>
                               </div>
-                              
+
                               <div className="flex-1 space-y-2">
                                 <div className="flex items-center justify-between">
                                   <span className="text-sm font-medium">DFO Document</span>
@@ -729,7 +736,7 @@ export default function AdminSidebar({
                                   <i className="fas fa-exclamation-triangle text-yellow-500"></i>
                                 </div>
                               </div>
-                              
+
                               <div className="flex-1 space-y-2">
                                 <div className="flex items-center justify-between">
                                   <span className="text-sm font-medium">Gallery Image {index + 1}</span>
@@ -805,7 +812,7 @@ export default function AdminSidebar({
                                   <i className="fas fa-exclamation-triangle text-yellow-500"></i>
                                 </div>
                               </div>
-                              
+
                               <div className="flex-1 space-y-2">
                                 <div className="flex items-center justify-between">
                                   <span className="text-sm font-medium">Location Image {index + 1}</span>
@@ -891,7 +898,7 @@ export default function AdminSidebar({
                                     <i className="fas fa-exclamation-triangle text-yellow-500"></i>
                                   </div>
                                 </div>
-                                
+
                                 <div className="flex-1 space-y-2">
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-2">
