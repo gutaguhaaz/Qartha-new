@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from app.core.config import settings
 from app.db import close_database, ensure_indexes, init_database, seed_data
 from app.db.database import database
-from app.routers import admin_idfs, assets, auth, devices, public_idfs, qr
+from app.routers import admin_idfs, assets, auth, devices, qr
 
 
 @asynccontextmanager
