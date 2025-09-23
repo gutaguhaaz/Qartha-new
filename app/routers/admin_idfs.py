@@ -235,8 +235,7 @@ async def update_idf(
                diagrams = :diagrams,
                location = :location,
                dfo = :dfo,
-               table_data = :table_data,
-               updated_at = NOW()
+               table_data = :table_data
          WHERE cluster = :cluster AND project = :project AND code = :code
         RETURNING *
     """
