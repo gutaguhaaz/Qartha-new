@@ -138,6 +138,30 @@ async def list_idfs(
     return result
 
 
+@router.get("/{cluster}/{project}/logo")
+async def get_logo(
+    cluster: str = Depends(validate_cluster),
+    project: str = "",
+    _current_user: dict = Depends(get_current_user),
+):
+    """Get cluster/project logo"""
+    import os
+    
+    # Map URL project to filesystem path
+    project_path = project.lower().replace(" ", "")
+    logo_path = f"static/{cluster}/{project_path}/logo.png"
+    
+    if os.path.exists(logo_path):
+        return {"url": f"/static/{cluster}/{project_path}/logo.png"}
+    
+    # Fallback to cluster logo
+    cluster_logo_path = f"static/{cluster}/logo.png"
+    if os.path.exists(cluster_logo_path):
+        return {"url": f"/static/{cluster}/logo.png"}
+    
+    raise HTTPException(status_code=404, detail="Logo not found")
+
+
 @router.get("/{cluster}/{project}/idfs/{code}")
 async def get_idf(
     code: str,

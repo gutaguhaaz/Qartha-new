@@ -1,11 +1,17 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 
-interface DfoImageViewerProps {
-  items?: string[];
+interface MediaItem {
+  url: string;
+  name?: string;
+  kind: string;
 }
 
-export default function DfoImageViewer({ items }: DfoImageViewerProps) {
+interface DfoImageViewerProps {
+  item?: MediaItem | string[] | null;
+}
+
+export default function DfoImageViewer({ item }: DfoImageViewerProps) {
   const [zoom, setZoom] = useState(100);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -14,6 +20,18 @@ export default function DfoImageViewer({ items }: DfoImageViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+
+  // Handle different data structures
+  let items: string[] = [];
+  if (item) {
+    if (typeof item === 'string') {
+      items = [item];
+    } else if (Array.isArray(item)) {
+      items = item;
+    } else if (item.url) {
+      items = [item.url];
+    }
+  }
 
   if (!items || items.length === 0) {
     return (
