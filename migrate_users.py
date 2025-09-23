@@ -27,16 +27,25 @@ def migrate_users():
     print(f"   PROD: {prod_url[:30]}...")
     print()
     
-    # Conexiones con timeouts más cortos
-    dev_conn = psycopg2.connect(dev_url, connect_timeout=10)
-    prod_conn = psycopg2.connect(prod_url, connect_timeout=10)
+    # Configuración de conexión mejorada para SSL
+    connection_config = {
+        'connect_timeout': 30,
+        'sslmode': 'require',
+        'keepalives_idle': 600,
+        'keepalives_interval': 30,
+        'keepalives_count': 3
+    }
+    
+    dev_conn = psycopg2.connect(dev_url, **connection_config)
+    prod_conn = psycopg2.connect(prod_url, **connection_config)
     
     # Configurar autocommit para evitar bloqueos
     dev_conn.autocommit = True
     prod_conn.autocommit = False
     
     try:
-        with dev_conn.cursor() as dev_cur, prod_conn.cursor() as prod_cur:
+        dev_cur = dev_conn.cursor()
+        prod_cur = prod_conn.cursor()
             # 1. Verificar si la tabla users existe en desarrollo
             dev_cur.execute("""
                 SELECT COUNT(*) FROM information_schema.tables 
@@ -133,14 +142,30 @@ def migrate_users():
                 prod_cur.execute("DELETE FROM users")
                 prod_cur.execute("ALTER SEQUENCE users_id_seq RESTART WITH 1")
             
-            # 7. Obtener datos de desarrollo
+            # 7. Obtener datos de desarrollo con reconexión si es necesario
             print("📤 Obteniendo usuarios de desarrollo...")
-            dev_cur.execute("""
-                SELECT email, password_hash, role, full_name, is_active, 
-                       created_at, updated_at, last_login_at
-                FROM users ORDER BY id
-            """)
-            users_data = dev_cur.fetchall()
+            try:
+                dev_cur.execute("""
+                    SELECT email, password_hash, role, full_name, is_active, 
+                           created_at, updated_at, last_login_at
+                    FROM users ORDER BY id
+                """)
+                users_data = dev_cur.fetchall()
+            except psycopg2.OperationalError as e:
+                if "SSL connection has been closed" in str(e):
+                    print("🔄 Reconectando a la base de desarrollo...")
+                    dev_conn.close()
+                    dev_conn = psycopg2.connect(dev_url, **connection_config)
+                    dev_conn.autocommit = True
+                    dev_cur = dev_conn.cursor()
+                    dev_cur.execute("""
+                        SELECT email, password_hash, role, full_name, is_active, 
+                               created_at, updated_at, last_login_at
+                        FROM users ORDER BY id
+                    """)
+                    users_data = dev_cur.fetchall()
+                else:
+                    raise
             
             # 8. Insertar en producción uno por uno para mejor control
             print("📥 Insertando usuarios en producción...")
@@ -188,8 +213,21 @@ def migrate_users():
         traceback.print_exc()
         return False
     finally:
-        dev_conn.close()
-        prod_conn.close()
+        try:
+            if 'dev_cur' in locals():
+                dev_cur.close()
+            if 'prod_cur' in locals():
+                prod_cur.close()
+        except:
+            pass
+        try:
+            dev_conn.close()
+        except:
+            pass
+        try:
+            prod_conn.close()
+        except:
+            pass
 
 if __name__ == "__main__":
     try:
