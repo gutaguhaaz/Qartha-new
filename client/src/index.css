@@ -488,3 +488,10 @@ button.create-idf {
   color: #ffffff !important;
   font-weight: bold;
 }
+
+.tabpaneladmin div[data-component-name="TabsContent"] {
+    padding: 15px !important;
+    border-radius: 13px !important;
+    background:#f2f2f2!important;
+}
+

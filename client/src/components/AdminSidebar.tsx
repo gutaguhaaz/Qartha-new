@@ -1,8 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { X, Trash2, Save, ImageIcon, FileIcon, ChevronLeft, ChevronRight } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-
+import {
+  X,
+  Trash2,
+  Save,
+  ImageIcon,
+  FileIcon,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,18 +62,31 @@ type MediaList = MediaPayload[];
 
 const normalizeProject = (value: string) => value || config.defaults.project;
 
-export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSidebarProps) {
+export default function AdminSidebar({
+  isOpen,
+  onClose,
+  preloadIdf,
+}: AdminSidebarProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { isAdmin } = useAuth();
 
   const [activeTab, setActiveTab] = useState<TabValue>("general");
-  const [selectedCluster, setSelectedCluster] = useState(preloadIdf?.cluster ?? config.defaults.cluster);
-  const [selectedProject, setSelectedProject] = useState(normalizeProject(preloadIdf?.project ?? config.defaults.project));
+  const [selectedCluster, setSelectedCluster] = useState(
+    preloadIdf?.cluster ?? config.defaults.cluster,
+  );
+  const [selectedProject, setSelectedProject] = useState(
+    normalizeProject(preloadIdf?.project ?? config.defaults.project),
+  );
   const [selectedCode, setSelectedCode] = useState(preloadIdf?.code ?? "");
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const [generalForm, setGeneralForm] = useState({ title: "", description: "", site: "", room: "" });
+  const [generalForm, setGeneralForm] = useState({
+    title: "",
+    description: "",
+    site: "",
+    room: "",
+  });
   const [gallery, setGallery] = useState<MediaList>([]);
   const [documents, setDocuments] = useState<MediaList>([]);
   const [diagrams, setDiagrams] = useState<MediaList>([]);
@@ -78,10 +103,16 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
     }
   }, [isOpen, preloadIdf]);
 
-  const projects = useMemo(() => getProjectsForCluster(selectedCluster), [selectedCluster]);
+  const projects = useMemo(
+    () => getProjectsForCluster(selectedCluster),
+    [selectedCluster],
+  );
 
   useEffect(() => {
-    if (projects.length > 0 && !projects.some((project) => project.value === selectedProject)) {
+    if (
+      projects.length > 0 &&
+      !projects.some((project) => project.value === selectedProject)
+    ) {
       setSelectedProject(projects[0].value);
     }
   }, [projects, selectedProject]);
@@ -89,7 +120,10 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
   const idfsQuery = useQuery({
     queryKey: ["admin", "idfs", selectedCluster, selectedProject],
     queryFn: async () => {
-      const response = await getIdfs(selectedCluster, selectedProject, { limit: 100, include_health: 0 });
+      const response = await getIdfs(selectedCluster, selectedProject, {
+        limit: 100,
+        include_health: 0,
+      });
       return response as IdfPublic[];
     },
     enabled: isOpen,
@@ -102,9 +136,19 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
   }, [idfsQuery.data, selectedCode]);
 
   const idfDetailQuery = useQuery({
-    queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+    queryKey: [
+      "admin",
+      "idf-detail",
+      selectedCluster,
+      selectedProject,
+      selectedCode,
+    ],
     queryFn: async () => {
-      const detail = await getIdf(selectedCluster, selectedProject, selectedCode);
+      const detail = await getIdf(
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+      );
       return detail as IdfPublic;
     },
     enabled: isOpen && Boolean(selectedCode),
@@ -122,7 +166,8 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
       setGallery(idf.gallery ?? []);
       setDocuments(idf.documents ?? []);
       setDiagrams(idf.diagrams ?? []);
-      const locations = idf.location_items ?? (idf.location ? [idf.location] : []);
+      const locations =
+        idf.location_items ?? (idf.location ? [idf.location] : []);
       setLocationItems(locations ?? []);
       setDfo(idf.dfo ?? null);
       setTableData(idf.table ?? null);
@@ -136,8 +181,18 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
   };
 
   const refreshIdf = () => {
-    queryClient.invalidateQueries({ queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode] });
-    queryClient.invalidateQueries({ queryKey: ["admin", "idfs", selectedCluster, selectedProject] });
+    queryClient.invalidateQueries({
+      queryKey: [
+        "admin",
+        "idf-detail",
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+      ],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["admin", "idfs", selectedCluster, selectedProject],
+    });
   };
 
   const handleSaveGeneral = async () => {
@@ -159,33 +214,66 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
       refreshIdf();
     } catch (error) {
       console.error(error);
-      toast({ title: "Error", description: "Unable to save changes", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Unable to save changes",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleUploadAsset = async (type: "images" | "documents" | "diagram" | "location", files: FileList | null) => {
+  const handleUploadAsset = async (
+    type: "images" | "documents" | "diagram" | "location",
+    files: FileList | null,
+  ) => {
     if (!files || !selectedCode) return;
     try {
       for (const file of Array.from(files)) {
-        await uploadAsset(selectedCluster, selectedProject, selectedCode, file, type);
+        await uploadAsset(
+          selectedCluster,
+          selectedProject,
+          selectedCode,
+          file,
+          type,
+        );
       }
-      toast({ title: "Upload complete", description: `Uploaded ${files.length} file(s)` });
+      toast({
+        title: "Upload complete",
+        description: `Uploaded ${files.length} file(s)`,
+      });
       refreshIdf();
     } catch (error) {
       console.error(error);
-      toast({ title: "Upload failed", description: "Could not upload files", variant: "destructive" });
+      toast({
+        title: "Upload failed",
+        description: "Could not upload files",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleDeleteAsset = async (type: "images" | "documents" | "diagrams" | "location", index: number) => {
+  const handleDeleteAsset = async (
+    type: "images" | "documents" | "diagrams" | "location",
+    index: number,
+  ) => {
     if (!selectedCode) return;
     try {
-      await deleteAsset(selectedCluster, selectedProject, selectedCode, type, index);
+      await deleteAsset(
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+        type,
+        index,
+      );
       toast({ title: "Asset removed" });
       refreshIdf();
     } catch (error) {
       console.error(error);
-      toast({ title: "Removal failed", description: "Could not remove asset", variant: "destructive" });
+      toast({
+        title: "Removal failed",
+        description: "Could not remove asset",
+        variant: "destructive",
+      });
     }
   };
 
@@ -198,7 +286,11 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
       refreshIdf();
     } catch (error) {
       console.error(error);
-      toast({ title: "Upload failed", description: "Could not upload logo", variant: "destructive" });
+      toast({
+        title: "Upload failed",
+        description: "Could not upload logo",
+        variant: "destructive",
+      });
     }
   };
 
@@ -207,9 +299,21 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
     const file = files[0];
     try {
       const previousDiagramCount = diagrams.length;
-      const result = await uploadAsset(selectedCluster, selectedProject, selectedCode, file, "diagram");
+      const result = await uploadAsset(
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+        file,
+        "diagram",
+      );
       try {
-        await deleteAsset(selectedCluster, selectedProject, selectedCode, "diagrams", previousDiagramCount);
+        await deleteAsset(
+          selectedCluster,
+          selectedProject,
+          selectedCode,
+          "diagrams",
+          previousDiagramCount,
+        );
       } catch (error) {
         console.warn("Failed to clean temporary DFO diagram", error);
       }
@@ -229,7 +333,11 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
       refreshIdf();
     } catch (error) {
       console.error(error);
-      toast({ title: "DFO upload failed", description: "Could not upload DFO", variant: "destructive" });
+      toast({
+        title: "DFO upload failed",
+        description: "Could not upload DFO",
+        variant: "destructive",
+      });
     }
   };
 
@@ -252,7 +360,11 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
       refreshIdf();
     } catch (error) {
       console.error(error);
-      toast({ title: "Unable to remove DFO", description: "Please try again", variant: "destructive" });
+      toast({
+        title: "Unable to remove DFO",
+        description: "Please try again",
+        variant: "destructive",
+      });
     }
   };
 
@@ -265,22 +377,39 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
 
   return (
     <TooltipProvider>
-      <div className={`fixed inset-0 z-50 flex transition-all duration-300 ${isExpanded ? "w-full" : "w-auto"}`}>
-        <div className={`fixed inset-0 bg-black/40 transition-opacity duration-300 ${isExpanded ? "opacity-100" : "opacity-0"}`} onClick={isExpanded ? closeSidebar : undefined} />
-        <aside className={`relative flex h-full flex-col bg-background shadow-xl transition-all duration-300 ${isExpanded ? "ml-0 w-full" : "ml-auto w-full max-w-3xl"}`}>
+      <div
+        className={`fixed inset-0 z-50 flex transition-all duration-300 ${isExpanded ? "w-full" : "w-auto"}`}
+      >
+        <div
+          className={`fixed inset-0 bg-black/40 transition-opacity duration-300 ${isExpanded ? "opacity-100" : "opacity-0"}`}
+          onClick={isExpanded ? closeSidebar : undefined}
+        />
+        <aside
+          className={`relative flex h-full flex-col bg-background shadow-xl transition-all duration-300 ${isExpanded ? "ml-0 w-full" : "ml-auto w-full max-w-3xl"}`}
+        >
           <header className="flex items-center justify-between border-b border-border px-6 py-4">
             <div>
               <h2 className="text-lg font-semibold">Admin Panel</h2>
-              <p className="text-sm text-muted-foreground">Manage IDF content and assets</p>
+              <p className="text-sm text-muted-foreground">
+                Manage IDF content and assets
+              </p>
             </div>
             <div className="flex items-center space-x-2">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => setIsExpanded((prev) => !prev)}>
-                    <i className={`${isExpanded ? 'fa fa-compress' : 'fa fa-expand'} text-sm`}></i>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsExpanded((prev) => !prev)}
+                  >
+                    <i
+                      className={`${isExpanded ? "fa fa-compress" : "fa fa-expand"} text-sm`}
+                    ></i>
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">{isExpanded ? "Collapse Panel" : "Expand Panel"}</TooltipContent>
+                <TooltipContent side="bottom">
+                  {isExpanded ? "Collapse Panel" : "Expand Panel"}
+                </TooltipContent>
               </Tooltip>
               <Button variant="ghost" size="icon" onClick={closeSidebar}>
                 <X className="h-5 w-5" />
@@ -345,12 +474,16 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
               </div>
 
               {detail ? (
-                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)} className="admin-tabs">
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(value) => setActiveTab(value as TabValue)}
+                  className="admin-tabs tabpaneladmin"
+                >
                   <TabsList className="grid grid-cols-6 w-full gap-1 h-auto p-1">
                     {TABS.map((tab) => (
-                      <TabsTrigger 
-                        key={tab.value} 
-                        value={tab.value} 
+                      <TabsTrigger
+                        key={tab.value}
+                        value={tab.value}
                         className="text-xs px-1.5 py-2 min-w-0 tab-trigger whitespace-nowrap"
                       >
                         {tab.label}
@@ -358,7 +491,7 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                     ))}
                   </TabsList>
 
-                  <TabsContent value="general" className="space-y-4">
+                  <TabsContent value="general" className="space-y-4 ">
                     <Card>
                       <CardHeader>
                         <CardTitle>General information</CardTitle>
@@ -370,7 +503,12 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                             <Input
                               id="idf-title"
                               value={generalForm.title}
-                              onChange={(event) => setGeneralForm((prev) => ({ ...prev, title: event.target.value }))}
+                              onChange={(event) =>
+                                setGeneralForm((prev) => ({
+                                  ...prev,
+                                  title: event.target.value,
+                                }))
+                              }
                             />
                           </div>
                           <div>
@@ -378,7 +516,12 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                             <Input
                               id="idf-site"
                               value={generalForm.site}
-                              onChange={(event) => setGeneralForm((prev) => ({ ...prev, site: event.target.value }))}
+                              onChange={(event) =>
+                                setGeneralForm((prev) => ({
+                                  ...prev,
+                                  site: event.target.value,
+                                }))
+                              }
                             />
                           </div>
                           <div>
@@ -386,7 +529,12 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                             <Input
                               id="idf-room"
                               value={generalForm.room}
-                              onChange={(event) => setGeneralForm((prev) => ({ ...prev, room: event.target.value }))}
+                              onChange={(event) =>
+                                setGeneralForm((prev) => ({
+                                  ...prev,
+                                  room: event.target.value,
+                                }))
+                              }
                             />
                           </div>
                         </div>
@@ -396,7 +544,12 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                             id="idf-description"
                             rows={4}
                             value={generalForm.description}
-                            onChange={(event) => setGeneralForm((prev) => ({ ...prev, description: event.target.value }))}
+                            onChange={(event) =>
+                              setGeneralForm((prev) => ({
+                                ...prev,
+                                description: event.target.value,
+                              }))
+                            }
                           />
                         </div>
                         <div className="flex justify-end">
@@ -415,9 +568,15 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                       </CardHeader>
                       <CardContent className="space-y-3">
                         {logoPreview ? (
-                          <img src={logoPreview} alt="IDF logo" className="h-20 w-20 rounded border border-border object-contain" />
+                          <img
+                            src={logoPreview}
+                            alt="IDF logo"
+                            className="h-20 w-20 rounded border border-border object-contain"
+                          />
                         ) : (
-                          <p className="text-sm text-muted-foreground">No logo uploaded</p>
+                          <p className="text-sm text-muted-foreground">
+                            No logo uploaded
+                          </p>
                         )}
                         <div>
                           <Label htmlFor="idf-logo-upload">Upload logo</Label>
@@ -425,7 +584,9 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                             id="idf-logo-upload"
                             type="file"
                             accept="image/*"
-                            onChange={(event) => handleUploadLogo(event.target.files)}
+                            onChange={(event) =>
+                              handleUploadLogo(event.target.files)
+                            }
                           />
                         </div>
                       </CardContent>
@@ -439,12 +600,18 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                         {dfo ? (
                           <div className="flex items-center justify-between rounded border border-border px-3 py-2 text-sm">
                             <span>{dfo.name ?? dfo.url}</span>
-                            <Button variant="ghost" size="sm" onClick={handleRemoveDfo}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleRemoveDfo}
+                            >
                               Remove
                             </Button>
                           </div>
                         ) : (
-                          <p className="text-sm text-muted-foreground">No DFO associated</p>
+                          <p className="text-sm text-muted-foreground">
+                            No DFO associated
+                          </p>
                         )}
                         <div>
                           <Label htmlFor="dfo-upload">Upload new DFO</Label>
@@ -452,7 +619,9 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                             id="dfo-upload"
                             type="file"
                             accept="image/*,application/pdf"
-                            onChange={(event) => handleUploadDfo(event.target.files)}
+                            onChange={(event) =>
+                              handleUploadDfo(event.target.files)
+                            }
                           />
                         </div>
                       </CardContent>
@@ -497,14 +666,20 @@ export default function AdminSidebar({ isOpen, onClose, preloadIdf }: AdminSideb
                       title="Documents"
                       description="Upload related documentation"
                       items={documents}
-                      onUpload={(files) => handleUploadAsset("documents", files)}
-                      onDelete={(index) => handleDeleteAsset("documents", index)}
+                      onUpload={(files) =>
+                        handleUploadAsset("documents", files)
+                      }
+                      onDelete={(index) =>
+                        handleDeleteAsset("documents", index)
+                      }
                       accept=".pdf,.doc,.docx,.xls,.xlsx"
                     />
                   </TabsContent>
                 </Tabs>
               ) : (
-                <p className="text-sm text-muted-foreground">Select an IDF to begin editing.</p>
+                <p className="text-sm text-muted-foreground">
+                  Select an IDF to begin editing.
+                </p>
               )}
             </div>
           </ScrollArea>
@@ -523,7 +698,14 @@ interface AssetSectionProps {
   accept: string;
 }
 
-function AssetSection({ title, description, items, onUpload, onDelete, accept }: AssetSectionProps) {
+function AssetSection({
+  title,
+  description,
+  items,
+  onUpload,
+  onDelete,
+  accept,
+}: AssetSectionProps) {
   return (
     <Card>
       <CardHeader>
@@ -533,12 +715,20 @@ function AssetSection({ title, description, items, onUpload, onDelete, accept }:
       <CardContent className="space-y-3">
         <div>
           <Label className="mb-2 block">Upload files</Label>
-          <Input type="file" accept={accept} multiple onChange={(event) => onUpload(event.target.files)} />
+          <Input
+            type="file"
+            accept={accept}
+            multiple
+            onChange={(event) => onUpload(event.target.files)}
+          />
         </div>
         <div className="space-y-2">
           {items && items.length > 0 ? (
             items.map((item, index) => (
-              <div key={`${item.url}-${index}`} className="flex items-center justify-between rounded border border-border px-3 py-2 text-sm">
+              <div
+                key={`${item.url}-${index}`}
+                className="flex items-center justify-between rounded border border-border px-3 py-2 text-sm"
+              >
                 <div className="flex items-center space-x-2">
                   {item.kind === "document" ? (
                     <FileIcon className="h-4 w-4" />
@@ -547,7 +737,11 @@ function AssetSection({ title, description, items, onUpload, onDelete, accept }:
                   )}
                   <span>{item.name ?? item.url}</span>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => onDelete(index)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDelete(index)}
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
