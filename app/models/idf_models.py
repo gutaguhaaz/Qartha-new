@@ -53,7 +53,7 @@ class IdfPublic(BaseModel):
     images: List[str] = Field(default_factory=list)
     documents: List[str] = Field(default_factory=list)
     diagrams: List[str] = Field(default_factory=list)
-    location: Optional[str] = None
+    location: Optional[Union[str, List[str]]] = None
     dfo: List[str] = Field(default_factory=list)
     logo: Optional[str] = None
     table: Optional[IdfTable] = None
@@ -68,7 +68,7 @@ class IdfUpsert(BaseModel):
     images: List[str] = Field(default_factory=list)
     documents: List[str] = Field(default_factory=list)
     diagrams: List[str] = Field(default_factory=list)
-    location: Optional[str] = None
+    location: Optional[Union[str, List[str]]] = None
     dfo: List[str] = Field(default_factory=list)
     logo: Optional[str] = None
     table: Optional[IdfTable] = None

@@ -49,6 +49,14 @@ def _serialize_table(table: Optional[Any]) -> Optional[str]:
 
 
 def _prepare_common_values(data: IdfUpsert) -> Dict[str, Any]:
+    # Convert location from array to string if needed
+    location_value = None
+    if data.location:
+        if isinstance(data.location, list):
+            location_value = data.location[0] if data.location else None
+        else:
+            location_value = data.location
+    
     return {
         "title": data.title,
         "description": data.description,
@@ -57,7 +65,7 @@ def _prepare_common_values(data: IdfUpsert) -> Dict[str, Any]:
         "images": data.images,
         "documents": data.documents,
         "diagrams": data.diagrams,
-        "location": data.location,
+        "location": location_value,
         "dfo": data.dfo,
         "logo": data.logo,
         "table_data": _serialize_table(data.table),
