@@ -251,7 +251,7 @@ async def upload_location(
     return {"path": relative_path, "message": "Location image uploaded successfully"}
 
 
-@admin_router.post("/{cluster}/{project}/assets/{code}/logo")
+@router.post("/{cluster}/{project}/assets/{code}/logo")
 async def upload_logo(
     file: UploadFile = File(...),
     cluster: str = Depends(validate_cluster),
