@@ -146,29 +146,35 @@ def migrate_users():
             prod_cur.execute("ALTER SEQUENCE users_id_seq RESTART WITH 1")
         
         # 7. Obtener datos de desarrollo con conexión corta y timeout seguro
-        print("📤 Obteniendo usuarios de desarrollo (con timeout 30s, read-only)...")
+        print("📤 Obteniendo usuarios de desarrollo (con timeout 90s, read-only)...")
         try:
-            # Conexión corta solo para leer, con timeouts
+            # Conexión corta solo para leer, con timeouts más generosos para Neon
             with psycopg2.connect(
                 dev_url,
-                connect_timeout=30,
+                connect_timeout=60,
                 sslmode='require',
                 keepalives_idle=600,
                 keepalives_interval=30,
                 keepalives_count=3,
-                options='-c default_transaction_read_only=on -c statement_timeout=30000'
+                options='-c default_transaction_read_only=on -c statement_timeout=90000'
             ) as dev_conn_ro:
                 dev_conn_ro.autocommit = True
+                print("   🔗 Conexión read-only establecida")
                 with dev_conn_ro.cursor() as dev_ro_cur:
+                    # Primero despertar la DB con una consulta simple
+                    dev_ro_cur.execute("SELECT 1")
+                    print("   ⏰ Base de datos despertada, consultando usuarios...")
+                    
+                    # Luego hacer la consulta real con LIMIT por si hay muchos usuarios
                     dev_ro_cur.execute("""
                         SELECT email, password_hash, role, full_name, is_active, 
                                created_at, updated_at, last_login_at
-                        FROM users ORDER BY id
+                        FROM users ORDER BY id LIMIT 1000
                     """)
                     users_data = dev_ro_cur.fetchall()
             print(f"✅ Usuarios obtenidos de DEV: {len(users_data)}")
-        except psycopg2.OperationalError as e:
-            print(f"❌ No se pudo leer desde DEV en 30s: {e}")
+        except (psycopg2.OperationalError, psycopg2.errors.QueryCanceled) as e:
+            print(f"❌ No se pudo leer desde DEV en 90s: {e}")
             raise
         
         # 8. Insertar en producción uno por uno para mejor control
