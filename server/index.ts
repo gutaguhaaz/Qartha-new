@@ -31,24 +31,19 @@ app.use('/api', async (req, res) => {
     headers['host'] = '0.0.0.0:8000';
 
     const method = req.method ?? 'GET';
-    const contentType = (headers['content-type'] || '').toLowerCase();
-    const hasBody = method !== 'GET' && method !== 'HEAD';
+    const hasBody =
+      method !== 'GET' &&
+      method !== 'HEAD' &&
+      req.body !== undefined &&
+      !(typeof req.body === 'object' && !Buffer.isBuffer(req.body) && Object.keys(req.body).length === 0);
 
     let body: BodyInit | undefined;
-    let useStreamBody = false;
-
     if (hasBody) {
-      if (contentType.startsWith('multipart/form-data') || contentType.startsWith('application/octet-stream')) {
-        body = req as unknown as BodyInit;
-        useStreamBody = true;
-      } else if (Buffer.isBuffer(req.body)) {
+      if (Buffer.isBuffer(req.body)) {
         body = req.body;
       } else if (typeof req.body === 'string') {
         body = req.body;
-      } else if (
-        req.body !== undefined &&
-        !(typeof req.body === 'object' && Object.keys(req.body).length === 0)
-      ) {
+      } else {
         body = JSON.stringify(req.body);
         if (!headers['content-type']) {
           headers['content-type'] = 'application/json';
@@ -56,17 +51,11 @@ app.use('/api', async (req, res) => {
       }
     }
 
-    const fetchOptions: RequestInit & { duplex?: 'half' } = {
+    const response = await fetch(proxyUrl, {
       method,
       headers,
       body,
-    };
-
-    if (useStreamBody) {
-      fetchOptions.duplex = 'half';
-    }
-
-    const response = await fetch(proxyUrl, fetchOptions);
+    });
 
     // Copy status and headers
     res.status(response.status);
