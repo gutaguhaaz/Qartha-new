@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from app.core.config import settings
 from app.db.database import database
-from app.routers.auth import get_current_admin
+from app.routers.auth import get_current_admin, get_current_user
 
 router = APIRouter(tags=["assets"])
 admin_router = APIRouter(tags=["admin-assets"])
