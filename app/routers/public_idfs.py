@@ -78,31 +78,47 @@ def compute_health(table_data: Optional[Dict[str, Any]]):
     return {"level": level, "counts": counts}
 
 
-def convert_relative_to_absolute(paths: Any) -> Any:
+def convert_relative_to_absolute(paths, single_value=False):
     """Convert relative paths to absolute URLs"""
     if paths is None:
-        return []
-    elif isinstance(paths, str):
-        if not paths.strip():
-            return []
+        return None if single_value else []
+
+    if isinstance(paths, str):
+        if not paths:
+            return None if single_value else []
         # Try to parse as JSON first
         try:
             parsed_paths = json.loads(paths)
             # If it's a list, process each item
             if isinstance(parsed_paths, list):
-                return [f"{settings.PUBLIC_BASE_URL}/static/{path.strip()}" for path in parsed_paths if path and isinstance(path, str) and path.strip()]
-            # If it's a single string, wrap in list
-            elif isinstance(parsed_paths, str) and parsed_paths.strip():
-                return [f"{settings.PUBLIC_BASE_URL}/static/{parsed_paths.strip()}"]
-            return []
+                if single_value:
+                    # For single value fields, return first item or None
+                    return f"{settings.PUBLIC_BASE_URL}/static/{parsed_paths[0]}" if parsed_paths else None
+                else:
+                    return [f"{settings.PUBLIC_BASE_URL}/static/{path}" for path in parsed_paths if path]
+            # If it's a single string
+            elif isinstance(parsed_paths, str) and parsed_paths:
+                if single_value:
+                    return f"{settings.PUBLIC_BASE_URL}/static/{parsed_paths}"
+                else:
+                    return [f"{settings.PUBLIC_BASE_URL}/static/{parsed_paths}"]
+            return None if single_value else []
         except (json.JSONDecodeError, TypeError):
             # If not JSON, treat as single path
-            return [f"{settings.PUBLIC_BASE_URL}/static/{paths.strip()}"]
+            if single_value:
+                return f"{settings.PUBLIC_BASE_URL}/static/{paths}"
+            else:
+                return [f"{settings.PUBLIC_BASE_URL}/static/{paths}"]
     elif isinstance(paths, list):
         if not paths:  # Empty list
-            return []
-        return [f"{settings.PUBLIC_BASE_URL}/static/{path.strip()}" for path in paths if path and isinstance(path, str) and path.strip()]
-    return []
+            return None if single_value else []
+        if single_value:
+            # For single value fields, return first item or None
+            return f"{settings.PUBLIC_BASE_URL}/static/{paths[0]}" if paths else None
+        else:
+            return [f"{settings.PUBLIC_BASE_URL}/static/{path}" for path in paths if path]
+
+    return None if single_value else []
 
 
 @router.get("/{cluster}/{project}/idfs")
@@ -148,7 +164,7 @@ async def list_idfs(
             site=idf_data.get("site", ""),
             room=idf_data.get("room", ""),
             health=health,
-            logo=convert_relative_to_absolute(idf_data.get("logo")) if idf_data.get("logo") else None
+            logo=convert_relative_to_absolute(idf_data.get("logo"), single_value=True) if idf_data.get("logo") else None
         ))
 
     return result
@@ -221,7 +237,7 @@ async def get_idf(
     # Compute health if table exists
     health = None
     if idf_dict.get("table_data"):
-        table_data = json.loads(idf_dict["table_data"]) if isinstance(idf_dict["table_data"], str) else idf_dict["table_data"]
+        table_data = json.loads(idf_dict["table_data"]) if isinstance(idf_dict["table_data"], str) else idf_data["table_data"]
         health = compute_health(table_data)
 
     # Parse table_data properly
@@ -268,9 +284,9 @@ async def get_idf(
         images=convert_relative_to_absolute(parse_asset_field(idf_dict.get("images", []))),
         documents=convert_relative_to_absolute(parse_asset_field(idf_dict.get("documents", []))),
         diagrams=convert_relative_to_absolute(parse_asset_field(idf_dict.get("diagrams", []))),
-        location=convert_relative_to_absolute(parse_asset_field(idf_dict.get("location"))) if idf_dict.get("location") else None,
+        location=convert_relative_to_absolute(parse_asset_field(idf_dict.get("location")), single_value=True) if idf_dict.get("location") else None,
         dfo=convert_relative_to_absolute(parse_asset_field(idf_dict.get("dfo", []))),
-        logo=convert_relative_to_absolute(parse_asset_field(idf_dict.get("logo"))) if idf_dict.get("logo") else None,
+        logo=convert_relative_to_absolute(parse_asset_field(idf_dict.get("logo")), single_value=True) if idf_dict.get("logo") else None,
         table=table_data,
         health=health
     )
