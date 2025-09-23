@@ -237,7 +237,7 @@ async def get_idf(
     # Compute health if table exists
     health = None
     if idf_dict.get("table_data"):
-        table_data = json.loads(idf_dict["table_data"]) if isinstance(idf_dict["table_data"], str) else idf_data["table_data"]
+        table_data = json.loads(idf_dict["table_data"]) if isinstance(idf_dict["table_data"], str) else idf_dict["table_data"]
         health = compute_health(table_data)
 
     # Parse table_data properly
