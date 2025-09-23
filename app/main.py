@@ -66,6 +66,29 @@ async def debug_idfs():
     )
     return [dict(row) for row in rows]
 
+@app.get("/api/debug/logo/{cluster}/{project}/{code}")
+async def debug_logo(cluster: str, project: str, code: str):
+    """Debug endpoint to check logo status for specific IDF"""
+    from app.routers.assets import map_url_project_to_db_project
+    
+    db_project = map_url_project_to_db_project(project)
+    
+    row = await database.fetch_one(
+        "SELECT logo FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": db_project, "code": code}
+    )
+    
+    if not row:
+        return {"error": "IDF not found", "cluster": cluster, "project": db_project, "code": code}
+    
+    return {
+        "cluster": cluster,
+        "project": db_project, 
+        "code": code,
+        "logo_in_db": row["logo"],
+        "logo_is_null": row["logo"] is None
+    }
+
 # Mount frontend static files for deployment
 if os.path.exists("dist") and os.path.exists("dist/index.html"):
     # Mount static assets only if the assets directory exists

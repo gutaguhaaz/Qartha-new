@@ -271,13 +271,63 @@ async def upload_logo(
 
     relative_path = await _write_upload(file, file_path)
 
-    await database.execute(
+    # Update database with the relative path
+    result = await database.execute(
         "UPDATE idfs SET logo = :logo WHERE cluster = :cluster AND project = :project AND code = :code",
         {"logo": relative_path, "cluster": cluster, "project": db_project, "code": code},
     )
+    
+    # Verify the update happened
+    updated_idf = await database.fetch_one(
+        "SELECT logo FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": db_project, "code": code},
+    )
+    
+    if not updated_idf:
+        raise HTTPException(status_code=404, detail="IDF not found for logo update")
 
-    return {"path": relative_path, "message": "Logo uploaded successfully"}
+    return {
+        "path": relative_path, 
+        "message": "Logo uploaded successfully",
+        "database_value": updated_idf["logo"]
+    }
 
+
+# ---------------------------------------------------------------------------
+# GET endpoints for individual assets
+# ---------------------------------------------------------------------------
+
+@router.get("/{cluster}/{project}/assets/{code}/logo")
+async def get_idf_logo(
+    cluster: str = Depends(validate_cluster),
+    project: str = "",
+    code: str = "",
+    _current_user: dict = Depends(get_current_user),
+):
+    """Get logo for specific IDF"""
+    db_project = map_url_project_to_db_project(project)
+    
+    idf = await _get_idf(cluster, db_project, code)
+    logo_path = idf.get("logo")
+    
+    if not logo_path:
+        raise HTTPException(status_code=404, detail="Logo not found")
+    
+    # Check if file exists in filesystem
+    full_path = STATIC_ROOT / logo_path
+    if not full_path.exists():
+        # Clean up database entry if file doesn't exist
+        await database.execute(
+            "UPDATE idfs SET logo = NULL WHERE cluster = :cluster AND project = :project AND code = :code",
+            {"cluster": cluster, "project": db_project, "code": code},
+        )
+        raise HTTPException(status_code=404, detail="Logo file not found")
+    
+    return {
+        "url": f"/static/{logo_path}",
+        "name": "IDF Logo",
+        "path": logo_path
+    }
 
 # ---------------------------------------------------------------------------
 # Delete assets
