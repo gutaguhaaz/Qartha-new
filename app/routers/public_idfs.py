@@ -78,11 +78,15 @@ def compute_health(table_data: Optional[Dict[str, Any]]):
 
 def convert_relative_to_absolute(paths: Any) -> Any:
     """Convert relative paths to absolute URLs"""
-    if isinstance(paths, list):
-        return [f"{settings.PUBLIC_BASE_URL}/static/{path}" for path in paths]
-    elif isinstance(paths, str):
+    if paths is None:
+        return []
+    elif isinstance(paths, list):
+        if not paths:  # Empty list
+            return []
+        return [f"{settings.PUBLIC_BASE_URL}/static/{path}" for path in paths if path]
+    elif isinstance(paths, str) and paths:
         return f"{settings.PUBLIC_BASE_URL}/static/{paths}"
-    return paths
+    return []
 
 
 @router.get("/{cluster}/{project}/idfs")
@@ -160,6 +164,23 @@ async def get_idf(
         table_data = json.loads(idf_dict["table_data"]) if isinstance(idf_dict["table_data"], str) else idf_dict["table_data"]
         health = compute_health(table_data)
 
+    # Parse table_data properly
+    table_data = None
+    if idf_dict.get("table_data"):
+        try:
+            if isinstance(idf_dict["table_data"], str):
+                table_data = json.loads(idf_dict["table_data"])
+            else:
+                table_data = idf_dict["table_data"]
+            
+            # Ensure table_data is either None or a proper dict with columns and rows
+            if isinstance(table_data, list):
+                table_data = None
+            elif isinstance(table_data, dict) and not table_data.get("columns"):
+                table_data = None
+        except (json.JSONDecodeError, TypeError):
+            table_data = None
+
     return IdfPublic(
         cluster=idf_dict["cluster"],
         project=idf_dict["project"],
@@ -174,6 +195,6 @@ async def get_idf(
         location=convert_relative_to_absolute(idf_dict.get("location")) if idf_dict.get("location") else None,
         dfo=convert_relative_to_absolute(idf_dict.get("dfo", [])),
         logo=convert_relative_to_absolute(idf_dict.get("logo")) if idf_dict.get("logo") else None,
-        table=json.loads(idf_dict["table_data"]) if idf_dict.get("table_data") else None,
+        table=table_data,
         health=health
     )
