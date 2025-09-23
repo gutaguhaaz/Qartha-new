@@ -137,9 +137,9 @@ const Login: React.FC = () => {
             </Button>
           </form>
 
-          <div className="mt-4 text-sm defaultlegend text-center">
+          {/*<div className="mt-4 text-sm defaultlegend text-center">
             Default credentials: lgutierrez@example.com / 123456789
-          </div>
+          </div> */}
         </CardContent>
       </Card>
     </div>
