@@ -89,6 +89,15 @@ export default function AddIdfDialog({
 
   const [uploadQueue, setUploadQueue] = useState<UploadQueue>(emptyQueue);
 
+  const [fileNames, setFileNames] = useState<Record<string, string | string[]>>({
+    dfo: '',
+    location: [],
+    gallery: [],
+    diagrams: [],
+    documents: [],
+    logo: '',
+  });
+
   const isLastStep = useMemo(() => step === steps[steps.length - 1].value, [step]);
 
   const goToNextStep = () => {
@@ -110,29 +119,170 @@ export default function AddIdfDialog({
   const resetState = () => {
     setFormValues({ code: "", title: "", site: "", room: "", description: "" });
     setUploadQueue(emptyQueue);
+    setFileNames({
+      dfo: '',
+      location: [],
+      gallery: [],
+      diagrams: [],
+      documents: [],
+      logo: '',
+    });
     setStep("basic");
     setError(null);
   };
 
-  const handleFileSelection = (key: keyof UploadQueue, files: FileList | null) => {
+  const handleFileSelection = (category: keyof UploadQueue, files: FileList | null) => {
     if (!files) return;
-    setUploadQueue((prev) => ({
-      ...prev,
-      [key]: key === "dfo" || key === "logo"
-        ? files[0]
-        : [...(Array.isArray(prev[key]) ? (prev[key] as File[]) : []), ...Array.from(files)],
-    }));
+
+    const fileArray = Array.from(files);
+
+    setUploadQueue(prev => {
+      if (category === 'dfo' || category === 'logo') {
+        return {
+          ...prev,
+          [category]: fileArray[0] || null
+        };
+      } else {
+        return {
+          ...prev,
+          [category]: [...(prev[category] as File[]), ...fileArray]
+        };
+      }
+    });
+
+    setFileNames(prev => {
+      if (category === 'dfo' || category === 'logo') {
+        return {
+          ...prev,
+          [category]: fileArray[0]?.name || ''
+        };
+      } else {
+        const currentNames = prev[category] as string[];
+        const newNames = fileArray.map(file => file.name);
+        return {
+          ...prev,
+          [category]: [...currentNames, ...newNames]
+        };
+      }
+    });
   };
 
-  const handleRemoveFile = (key: keyof UploadQueue, index: number) => {
-    setUploadQueue((prev) => {
-      if (key === "dfo" || key === "logo") {
-        return { ...prev, [key]: null };
+  const removeFile = (category: keyof UploadQueue, index: number) => {
+    setUploadQueue(prev => {
+      const current = prev[category];
+      if (Array.isArray(current)) {
+        return {
+          ...prev,
+          [category]: current.filter((_, i) => i !== index)
+        };
+      } else {
+        return {
+          ...prev,
+          [category]: null
+        };
       }
-      const updated = [...((prev[key] as File[]) || [])];
-      updated.splice(index, 1);
-      return { ...prev, [key]: updated };
     });
+
+    setFileNames(prev => {
+      const current = prev[category];
+      if (Array.isArray(current)) {
+        return {
+          ...prev,
+          [category]: current.filter((_, i) => i !== index)
+        };
+      } else {
+        return {
+          ...prev,
+          [category]: ''
+        };
+      }
+    });
+  };
+
+  const updateFileName = (category: keyof UploadQueue, index: number, name: string) => {
+    setFileNames(prev => {
+      const current = prev[category];
+      if (Array.isArray(current)) {
+        const newArray = [...current];
+        newArray[index] = name;
+        return {
+          ...prev,
+          [category]: newArray
+        };
+      } else {
+        return {
+          ...prev,
+          [category]: name
+        };
+      }
+    });
+  };
+
+  const renderFileList = (category: keyof UploadQueue) => {
+    const files = uploadQueue[category];
+    if (!files || (Array.isArray(files) ? files.length === 0 : !files)) {
+      return null;
+    }
+
+    if (Array.isArray(files)) {
+      return (
+        <div className="mt-2 space-y-3">
+          {files.map((file, index) => (
+            <div key={index} className="space-y-2 bg-muted p-3 rounded">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">{file.name}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeFile(category, index)}
+                >
+                  Remove
+                </Button>
+              </div>
+              <div>
+                <Label htmlFor={`${category}-name-${index}`} className="text-xs">Display Name</Label>
+                <Input
+                  id={`${category}-name-${index}`}
+                  value={fileNames[category]?.[index] || ''}
+                  onChange={(e) => updateFileName(category, index, e.target.value)}
+                  placeholder="Enter display name"
+                  className="text-xs mt-1"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    } else {
+      return (
+        <div className="mt-2">
+          <div className="space-y-2 bg-muted p-3 rounded">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium">{files.name}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeFile(category, 0)}
+              >
+                Remove
+              </Button>
+            </div>
+            <div>
+              <Label htmlFor={`${category}-name`} className="text-xs">Display Name</Label>
+              <Input
+                id={`${category}-name`}
+                value={fileNames[category] || ''}
+                onChange={(e) => updateFileName(category, 0, e.target.value)}
+                placeholder="Enter display name"
+                className="text-xs mt-1"
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
   };
 
   const handleCreate = async () => {
@@ -214,37 +364,6 @@ export default function AddIdfDialog({
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const renderFileList = (key: keyof UploadQueue) => {
-    const files = uploadQueue[key];
-    if (!files || (Array.isArray(files) && files.length === 0)) {
-      return <p className="text-sm text-muted-foreground">No files selected</p>;
-    }
-
-    if (files instanceof File) {
-      return (
-        <div className="flex items-center justify-between rounded border border-border px-3 py-2 text-sm">
-          <span>{files.name}</span>
-          <Button variant="ghost" size="sm" onClick={() => handleRemoveFile(key, 0)}>
-            Remove
-          </Button>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-2">
-        {files.map((file, index) => (
-          <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded border border-border px-3 py-2 text-sm">
-            <span>{file.name}</span>
-            <Button variant="ghost" size="sm" onClick={() => handleRemoveFile(key, index)}>
-              Remove
-            </Button>
-          </div>
-        ))}
-      </div>
-    );
   };
 
   return (

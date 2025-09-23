@@ -97,11 +97,14 @@ export default function AdminSidebar({
 
   // Mock handlers for upload/delete for each section
   const handleUploadGallery = (files: FileList | null) => handleUploadAsset("images", files);
-  const handleRemoveGallery = (index: number) => handleDeleteAsset("images", index);
+  const handleRemoveGalleryItem = (index: number) => handleDeleteAsset("images", index); // Renamed for clarity
   const handleUploadLocation = (files: FileList | null) => handleUploadAsset("location", files);
-  const handleRemoveLocation = (index: number) => handleDeleteAsset("location", index);
+  const handleRemoveLocationItem = (index: number) => handleDeleteAsset("location", index); // Renamed for clarity
   const handleUploadDiagrams = (files: FileList | null) => handleUploadAsset("diagram", files);
-  const handleRemoveDiagram = (index: number) => handleDeleteAsset("diagrams", index);
+  const handleRemoveDiagramItem = (index: number) => handleDeleteAsset("diagrams", index); // Renamed for clarity
+  const handleUploadDocuments = (files: FileList | null) => handleUploadAsset("documents", files);
+  const handleRemoveDocumentItem = (index: number) => handleDeleteAsset("documents", index); // Renamed for clarity
+
 
   useEffect(() => {
     if (preloadIdf && isOpen) {
@@ -694,35 +697,32 @@ export default function AdminSidebar({
                           {gallery.map((item, index) => (
                             <div
                               key={index}
-                              className="flex items-center justify-between rounded border border-border p-3"
+                              className="space-y-2 rounded border border-border p-3"
                             >
-                              <div className="flex items-center space-x-3">
-                                <img
-                                  src={item.url}
-                                  alt={item.name || `Gallery image ${index + 1}`}
-                                  className="h-16 w-16 rounded object-cover border border-border"
-                                  onError={(e) => {
-                                    // Fallback to icon if image fails to load
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                    target.nextElementSibling!.style.display = 'flex';
-                                  }}
-                                />
-                                <div className="hidden h-16 w-16 items-center justify-center rounded border border-border bg-muted">
-                                  <i className="fas fa-image text-blue-500"></i>
-                                </div>
-                                <div className="flex flex-col">
-                                  <span className="text-sm font-medium">{item.name ?? item.url}</span>
-                                  <span className="text-xs text-muted-foreground">Gallery Image</span>
-                                </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Gallery Image {index + 1}</span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRemoveGalleryItem(index)}
+                                >
+                                  Remove
+                                </Button>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveGallery(index)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <div>
+                                <Label htmlFor={`gallery-name-${index}`} className="text-xs">Display Name</Label>
+                                <Input
+                                  id={`gallery-name-${index}`}
+                                  value={item.name || ''}
+                                  onChange={(e) => {
+                                    const newGallery = [...gallery];
+                                    newGallery[index] = { ...item, name: e.target.value };
+                                    setGallery(newGallery);
+                                  }}
+                                  placeholder="Enter display name"
+                                  className="text-xs"
+                                />
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -755,35 +755,32 @@ export default function AdminSidebar({
                           {locationItems.map((item, index) => (
                             <div
                               key={index}
-                              className="flex items-center justify-between rounded border border-border p-3"
+                              className="space-y-2 rounded border border-border p-3"
                             >
-                              <div className="flex items-center space-x-3">
-                                <img
-                                  src={item.url}
-                                  alt={item.name || `Location image ${index + 1}`}
-                                  className="h-16 w-16 rounded object-cover border border-border"
-                                  onError={(e) => {
-                                    // Fallback to icon if image fails to load
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                    target.nextElementSibling!.style.display = 'flex';
-                                  }}
-                                />
-                                <div className="hidden h-16 w-16 items-center justify-center rounded border border-border bg-muted">
-                                  <i className="fas fa-map-marker-alt text-red-500"></i>
-                                </div>
-                                <div className="flex flex-col">
-                                  <span className="text-sm font-medium">{item.name ?? item.url}</span>
-                                  <span className="text-xs text-muted-foreground">Location Photo</span>
-                                </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Location Image {index + 1}</span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRemoveLocationItem(index)}
+                                >
+                                  Remove
+                                </Button>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveLocation(index)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <div>
+                                <Label htmlFor={`location-name-${index}`} className="text-xs">Display Name</Label>
+                                <Input
+                                  id={`location-name-${index}`}
+                                  value={item.name || ''}
+                                  onChange={(e) => {
+                                    const newLocationItems = [...locationItems];
+                                    newLocationItems[index] = { ...item, name: e.target.value };
+                                    setLocationItems(newLocationItems);
+                                  }}
+                                  placeholder="Enter location name"
+                                  className="text-xs"
+                                />
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -820,43 +817,36 @@ export default function AdminSidebar({
                             return (
                               <div
                                 key={index}
-                                className="flex items-center justify-between rounded border border-border p-3"
+                                className="space-y-2 rounded border border-border p-3"
                               >
-                                <div className="flex items-center space-x-3">
-                                  {isImage ? (
-                                    <img
-                                      src={item.url}
-                                      alt={item.name || `Diagram ${index + 1}`}
-                                      className="h-16 w-16 rounded object-cover border border-border"
-                                      onError={(e) => {
-                                        // Fallback to icon if image fails to load
-                                        const target = e.target as HTMLImageElement;
-                                        target.style.display = 'none';
-                                        target.nextElementSibling!.style.display = 'flex';
-                                      }}
-                                    />
-                                  ) : (
-                                    <div className="h-16 w-16 flex items-center justify-center rounded border border-border bg-muted">
-                                      <i className={`fas ${isPdf ? 'fa-file-pdf text-red-500' : 'fa-project-diagram text-green-500'} text-xl`}></i>
-                                    </div>
-                                  )}
-                                  <div className="hidden h-16 w-16 items-center justify-center rounded border border-border bg-muted">
-                                    <i className="fas fa-project-diagram text-green-500"></i>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    {isImage && <i className="fas fa-image text-blue-500"></i>}
+                                    {isPdf && <i className="fas fa-file-pdf text-red-500"></i>}
+                                    <span className="text-sm font-medium">Diagram {index + 1}</span>
                                   </div>
-                                  <div className="flex flex-col">
-                                    <span className="text-sm font-medium">{item.name ?? item.url}</span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {isPdf ? 'PDF Diagram' : 'Network Diagram'}
-                                    </span>
-                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveDiagramItem(index)}
+                                  >
+                                    Remove
+                                  </Button>
                                 </div>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRemoveDiagram(index)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <div>
+                                  <Label htmlFor={`diagram-name-${index}`} className="text-xs">Display Name</Label>
+                                  <Input
+                                    id={`diagram-name-${index}`}
+                                    value={item.name || ''}
+                                    onChange={(e) => {
+                                      const newDiagrams = [...diagrams];
+                                      newDiagrams[index] = { ...item, name: e.target.value };
+                                      setDiagrams(newDiagrams);
+                                    }}
+                                    placeholder="Enter diagram name"
+                                    className="text-xs"
+                                  />
+                                </div>
                               </div>
                             );
                           })}
@@ -871,10 +861,10 @@ export default function AdminSidebar({
                       description="Upload related documentation"
                       items={documents}
                       onUpload={(files) =>
-                        handleUploadAsset("documents", files)
+                        handleUploadDocuments(files)
                       }
                       onDelete={(index) =>
-                        handleDeleteAsset("documents", index)
+                        handleRemoveDocumentItem(index)
                       }
                       accept=".pdf,.doc,.docx,.xls,.xlsx"
                     />
