@@ -46,11 +46,12 @@ def migrate_users():
     try:
         dev_cur = dev_conn.cursor()
         prod_cur = prod_conn.cursor()
-            # 1. Verificar si la tabla users existe en desarrollo
-            dev_cur.execute("""
-                SELECT COUNT(*) FROM information_schema.tables 
-                WHERE table_schema = 'public' AND table_name = 'users'
-            """)
+        
+        # 1. Verificar si la tabla users existe en desarrollo
+        dev_cur.execute("""
+            SELECT COUNT(*) FROM information_schema.tables 
+            WHERE table_schema = 'public' AND table_name = 'users'
+        """)
             if dev_cur.fetchone()[0] == 0:
                 print("❌ La tabla 'users' no existe en desarrollo")
                 return False
