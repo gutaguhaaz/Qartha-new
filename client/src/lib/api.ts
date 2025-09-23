@@ -69,10 +69,33 @@ async function requestJson(path: string, data?: unknown, method: string = "POST"
 }
 
 async function requestForm(path: string, formData: FormData, method: string = "POST") {
-  return request(path, {
+  const response = await fetch(buildUrl(path), {
     method,
+    credentials: "include",
     body: formData,
+    headers: {
+      "X-Requested-With": "fetch",
+    },
   });
+
+  if (response.status === 401) {
+    handleUnauthorized();
+  }
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `HTTP ${response.status}`);
+  }
+
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return response.json();
+  }
+  return response.text();
 }
 
 export async function getIdfs(cluster: string, project: string, options: IdfSearchParams = {}) {
