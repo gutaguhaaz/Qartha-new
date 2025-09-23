@@ -178,6 +178,27 @@ export async function uploadSingleAsset(
   return requestForm(`/${cluster}/${project}/assets/${code}/${assetType}`, formData);
 }
 
+export async function uploadAsset(
+  cluster: string,
+  project: string,
+  code: string,
+  file: File,
+  assetType: "images" | "documents" | "diagrams" | "dfo" | "location" | "logo",
+) {
+  const formData = new FormData();
+  
+  if (assetType === "location" || assetType === "logo") {
+    formData.append("file", file);
+    return requestForm(`/${cluster}/${project}/assets/${code}/${assetType}`, formData);
+  } else if (assetType === "dfo") {
+    formData.append("files", file);
+    return requestForm(`/${cluster}/${project}/assets/${code}/diagrams`, formData);
+  } else {
+    formData.append("files", file);
+    return requestForm(`/${cluster}/${project}/assets/${code}/${assetType}`, formData);
+  }
+}
+
 export async function deleteAsset(
   cluster: string,
   project: string,
