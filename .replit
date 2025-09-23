@@ -19,7 +19,6 @@ externalPort = 80
 localPort = 8000
 externalPort = 8000
 
-
 [workflows]
 runButton = "Project"
 
@@ -29,13 +28,24 @@ mode = "parallel"
 author = "agent"
 
 [[workflows.workflow.tasks]]
-# Backend FastAPI
 task = "shell.exec"
 args = "pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000"
 waitForPort = 8000
 
 [[workflows.workflow.tasks]]
-# Frontend (Vite/Next/etc.)
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Backend Only"
+author = 43274881
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pip install -r requirements.txt"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
