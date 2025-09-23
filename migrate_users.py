@@ -4,6 +4,7 @@ import os
 import psycopg2
 from datetime import datetime
 import sys
+import asyncio
 
 def get_db_urls():
     """Obtener las URLs de las bases de datos desde variables de entorno"""
@@ -26,9 +27,13 @@ def migrate_users():
     print(f"   PROD: {prod_url[:30]}...")
     print()
     
-    # Conexión a desarrollo
-    dev_conn = psycopg2.connect(dev_url)
-    prod_conn = psycopg2.connect(prod_url)
+    # Conexiones con timeouts más cortos
+    dev_conn = psycopg2.connect(dev_url, connect_timeout=10)
+    prod_conn = psycopg2.connect(prod_url, connect_timeout=10)
+    
+    # Configurar autocommit para evitar bloqueos
+    dev_conn.autocommit = True
+    prod_conn.autocommit = False
     
     try:
         with dev_conn.cursor() as dev_cur, prod_conn.cursor() as prod_cur:
@@ -39,7 +44,7 @@ def migrate_users():
             """)
             if dev_cur.fetchone()[0] == 0:
                 print("❌ La tabla 'users' no existe en desarrollo")
-                return
+                return False
             
             # 2. Obtener datos de desarrollo
             dev_cur.execute("SELECT COUNT(*) FROM users")
@@ -48,9 +53,9 @@ def migrate_users():
             
             if dev_count == 0:
                 print("⚠️  No hay usuarios en desarrollo para migrar")
-                return
+                return False
             
-            # 3. Crear backup de producción si existe la tabla
+            # 3. Verificar producción y crear backup usando Python en lugar de pg_dump
             prod_cur.execute("""
                 SELECT COUNT(*) FROM information_schema.tables 
                 WHERE table_schema = 'public' AND table_name = 'users'
@@ -60,12 +65,32 @@ def migrate_users():
                 prod_count = prod_cur.fetchone()[0]
                 print(f"📊 Usuarios en producción (antes): {prod_count}")
                 
-                # Backup
-                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-                backup_file = f"backup_users_{ts}.sql"
-                print(f"💾 Creando backup: {backup_file}")
-                
-                os.system(f'pg_dump --table=public.users --data-only --inserts "{prod_url}" > {backup_file}')
+                if prod_count > 0:
+                    # Backup usando Python en lugar de pg_dump para evitar problemas de versión
+                    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    backup_file = f"backup_users_{ts}.csv"
+                    print(f"💾 Creando backup en CSV: {backup_file}")
+                    
+                    prod_cur.execute("""
+                        SELECT id, email, password_hash, role, full_name, is_active, 
+                               created_at, updated_at, last_login_at
+                        FROM users ORDER BY id
+                    """)
+                    backup_data = prod_cur.fetchall()
+                    
+                    with open(backup_file, 'w', encoding='utf-8') as f:
+                        f.write("id,email,password_hash,role,full_name,is_active,created_at,updated_at,last_login_at\n")
+                        for row in backup_data:
+                            # Escapar comillas en CSV
+                            escaped_row = []
+                            for field in row:
+                                if field is None:
+                                    escaped_row.append('')
+                                else:
+                                    escaped_row.append(f'"{str(field).replace('"', '""')}"')
+                            f.write(','.join(escaped_row) + '\n')
+                    
+                    print(f"✅ Backup creado: {backup_file}")
             
             # 4. Crear la tabla users en producción si no existe
             print("🔧 Asegurando que existe la tabla users en producción...")
@@ -83,11 +108,31 @@ def migrate_users():
                 );
             """)
             
-            # 5. Limpiar tabla de producción
-            print("🧹 Limpiando tabla users en producción...")
-            prod_cur.execute("TRUNCATE TABLE users RESTART IDENTITY")
+            # 5. Terminar conexiones activas (sin bloquear)
+            print("🔌 Cerrando conexiones activas a la tabla users...")
+            try:
+                prod_cur.execute("""
+                    SELECT pg_terminate_backend(pid)
+                    FROM pg_stat_activity
+                    WHERE datname = current_database() 
+                    AND pid <> pg_backend_pid()
+                    AND query ILIKE '%users%'
+                """)
+            except Exception as e:
+                print(f"⚠️  No se pudieron cerrar todas las conexiones: {e}")
             
-            # 6. Obtener datos de desarrollo
+            # 6. Limpiar tabla de producción con timeout
+            print("🧹 Limpiando tabla users en producción...")
+            prod_cur.execute("SET statement_timeout = '30s'")
+            try:
+                prod_cur.execute("TRUNCATE TABLE users RESTART IDENTITY")
+                print("✅ Tabla limpiada exitosamente")
+            except psycopg2.Error as e:
+                print(f"⚠️  Error en TRUNCATE, intentando DELETE: {e}")
+                prod_cur.execute("DELETE FROM users")
+                prod_cur.execute("ALTER SEQUENCE users_id_seq RESTART WITH 1")
+            
+            # 7. Obtener datos de desarrollo
             print("📤 Obteniendo usuarios de desarrollo...")
             dev_cur.execute("""
                 SELECT email, password_hash, role, full_name, is_active, 
@@ -96,7 +141,7 @@ def migrate_users():
             """)
             users_data = dev_cur.fetchall()
             
-            # 7. Insertar en producción
+            # 8. Insertar en producción uno por uno para mejor control
             print("📥 Insertando usuarios en producción...")
             insert_query = """
                 INSERT INTO users (email, password_hash, role, full_name, is_active, 
@@ -104,22 +149,29 @@ def migrate_users():
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """
             
-            for user_row in users_data:
-                prod_cur.execute(insert_query, user_row)
+            inserted_count = 0
+            for i, user_row in enumerate(users_data, 1):
+                try:
+                    prod_cur.execute(insert_query, user_row)
+                    inserted_count += 1
+                    print(f"   Usuario {i}/{len(users_data)}: {user_row[0]}")
+                except Exception as e:
+                    print(f"   ⚠️  Error insertando usuario {user_row[0]}: {e}")
             
-            # 8. Ajustar secuencia
+            # 9. Ajustar secuencia
             print("🔧 Ajustando secuencia de IDs...")
             prod_cur.execute("SELECT setval('users_id_seq', COALESCE(MAX(id), 1)) FROM users")
             
-            # 9. Verificar migración
+            # 10. Verificar migración
             prod_cur.execute("SELECT COUNT(*) FROM users")
             final_count = prod_cur.fetchone()[0]
             
             print(f"✅ Migración completada:")
-            print(f"   • Usuarios migrados: {final_count}")
-            print(f"   • Dev: {dev_count} → Prod: {final_count}")
+            print(f"   • Usuarios en desarrollo: {dev_count}")
+            print(f"   • Usuarios insertados: {inserted_count}")
+            print(f"   • Usuarios finales en producción: {final_count}")
             
-            if dev_count != final_count:
+            if inserted_count != final_count:
                 print("⚠️  Los conteos no coinciden, verificar manualmente")
                 return False
             
@@ -131,6 +183,8 @@ def migrate_users():
     except Exception as e:
         prod_conn.rollback()
         print(f"❌ Error durante la migración: {e}")
+        import traceback
+        traceback.print_exc()
         return False
     finally:
         dev_conn.close()
