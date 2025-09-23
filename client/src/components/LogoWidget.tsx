@@ -27,11 +27,13 @@ export default function LogoWidget({
     onSuccess: (data) => {
       toast({
         title: "Success",
-        description: `Logo uploaded successfully: ${data.name}`,
+        description: `Logo uploaded successfully`,
       });
       setPreview(null);
       // Invalidate queries to refresh the IDF data
-      queryClient.invalidateQueries({ queryKey: ['admin', 'idf-details', cluster, project, code] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'idf-detail', cluster, project, code] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'idfs', cluster, project] });
+      queryClient.invalidateQueries({ queryKey: ['/api', cluster, project, 'idfs', code] });
       queryClient.invalidateQueries({ queryKey: ['idfs', cluster, project] });
     },
     onError: (error) => {
@@ -108,10 +110,17 @@ export default function LogoWidget({
         <div className="relative">
           <img
             src={currentLogo.url}
-            alt={currentLogo.name}
+            alt={currentLogo.name || 'IDF Logo'}
             className="h-16 w-auto object-contain border rounded"
           />
-          <div className="text-xs text-muted-foreground mt-1">{currentLogo.name}</div>
+          <div className="text-xs text-muted-foreground mt-1">{currentLogo.name || 'IDF Logo'}</div>
+        </div>
+      )}
+
+      {/* No Logo State */}
+      {!currentLogo && !preview && (
+        <div className="text-center py-4">
+          <div className="text-sm text-muted-foreground">No logo uploaded</div>
         </div>
       )}
 

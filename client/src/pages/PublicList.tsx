@@ -311,10 +311,11 @@ export default function PublicList() {
                 <div className="flex items-start space-x-3">
                   {idf.media?.logo && (
                     <img
-                      src={`${API_BASE}${idf.media.logo.url}`}
+                      src={idf.media.logo.url.startsWith('http') ? idf.media.logo.url : `${API_BASE}${idf.media.logo.url}`}
                       alt={`${idf.code} logo`}
                       className="h-10 w-10 object-contain rounded border border-border flex-shrink-0"
                       onError={(e) => {
+                        console.error('Failed to load IDF logo in list:', idf.media.logo.url);
                         (e.target as HTMLImageElement).style.display = "none";
                       }}
                     />

@@ -208,10 +208,11 @@ export default function PublicDetail({
               )}
               {idf.media?.logo && (
                 <img
-                  src={`${API_BASE}${idf.media.logo.url}`}
+                  src={idf.media.logo.url.startsWith('http') ? idf.media.logo.url : `${API_BASE}${idf.media.logo.url}`}
                   alt={`${idf.code} logo`}
                   className="h-12 w-auto"
                   onError={(e) => {
+                    console.error('Failed to load IDF logo:', idf.media.logo.url);
                     (e.target as HTMLImageElement).style.display = "none";
                   }}
                 />
