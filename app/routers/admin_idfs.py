@@ -49,13 +49,13 @@ def _serialize_table(table: Optional[Any]) -> Optional[str]:
 
 
 def _prepare_common_values(data: IdfUpsert) -> Dict[str, Any]:
-    # Convert location from array to string if needed
+    # Handle location - keep as JSON string if it's a list, or convert to JSON
     location_value = None
     if data.location:
         if isinstance(data.location, list):
-            location_value = data.location[0] if data.location else None
+            location_value = json.dumps(data.location)
         else:
-            location_value = data.location
+            location_value = json.dumps([data.location])
     
     return {
         "title": data.title,
@@ -88,6 +88,7 @@ def _load_json(value: Any) -> Any:
 
 def _row_to_idf_public(row: Dict[str, Any]) -> IdfPublic:
     table_data = _load_json(row.get("table_data"))
+    location_data = _load_json(row.get("location"))
 
     return IdfPublic(
         cluster=row["cluster"],
@@ -97,11 +98,11 @@ def _row_to_idf_public(row: Dict[str, Any]) -> IdfPublic:
         description=row.get("description"),
         site=row.get("site"),
         room=row.get("room"),
-        images=row.get("images", []),
-        documents=row.get("documents", []),
-        diagrams=row.get("diagrams", []),
-        location=row.get("location"),
-        dfo=row.get("dfo", []),
+        images=_load_json(row.get("images")) or [],
+        documents=_load_json(row.get("documents")) or [],
+        diagrams=_load_json(row.get("diagrams")) or [],
+        location=location_data,
+        dfo=_load_json(row.get("dfo")) or [],
         logo=row.get("logo"),
         table=table_data if isinstance(table_data, dict) else None,
     )
