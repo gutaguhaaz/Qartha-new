@@ -37,7 +37,9 @@ def migrate_users():
     }
     
     dev_conn = psycopg2.connect(dev_url, **connection_config)
+    print("🔗 Conectado a DEV")
     prod_conn = psycopg2.connect(prod_url, **connection_config)
+    print("🔗 Conectado a PROD")
     
     # Configurar autocommit para evitar bloqueos
     dev_conn.autocommit = True
@@ -143,30 +145,31 @@ def migrate_users():
             prod_cur.execute("DELETE FROM users")
             prod_cur.execute("ALTER SEQUENCE users_id_seq RESTART WITH 1")
         
-        # 7. Obtener datos de desarrollo con reconexión si es necesario
-        print("📤 Obteniendo usuarios de desarrollo...")
+        # 7. Obtener datos de desarrollo con conexión corta y timeout seguro
+        print("📤 Obteniendo usuarios de desarrollo (con timeout 30s, read-only)...")
         try:
-            dev_cur.execute("""
-                SELECT email, password_hash, role, full_name, is_active, 
-                       created_at, updated_at, last_login_at
-                FROM users ORDER BY id
-            """)
-            users_data = dev_cur.fetchall()
+            # Conexión corta solo para leer, con timeouts
+            with psycopg2.connect(
+                dev_url,
+                connect_timeout=30,
+                sslmode='require',
+                keepalives_idle=600,
+                keepalives_interval=30,
+                keepalives_count=3,
+                options='-c default_transaction_read_only=on -c statement_timeout=30000'
+            ) as dev_conn_ro:
+                dev_conn_ro.autocommit = True
+                with dev_conn_ro.cursor() as dev_ro_cur:
+                    dev_ro_cur.execute("""
+                        SELECT email, password_hash, role, full_name, is_active, 
+                               created_at, updated_at, last_login_at
+                        FROM users ORDER BY id
+                    """)
+                    users_data = dev_ro_cur.fetchall()
+            print(f"✅ Usuarios obtenidos de DEV: {len(users_data)}")
         except psycopg2.OperationalError as e:
-            if "SSL connection has been closed" in str(e):
-                print("🔄 Reconectando a la base de desarrollo...")
-                dev_conn.close()
-                dev_conn = psycopg2.connect(dev_url, **connection_config)
-                dev_conn.autocommit = True
-                dev_cur = dev_conn.cursor()
-                dev_cur.execute("""
-                    SELECT email, password_hash, role, full_name, is_active, 
-                           created_at, updated_at, last_login_at
-                    FROM users ORDER BY id
-                """)
-                users_data = dev_cur.fetchall()
-            else:
-                raise
+            print(f"❌ No se pudo leer desde DEV en 30s: {e}")
+            raise
         
         # 8. Insertar en producción uno por uno para mejor control
         print("📥 Insertando usuarios en producción...")
