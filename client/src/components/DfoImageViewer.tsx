@@ -110,7 +110,7 @@ export default function DfoImageViewer({ items }: DfoImageViewerProps) {
     <div className={containerClasses} data-testid="dfo-viewer" ref={containerRef}>
       <div className={`flex items-center justify-between mb-4 p-4 ${isFullscreen ? 'bg-gray-800' : ''}`}>
         <h3 className={`text-lg font-semibold ${isFullscreen ? 'text-white' : ''}`} data-testid="dfo-title">
-          {item.name || 'DFO Layout'}
+          DFO Layout {currentIndex + 1} of {items.length}
         </h3>
         <div className="flex items-center space-x-2">
           {!isFullscreen && (
@@ -167,20 +167,20 @@ export default function DfoImageViewer({ items }: DfoImageViewerProps) {
           <img
             ref={imageRef}
             src={correctedUrl}
-            alt={item.name || 'DFO Layout'}
+            alt="DFO Layout"
             className="absolute object-contain w-full h-full"
             style={imageStyle}
             data-testid="dfo-image"
             onError={(e) => {
-              console.error(`Failed to load DFO image: ${item.url}`);
+              console.error(`Failed to load DFO image: ${correctedUrl}`);
               const target = e.target as HTMLImageElement;
               target.parentElement!.innerHTML = `
                 <div class="p-4 text-center text-muted-foreground flex flex-col items-center justify-center h-full">
                   <i class="fas fa-exclamation-triangle text-4xl mb-4 text-yellow-400"></i>
                   <p class="mb-2">Failed to load DFO image</p>
-                  <p class="text-sm text-muted-foreground">${item.url}</p>
+                  <p class="text-sm text-muted-foreground">${correctedUrl}</p>
                   <a
-                    href="${item.url}"
+                    href="${correctedUrl}"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="inline-flex items-center px-4 py-2 mt-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
