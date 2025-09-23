@@ -1,3 +1,4 @@
+
 """Asset management endpoints for media associated with IDFs."""
 from __future__ import annotations
 
@@ -37,6 +38,9 @@ def map_url_project_to_db_project(project: str) -> str:
         "Trinity": "Trinity",
         "trinity/sabinas": "Sabinas Project",
         "sabinas/trinity": "Sabinas Project",
+        "monclova": "Monclova Project",
+        "Monclova": "Monclova Project",
+        "Monclova Project": "Monclova Project",
     }
     return project_mapping.get(decoded_project, decoded_project)
 
@@ -44,7 +48,8 @@ def map_url_project_to_db_project(project: str) -> str:
 def map_db_project_to_folder_name(db_project_name: str) -> str:
     folder_name_mapping = {
         "Sabinas Project": "sabinas",
-        "Trinity": "trinity",
+        "Trinity": "trinity", 
+        "Monclova Project": "monclova",
     }
     return folder_name_mapping.get(
         db_project_name, db_project_name.lower().replace(" ", "-")
@@ -73,7 +78,7 @@ async def _write_upload(file: UploadFile, destination: Path) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Upload endpoints
+# Upload endpoints - MULTIPLE FILES
 # ---------------------------------------------------------------------------
 
 @router.post("/{cluster}/{project}/assets/{code}/images")
@@ -88,7 +93,7 @@ async def upload_images(
     folder_project = map_db_project_to_folder_name(db_project)
 
     idf = await _get_idf(cluster, db_project, code)
-    current_images = idf.get("images", [])
+    current_images = idf.get("images") or []
 
     new_paths = []
     for file in files:
@@ -106,7 +111,7 @@ async def upload_images(
 
     await database.execute(
         "UPDATE idfs SET images = :images WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"images": updated_images, "cluster": cluster, "project": db_project, "code": code},
+        {"images": json.dumps(updated_images), "cluster": cluster, "project": db_project, "code": code},
     )
 
     return {"paths": new_paths, "message": f"Uploaded {len(files)} images successfully"}
@@ -124,7 +129,7 @@ async def upload_documents(
     folder_project = map_db_project_to_folder_name(db_project)
 
     idf = await _get_idf(cluster, db_project, code)
-    current_documents = idf.get("documents", [])
+    current_documents = idf.get("documents") or []
 
     new_paths = []
     for file in files:
@@ -139,7 +144,7 @@ async def upload_documents(
 
     await database.execute(
         "UPDATE idfs SET documents = :documents WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"documents": updated_documents, "cluster": cluster, "project": db_project, "code": code},
+        {"documents": json.dumps(updated_documents), "cluster": cluster, "project": db_project, "code": code},
     )
 
     return {"paths": new_paths, "message": f"Uploaded {len(files)} documents successfully"}
@@ -157,7 +162,7 @@ async def upload_diagrams(
     folder_project = map_db_project_to_folder_name(db_project)
 
     idf = await _get_idf(cluster, db_project, code)
-    current_diagrams = idf.get("diagrams", [])
+    current_diagrams = idf.get("diagrams") or []
 
     new_paths = []
     for file in files:
@@ -172,7 +177,7 @@ async def upload_diagrams(
 
     await database.execute(
         "UPDATE idfs SET diagrams = :diagrams WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"diagrams": updated_diagrams, "cluster": cluster, "project": db_project, "code": code},
+        {"diagrams": json.dumps(updated_diagrams), "cluster": cluster, "project": db_project, "code": code},
     )
 
     return {"paths": new_paths, "message": f"Uploaded {len(files)} diagrams successfully"}
@@ -190,10 +195,13 @@ async def upload_dfo(
     folder_project = map_db_project_to_folder_name(db_project)
 
     idf = await _get_idf(cluster, db_project, code)
-    current_dfo = idf.get("dfo", [])
+    current_dfo = idf.get("dfo") or []
 
     new_paths = []
     for file in files:
+        if not file.content_type or not file.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="DFO files must be images")
+
         extension = Path(file.filename or "dfo.png").suffix or ".png"
         filename = f"{int(time.time() * 1000)}{extension}"
         file_path = STATIC_ROOT / cluster / folder_project / code / "dfo" / filename
@@ -205,11 +213,15 @@ async def upload_dfo(
 
     await database.execute(
         "UPDATE idfs SET dfo = :dfo WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"dfo": updated_dfo, "cluster": cluster, "project": db_project, "code": code},
+        {"dfo": json.dumps(updated_dfo), "cluster": cluster, "project": db_project, "code": code},
     )
 
     return {"paths": new_paths, "message": f"Uploaded {len(files)} DFO files successfully"}
 
+
+# ---------------------------------------------------------------------------
+# Upload endpoints - SINGLE FILES
+# ---------------------------------------------------------------------------
 
 @router.post("/{cluster}/{project}/assets/{code}/location")
 async def upload_location(
@@ -281,7 +293,7 @@ async def delete_image(
 ):
     db_project = map_url_project_to_db_project(project)
     idf = await _get_idf(cluster, db_project, code)
-    images = idf.get("images", [])
+    images = idf.get("images") or []
 
     if index < 0 or index >= len(images):
         raise HTTPException(status_code=404, detail="Image not found")
@@ -296,10 +308,159 @@ async def delete_image(
 
     await database.execute(
         "UPDATE idfs SET images = :images WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"images": images, "cluster": cluster, "project": db_project, "code": code},
+        {"images": json.dumps(images), "cluster": cluster, "project": db_project, "code": code},
     )
 
     return {"message": "Image deleted", "path": removed_path}
+
+
+@router.delete("/{cluster}/{project}/assets/{code}/documents/{index}")
+async def delete_document(
+    cluster: str = Depends(validate_cluster),
+    project: str = "",
+    code: str = "",
+    index: int = 0,
+    _admin: dict = Depends(get_current_admin),
+):
+    db_project = map_url_project_to_db_project(project)
+    idf = await _get_idf(cluster, db_project, code)
+    documents = idf.get("documents") or []
+
+    if index < 0 or index >= len(documents):
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    removed_path = documents.pop(index)
+
+    # Remove file from filesystem
+    try:
+        (STATIC_ROOT / removed_path).unlink(missing_ok=True)
+    except OSError:
+        pass
+
+    await database.execute(
+        "UPDATE idfs SET documents = :documents WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"documents": json.dumps(documents), "cluster": cluster, "project": db_project, "code": code},
+    )
+
+    return {"message": "Document deleted", "path": removed_path}
+
+
+@router.delete("/{cluster}/{project}/assets/{code}/diagrams/{index}")
+async def delete_diagram(
+    cluster: str = Depends(validate_cluster),
+    project: str = "",
+    code: str = "",
+    index: int = 0,
+    _admin: dict = Depends(get_current_admin),
+):
+    db_project = map_url_project_to_db_project(project)
+    idf = await _get_idf(cluster, db_project, code)
+    diagrams = idf.get("diagrams") or []
+
+    if index < 0 or index >= len(diagrams):
+        raise HTTPException(status_code=404, detail="Diagram not found")
+
+    removed_path = diagrams.pop(index)
+
+    # Remove file from filesystem
+    try:
+        (STATIC_ROOT / removed_path).unlink(missing_ok=True)
+    except OSError:
+        pass
+
+    await database.execute(
+        "UPDATE idfs SET diagrams = :diagrams WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"diagrams": json.dumps(diagrams), "cluster": cluster, "project": db_project, "code": code},
+    )
+
+    return {"message": "Diagram deleted", "path": removed_path}
+
+
+@router.delete("/{cluster}/{project}/assets/{code}/dfo/{index}")
+async def delete_dfo(
+    cluster: str = Depends(validate_cluster),
+    project: str = "",
+    code: str = "",
+    index: int = 0,
+    _admin: dict = Depends(get_current_admin),
+):
+    db_project = map_url_project_to_db_project(project)
+    idf = await _get_idf(cluster, db_project, code)
+    dfo = idf.get("dfo") or []
+
+    if index < 0 or index >= len(dfo):
+        raise HTTPException(status_code=404, detail="DFO file not found")
+
+    removed_path = dfo.pop(index)
+
+    # Remove file from filesystem
+    try:
+        (STATIC_ROOT / removed_path).unlink(missing_ok=True)
+    except OSError:
+        pass
+
+    await database.execute(
+        "UPDATE idfs SET dfo = :dfo WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"dfo": json.dumps(dfo), "cluster": cluster, "project": db_project, "code": code},
+    )
+
+    return {"message": "DFO file deleted", "path": removed_path}
+
+
+@router.delete("/{cluster}/{project}/assets/{code}/location")
+async def delete_location(
+    cluster: str = Depends(validate_cluster),
+    project: str = "",
+    code: str = "",
+    _admin: dict = Depends(get_current_admin),
+):
+    db_project = map_url_project_to_db_project(project)
+    idf = await _get_idf(cluster, db_project, code)
+    location = idf.get("location")
+
+    if not location:
+        raise HTTPException(status_code=404, detail="Location image not found")
+
+    # Remove file from filesystem
+    try:
+        (STATIC_ROOT / location).unlink(missing_ok=True)
+    except OSError:
+        pass
+
+    await database.execute(
+        "UPDATE idfs SET location = NULL WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": db_project, "code": code},
+    )
+
+    return {"message": "Location image deleted", "path": location}
+
+
+@router.delete("/{cluster}/{project}/assets/{code}/logo")
+async def delete_logo(
+    cluster: str = Depends(validate_cluster),
+    project: str = "",
+    code: str = "",
+    _admin: dict = Depends(get_current_admin),
+):
+    db_project = map_url_project_to_db_project(project)
+    idf = await _get_idf(cluster, db_project, code)
+    logo = idf.get("logo")
+
+    if not logo:
+        raise HTTPException(status_code=404, detail="Logo not found")
+
+    # Remove file from filesystem
+    try:
+        (STATIC_ROOT / logo).unlink(missing_ok=True)
+    except OSError:
+        pass
+
+    await database.execute(
+        "UPDATE idfs SET logo = NULL WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"cluster": cluster, "project": db_project, "code": code},
+    )
+
+    return {"message": "Logo deleted", "path": logo}
 
 
 __all__ = ["router", "admin_router"]
