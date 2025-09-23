@@ -83,25 +83,25 @@ def convert_relative_to_absolute(paths: Any) -> Any:
     if paths is None:
         return []
     elif isinstance(paths, str):
-        if not paths:
+        if not paths.strip():
             return []
         # Try to parse as JSON first
         try:
             parsed_paths = json.loads(paths)
             # If it's a list, process each item
             if isinstance(parsed_paths, list):
-                return [f"{settings.PUBLIC_BASE_URL}/static/{path}" for path in parsed_paths if path]
+                return [f"{settings.PUBLIC_BASE_URL}/static/{path.strip()}" for path in parsed_paths if path and isinstance(path, str) and path.strip()]
             # If it's a single string, wrap in list
-            elif isinstance(parsed_paths, str) and parsed_paths:
-                return [f"{settings.PUBLIC_BASE_URL}/static/{parsed_paths}"]
+            elif isinstance(parsed_paths, str) and parsed_paths.strip():
+                return [f"{settings.PUBLIC_BASE_URL}/static/{parsed_paths.strip()}"]
             return []
         except (json.JSONDecodeError, TypeError):
             # If not JSON, treat as single path
-            return [f"{settings.PUBLIC_BASE_URL}/static/{paths}"]
+            return [f"{settings.PUBLIC_BASE_URL}/static/{paths.strip()}"]
     elif isinstance(paths, list):
         if not paths:  # Empty list
             return []
-        return [f"{settings.PUBLIC_BASE_URL}/static/{path}" for path in paths if path]
+        return [f"{settings.PUBLIC_BASE_URL}/static/{path.strip()}" for path in paths if path and isinstance(path, str) and path.strip()]
     return []
 
 
@@ -245,11 +245,16 @@ async def get_idf(
     def parse_asset_field(field_data):
         if field_data is None:
             return []
+        if isinstance(field_data, list):
+            return field_data
         if isinstance(field_data, str):
+            if not field_data.strip():
+                return []
             try:
-                return json.loads(field_data)
+                parsed = json.loads(field_data)
+                return parsed if isinstance(parsed, list) else [parsed] if parsed else []
             except (json.JSONDecodeError, TypeError):
-                return field_data
+                return [field_data] if field_data.strip() else []
         return field_data
 
     return IdfPublic(
