@@ -95,6 +95,14 @@ export default function AdminSidebar({
   const [tableData, setTableData] = useState<any>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
+  // Mock handlers for upload/delete for each section
+  const handleUploadGallery = (files: FileList | null) => handleUploadAsset("images", files);
+  const handleRemoveGallery = (index: number) => handleDeleteAsset("images", index);
+  const handleUploadLocation = (files: FileList | null) => handleUploadAsset("location", files);
+  const handleRemoveLocation = (index: number) => handleDeleteAsset("location", index);
+  const handleUploadDiagrams = (files: FileList | null) => handleUploadAsset("diagram", files);
+  const handleRemoveDiagram = (index: number) => handleDeleteAsset("diagrams", index);
+
   useEffect(() => {
     if (preloadIdf && isOpen) {
       setSelectedCluster(preloadIdf.cluster);
@@ -629,36 +637,199 @@ export default function AdminSidebar({
                   </TabsContent>
 
                   <TabsContent value="gallery" className="space-y-4">
-                    <AssetSection
-                      title="Gallery images"
-                      description="Upload high quality images for the gallery"
-                      items={gallery}
-                      onUpload={(files) => handleUploadAsset("images", files)}
-                      onDelete={(index) => handleDeleteAsset("images", index)}
-                      accept="image/*"
-                    />
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Gallery images</CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Upload high quality images for the gallery
+                        </p>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <Label htmlFor="gallery-upload">Upload files</Label>
+                          <Input
+                            id="gallery-upload"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={(event) =>
+                              handleUploadGallery(event.target.files)
+                            }
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 gap-3">
+                          {gallery.map((item, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between rounded border border-border p-3"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <img
+                                  src={item.url}
+                                  alt={item.name || `Gallery image ${index + 1}`}
+                                  className="h-16 w-16 rounded object-cover border border-border"
+                                  onError={(e) => {
+                                    // Fallback to icon if image fails to load
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    target.nextElementSibling!.style.display = 'flex';
+                                  }}
+                                />
+                                <div className="hidden h-16 w-16 items-center justify-center rounded border border-border bg-muted">
+                                  <i className="fas fa-image text-blue-500"></i>
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium">{item.name ?? item.url}</span>
+                                  <span className="text-xs text-muted-foreground">Gallery Image</span>
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveGallery(index)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
                   </TabsContent>
 
                   <TabsContent value="location" className="space-y-4">
-                    <AssetSection
-                      title="Location"
-                      description="Upload blueprints or location photos"
-                      items={locationItems}
-                      onUpload={(files) => handleUploadAsset("location", files)}
-                      onDelete={(index) => handleDeleteAsset("location", index)}
-                      accept="image/*"
-                    />
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Location</CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Upload blueprints or location photos
+                        </p>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <Label htmlFor="location-upload">Upload files</Label>
+                          <Input
+                            id="location-upload"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={(event) =>
+                              handleUploadLocation(event.target.files)
+                            }
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 gap-3">
+                          {locationItems.map((item, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between rounded border border-border p-3"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <img
+                                  src={item.url}
+                                  alt={item.name || `Location image ${index + 1}`}
+                                  className="h-16 w-16 rounded object-cover border border-border"
+                                  onError={(e) => {
+                                    // Fallback to icon if image fails to load
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    target.nextElementSibling!.style.display = 'flex';
+                                  }}
+                                />
+                                <div className="hidden h-16 w-16 items-center justify-center rounded border border-border bg-muted">
+                                  <i className="fas fa-map-marker-alt text-red-500"></i>
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium">{item.name ?? item.url}</span>
+                                  <span className="text-xs text-muted-foreground">Location Photo</span>
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveLocation(index)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
                   </TabsContent>
 
                   <TabsContent value="diagrams" className="space-y-4">
-                    <AssetSection
-                      title="Diagrams"
-                      description="Upload network diagrams"
-                      items={diagrams}
-                      onUpload={(files) => handleUploadAsset("diagram", files)}
-                      onDelete={(index) => handleDeleteAsset("diagrams", index)}
-                      accept="image/*,application/pdf"
-                    />
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Diagrams</CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Upload network diagrams
+                        </p>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <Label htmlFor="diagrams-upload">Upload files</Label>
+                          <Input
+                            id="diagrams-upload"
+                            type="file"
+                            accept="image/*,application/pdf"
+                            multiple
+                            onChange={(event) =>
+                              handleUploadDiagrams(event.target.files)
+                            }
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 gap-3">
+                          {diagrams.map((item, index) => {
+                            const isImage = item.url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                            const isPdf = item.url.match(/\.pdf$/i);
+
+                            return (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between rounded border border-border p-3"
+                              >
+                                <div className="flex items-center space-x-3">
+                                  {isImage ? (
+                                    <img
+                                      src={item.url}
+                                      alt={item.name || `Diagram ${index + 1}`}
+                                      className="h-16 w-16 rounded object-cover border border-border"
+                                      onError={(e) => {
+                                        // Fallback to icon if image fails to load
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                        target.nextElementSibling!.style.display = 'flex';
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="h-16 w-16 flex items-center justify-center rounded border border-border bg-muted">
+                                      <i className={`fas ${isPdf ? 'fa-file-pdf text-red-500' : 'fa-project-diagram text-green-500'} text-xl`}></i>
+                                    </div>
+                                  )}
+                                  <div className="hidden h-16 w-16 items-center justify-center rounded border border-border bg-muted">
+                                    <i className="fas fa-project-diagram text-green-500"></i>
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-medium">{item.name ?? item.url}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {isPdf ? 'PDF Diagram' : 'Network Diagram'}
+                                    </span>
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRemoveDiagram(index)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
                   </TabsContent>
 
                   <TabsContent value="documents" className="space-y-4">
