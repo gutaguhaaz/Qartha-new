@@ -289,17 +289,21 @@ export default function AdminSidebar({
   };
 
   const handleUploadLogo = async (files: FileList | null) => {
-    if (!files || !selectedCode) return;
+    if (!files || files.length === 0 || !selectedCode) {
+      console.log("No files selected or no IDF code");
+      return;
+    }
     try {
       const file = files[0];
+      console.log("Uploading logo file:", file.name, file.type, file.size);
       await uploadIdfLogo(selectedCluster, selectedProject, selectedCode, file);
       toast({ title: "Logo updated" });
       refreshIdf();
     } catch (error) {
-      console.error(error);
+      console.error("Logo upload error:", error);
       toast({
         title: "Upload failed",
-        description: "Could not upload logo",
+        description: error instanceof Error ? error.message : "Could not upload logo",
         variant: "destructive",
       });
     }
@@ -595,9 +599,12 @@ export default function AdminSidebar({
                             id="idf-logo-upload"
                             type="file"
                             accept="image/*"
-                            onChange={(event) =>
-                              handleUploadLogo(event.target.files)
-                            }
+                            onChange={(event) => {
+                              const files = event.target.files;
+                              if (files && files.length > 0) {
+                                handleUploadLogo(files);
+                              }
+                            }}
                           />
                         </div>
                       </CardContent>
