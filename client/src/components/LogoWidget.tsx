@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, X, Image } from "lucide-react";
-import { uploadIdfLogo } from "@/lib/api";
+import { uploadAsset } from "@/lib/api";
 
 interface LogoWidgetProps {
   cluster: string;
@@ -23,7 +23,7 @@ export default function LogoWidget({
   const queryClient = useQueryClient();
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) => uploadIdfLogo(cluster, project, code, file),
+    mutationFn: (file: File) => uploadAsset(cluster, project, code, file, "logo"),
     onSuccess: (data) => {
       toast({
         title: "Success",

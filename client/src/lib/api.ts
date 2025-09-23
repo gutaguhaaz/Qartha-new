@@ -186,7 +186,7 @@ export async function uploadAsset(
   assetType: "images" | "documents" | "diagrams" | "dfo" | "location" | "logo",
 ) {
   const formData = new FormData();
-  
+
   if (assetType === "location" || assetType === "logo") {
     formData.append("file", file);
     return requestForm(`/${cluster}/${project}/assets/${code}/${assetType}`, formData);
