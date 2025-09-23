@@ -6,12 +6,6 @@ from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field, HttpUrl
 
 
-class MediaItem(BaseModel):
-    url: Union[HttpUrl, str]
-    name: Optional[str] = None
-    kind: str  # "image" | "document" | "diagram"
-
-
 class TableColumn(BaseModel):
     key: str
     label: str
@@ -37,15 +31,6 @@ class IdfHealth(BaseModel):
     counts: HealthCounts
 
 
-class MediaLogo(BaseModel):
-    name: str
-    url: Union[HttpUrl, str]
-
-
-class IdfMedia(BaseModel):
-    logo: Optional[MediaLogo] = None
-
-
 class IdfIndex(BaseModel):
     cluster: str
     project: str
@@ -54,7 +39,7 @@ class IdfIndex(BaseModel):
     site: Optional[str] = ""
     room: Optional[str] = ""
     health: Optional[IdfHealth] = None
-    media: Optional[IdfMedia] = None
+    logo: Optional[str] = None
 
 
 class IdfPublic(BaseModel):
@@ -65,15 +50,14 @@ class IdfPublic(BaseModel):
     description: Optional[str] = None
     site: Optional[str] = ""
     room: Optional[str] = ""
-    gallery: List[MediaItem] = Field(default_factory=list)
-    documents: List[MediaItem] = Field(default_factory=list)
-    diagrams: List[MediaItem] = Field(default_factory=list)
-    dfo: Optional[MediaItem] = None
-    location: Optional[MediaItem] = None
-    location_items: List[MediaItem] = Field(default_factory=list)
+    images: List[str] = Field(default_factory=list)
+    documents: List[str] = Field(default_factory=list)
+    diagrams: List[str] = Field(default_factory=list)
+    location: Optional[str] = None
+    dfo: List[str] = Field(default_factory=list)
+    logo: Optional[str] = None
     table: Optional[IdfTable] = None
     health: Optional[IdfHealth] = None
-    media: Optional[IdfMedia] = None
 
 
 class IdfUpsert(BaseModel):
@@ -81,11 +65,12 @@ class IdfUpsert(BaseModel):
     description: Optional[str] = None
     site: Optional[str] = None
     room: Optional[str] = None
-    gallery: List[MediaItem] = Field(default_factory=list)
-    documents: List[MediaItem] = Field(default_factory=list)
-    diagrams: List[MediaItem] = Field(default_factory=list)
-    location: List[MediaItem] = Field(default_factory=list)
-    dfo: Optional[MediaItem] = None
+    images: List[str] = Field(default_factory=list)
+    documents: List[str] = Field(default_factory=list)
+    diagrams: List[str] = Field(default_factory=list)
+    location: Optional[str] = None
+    dfo: List[str] = Field(default_factory=list)
+    logo: Optional[str] = None
     table: Optional[IdfTable] = None
 
 

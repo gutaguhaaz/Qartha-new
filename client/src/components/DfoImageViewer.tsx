@@ -1,21 +1,21 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { MediaItem } from "@shared/schema";
 
 interface DfoImageViewerProps {
-  item?: MediaItem;
+  items?: string[];
 }
 
-export default function DfoImageViewer({ item }: DfoImageViewerProps) {
+export default function DfoImageViewer({ items }: DfoImageViewerProps) {
   const [zoom, setZoom] = useState(100);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, posX: 0, posY: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
-  if (!item) {
+  if (!items || items.length === 0) {
     return (
       <div className="bg-card border border-border rounded-lg p-6" data-testid="dfo-empty">
         <div className="text-center py-12 text-muted-foreground">
@@ -26,10 +26,8 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
     );
   }
 
-  // Ensure the URL uses the correct path format
-  const imageUrl = typeof item.url === 'string' ? item.url : item.url.toString();
-  // Fix URL if it incorrectly contains 'idfs' instead of the proper static path
-  const correctedUrl = imageUrl.replace('/idfs/', '/static/').replace('/api/', '/static/');
+  const currentItem = items[currentIndex];
+  const correctedUrl = currentItem;
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
@@ -37,8 +35,18 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
   const handleDownload = () => {
     const link = document.createElement('a');
     link.href = correctedUrl;
-    link.download = item.name || 'dfo-diagram';
+    link.download = `dfo-diagram-${currentIndex + 1}`;
     link.click();
+  };
+
+  const handlePrevious = () => {
+    setCurrentIndex(prev => prev > 0 ? prev - 1 : items.length - 1);
+    handleCenter();
+  };
+
+  const handleNext = () => {
+    setCurrentIndex(prev => prev < items.length - 1 ? prev + 1 : 0);
+    handleCenter();
   };
 
   const handleCenter = useCallback(() => {

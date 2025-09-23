@@ -118,3 +118,90 @@ export type IdfIndex = z.infer<typeof idfIndexSchema>;
 export type IdfPublic = z.infer<typeof idfPublicSchema>;
 export type IdfUpsert = z.infer<typeof idfUpsertSchema>;
 export type Device = z.infer<typeof deviceSchema>;
+
+export interface IdfPublic {
+  cluster: string;
+  project: string;
+  code: string;
+  title: string;
+  description?: string;
+  site?: string;
+  room?: string;
+  images: string[];
+  documents: string[];
+  diagrams: string[];
+  location?: string;
+  dfo: string[];
+  logo?: string;
+  table?: IdfTable;
+  health?: IdfHealth;
+}
+
+export interface IdfIndex {
+  cluster: string;
+  project: string;
+  code: string;
+  title: string;
+  site?: string;
+  room?: string;
+  health?: IdfHealth;
+  logo?: string;
+}
+
+export interface IdfCreate {
+  code: string;
+  title: string;
+  description?: string;
+  site?: string;
+  room?: string;
+  images?: string[];
+  documents?: string[];
+  diagrams?: string[];
+  location?: string;
+  dfo?: string[];
+  logo?: string;
+  table?: IdfTable;
+}
+
+export interface IdfUpsert {
+  title: string;
+  description?: string;
+  site?: string;
+  room?: string;
+  images?: string[];
+  documents?: string[];
+  diagrams?: string[];
+  location?: string;
+  dfo?: string[];
+  logo?: string;
+  table?: IdfTable;
+}
+
+export interface IdfTable {
+  columns: TableColumn[];
+  rows: Record<string, any>[];
+}
+
+export interface TableColumn {
+  key: string;
+  label: string;
+  type: "text" | "number" | "date" | "select" | "status";
+  options?: string[];
+}
+
+export interface IdfHealth {
+  level: "green" | "yellow" | "red" | "gray";
+  counts: {
+    ok: number;
+    revision: number;
+    falla: number;
+    libre: number;
+    reservado: number;
+  };
+}
+
+export interface MediaItem {
+  url: string;
+  name?: string;
+  kind: string;
+}

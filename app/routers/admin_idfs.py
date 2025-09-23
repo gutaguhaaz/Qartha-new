@@ -1,3 +1,4 @@
+
 """Administrative endpoints for creating and updating IDFs."""
 from __future__ import annotations
 
@@ -8,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.config import settings
 from app.db.database import database
-from app.models.idf_models import IdfCreate, IdfPublic, IdfUpsert, MediaItem
+from app.models.idf_models import IdfCreate, IdfPublic, IdfUpsert
 from app.routers.auth import get_current_admin
 
 router = APIRouter(tags=["admin"])
@@ -41,17 +42,6 @@ def map_url_project_to_db_project(project: str) -> str:
     return project_mapping.get(decoded_project, decoded_project)
 
 
-def _serialize_media_list(items: Optional[list[MediaItem]]) -> str:
-    payload = items or []
-    return json.dumps([item.model_dump() for item in payload])
-
-
-def _serialize_optional_media(item: Optional[MediaItem]) -> Optional[str]:
-    if not item:
-        return None
-    return json.dumps(item.model_dump())
-
-
 def _serialize_table(table: Optional[Any]) -> Optional[str]:
     if not table:
         return None
@@ -64,11 +54,12 @@ def _prepare_common_values(data: IdfUpsert) -> Dict[str, Any]:
         "description": data.description,
         "site": data.site,
         "room": data.room,
-        "gallery": _serialize_media_list(data.gallery),
-        "documents": _serialize_media_list(data.documents),
-        "diagrams": _serialize_media_list(data.diagrams),
-        "location": _serialize_media_list(data.location),
-        "dfo": _serialize_optional_media(data.dfo),
+        "images": data.images,
+        "documents": data.documents,
+        "diagrams": data.diagrams,
+        "location": data.location,
+        "dfo": data.dfo,
+        "logo": data.logo,
         "table_data": _serialize_table(data.table),
     }
 
@@ -88,13 +79,7 @@ def _load_json(value: Any) -> Any:
 
 
 def _row_to_idf_public(row: Dict[str, Any]) -> IdfPublic:
-    gallery = _load_json(row.get("gallery")) or []
-    documents = _load_json(row.get("documents")) or []
-    diagrams = _load_json(row.get("diagrams")) or []
-    location_list = _load_json(row.get("location")) or []
-    dfo_data = _load_json(row.get("dfo"))
     table_data = _load_json(row.get("table_data"))
-    media_data = _load_json(row.get("media"))
 
     return IdfPublic(
         cluster=row["cluster"],
@@ -104,14 +89,13 @@ def _row_to_idf_public(row: Dict[str, Any]) -> IdfPublic:
         description=row.get("description"),
         site=row.get("site"),
         room=row.get("room"),
-        gallery=gallery,
-        documents=documents,
-        diagrams=diagrams,
-        dfo=dfo_data if isinstance(dfo_data, dict) else None,
-        location=location_list[0] if location_list else None,
-        location_items=location_list if isinstance(location_list, list) else [],
+        images=row.get("images", []),
+        documents=row.get("documents", []),
+        diagrams=row.get("diagrams", []),
+        location=row.get("location"),
+        dfo=row.get("dfo", []),
+        logo=row.get("logo"),
         table=table_data if isinstance(table_data, dict) else None,
-        media=media_data if isinstance(media_data, dict) else None,
     )
 
 
@@ -130,7 +114,6 @@ async def _fetch_idf(cluster: str, project: str, code: str) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-# Admin endpoints - these are mounted under /api/admin prefix
 @router.post("/{cluster}/{project}/idfs/{code}", response_model=IdfPublic)
 async def create_idf_with_code(
     idf_data: IdfUpsert,
@@ -158,10 +141,10 @@ async def create_idf_with_code(
     query = """
         INSERT INTO idfs (
             cluster, project, code, title, description, site, room,
-            gallery, documents, diagrams, location, dfo, table_data
+            images, documents, diagrams, location, dfo, logo, table_data
         ) VALUES (
             :cluster, :project, :code, :title, :description, :site, :room,
-            :gallery, :documents, :diagrams, :location, :dfo, :table_data
+            :images, :documents, :diagrams, :location, :dfo, :logo, :table_data
         )
         RETURNING *
     """
@@ -195,10 +178,10 @@ async def create_idf(
     query = """
         INSERT INTO idfs (
             cluster, project, code, title, description, site, room,
-            gallery, documents, diagrams, location, dfo, table_data
+            images, documents, diagrams, location, dfo, logo, table_data
         ) VALUES (
             :cluster, :project, :code, :title, :description, :site, :room,
-            :gallery, :documents, :diagrams, :location, :dfo, :table_data
+            :images, :documents, :diagrams, :location, :dfo, :logo, :table_data
         )
         RETURNING *
     """
@@ -230,11 +213,12 @@ async def update_idf(
                description = :description,
                site = :site,
                room = :room,
-               gallery = :gallery,
+               images = :images,
                documents = :documents,
                diagrams = :diagrams,
                location = :location,
                dfo = :dfo,
+               logo = :logo,
                table_data = :table_data
          WHERE cluster = :cluster AND project = :project AND code = :code
         RETURNING *

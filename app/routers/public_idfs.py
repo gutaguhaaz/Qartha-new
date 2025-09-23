@@ -21,57 +21,27 @@ def validate_cluster(cluster: str):
 def map_url_project_to_db_project(project: str) -> str:
     """Map URL project name to database project name"""
     import urllib.parse
-    # Decode URL encoded project name
     decoded_project = urllib.parse.unquote(project)
 
     project_mapping = {
         "sabinas": "Sabinas Project",
         "Sabinas": "Sabinas Project",
         "Sabinas Project": "Sabinas Project",
-        "Sabinas%20Project": "Sabinas Project",  # Handle URL format
-        "monclova": "Monclova Project",
-        "Monclova": "Monclova Project", 
-        "Monclova Project": "Monclova Project",
-        "Monclova%20Project": "Monclova Project",  # Handle URL format
+        "Sabinas%20Project": "Sabinas Project",
         "trinity": "Trinity",
         "Trinity": "Trinity",
-        # Add mappings for trk cluster
         "trinity/sabinas": "Sabinas Project",
         "sabinas/trinity": "Sabinas Project",
-        # Add more mappings as needed
     }
     return project_mapping.get(decoded_project, decoded_project)
 
 
-def map_db_project_to_static_path(project: str) -> str:
-    """Map database project name to static file path"""
-    project_to_path = {
-        "Sabinas Project": "sabinas",
-        "Monclova Project": "monclova",
-        "Trinity": "trinity",
-        "sabinas": "sabinas",
-        "monclova": "monclova",
-        "trinity": "trinity"
-    }
-    return project_to_path.get(project, project.lower().replace(' ', ''))
-
-
 def compute_health(table_data: Optional[Dict[str, Any]]):
-    """
-    Compute health status based on table data status values
-    """
+    """Compute health status based on table data status values"""
     if not table_data:
         return {
             "level": "gray",
             "counts": {"ok": 0, "revision": 0, "falla": 0, "libre": 0, "reservado": 0}
-        }
-
-    # Handle case where table_data is a DFO object instead of table structure
-    if isinstance(table_data, dict) and "url" in table_data and "kind" in table_data and "columns" not in table_data:
-        # This is DFO data, not table data - consider it operational
-        return {
-            "level": "green",
-            "counts": {"ok": 1, "revision": 0, "falla": 0, "libre": 0, "reservado": 0}
         }
 
     if not isinstance(table_data, dict):
@@ -82,13 +52,11 @@ def compute_health(table_data: Optional[Dict[str, Any]]):
 
     rows = table_data.get("rows", [])
     if not rows:
-        # No rows but has table structure - consider it has data
         return {
             "level": "green", 
             "counts": {"ok": 1, "revision": 0, "falla": 0, "libre": 0, "reservado": 0}
         }
 
-    # Count status occurrences
     counts = {"ok": 0, "revision": 0, "falla": 0, "libre": 0, "reservado": 0}
 
     for row in rows:
@@ -96,7 +64,6 @@ def compute_health(table_data: Optional[Dict[str, Any]]):
         if status in counts:
             counts[status] += 1
 
-    # Determine overall health level
     if counts["falla"] > 0:
         level = "red"
     elif counts["revision"] > 0:
@@ -107,6 +74,15 @@ def compute_health(table_data: Optional[Dict[str, Any]]):
         level = "gray"
 
     return {"level": level, "counts": counts}
+
+
+def convert_relative_to_absolute(paths: Any) -> Any:
+    """Convert relative paths to absolute URLs"""
+    if isinstance(paths, list):
+        return [f"{settings.PUBLIC_BASE_URL}/static/{path}" for path in paths]
+    elif isinstance(paths, str):
+        return f"{settings.PUBLIC_BASE_URL}/static/{paths}"
+    return paths
 
 
 @router.get("/{cluster}/{project}/idfs")
@@ -120,11 +96,8 @@ async def list_idfs(
     _current_user: dict = Depends(get_current_user),
 ):
     """Get list of IDFs for a cluster/project"""
-    # Map URL project to database project
     db_project = map_url_project_to_db_project(project)
-    print(f"Listing IDFs for cluster: {cluster}, project: {project} (db_project: {db_project})")
 
-    # Build SQL query
     base_query = "SELECT * FROM idfs WHERE cluster = :cluster AND project = :project"
     params = {"cluster": cluster, "project": db_project}
 
@@ -141,145 +114,24 @@ async def list_idfs(
     result = []
     for row in rows:
         health = None
-        idf_data = dict(row)  # Convert row to dict for easier processing
-
-        # Handle NULL values by providing defaults
-        idf_data["gallery"] = idf_data.get("gallery") or "[]"
-        idf_data["documents"] = idf_data.get("documents") or "[]"
-        idf_data["diagram"] = idf_data.get("diagram") or None
-        idf_data["table_data"] = idf_data.get("table_data") or None
-        idf_data["location"] = idf_data.get("location") or None
-        idf_data["title"] = idf_data.get("title") or idf_data.get("code", "")
-        idf_data["site"] = idf_data.get("site") or ""
-        idf_data["room"] = idf_data.get("room") or ""
-
-        # Clean up location field - handle NULL, empty strings, and "null" strings
-        location_raw = idf_data.get("location")
-        if not location_raw or location_raw in ["null", "NULL", "", "None"]:
-            idf_data["location"] = None
-        elif isinstance(location_raw, str) and location_raw.strip().lower() in ["null", "none", ""]:
-            idf_data["location"] = None
+        idf_data = dict(row)
 
         if include_health and idf_data.get("table_data"):
             table_data = json.loads(idf_data["table_data"]) if isinstance(idf_data["table_data"], str) else idf_data["table_data"]
             health = compute_health(table_data)
 
-        # Parse gallery field for each IDF
-        if isinstance(idf_data["gallery"], str) and idf_data["gallery"]:
-            idf_data["gallery"] = json.loads(idf_data["gallery"])
-        else:
-            idf_data["gallery"] = []
-
-        if isinstance(idf_data["documents"], str) and idf_data["documents"]:
-            idf_data["documents"] = json.loads(idf_data["documents"])
-        else:
-            idf_data["documents"] = []
-        # Parse diagrams field (handle both old single diagram and new array)
-        diagrams_data = []
-        if "diagram" in idf_data and idf_data["diagram"]:
-            if isinstance(idf_data["diagram"], str):
-                parsed_diagram = json.loads(idf_data["diagram"])
-                if isinstance(parsed_diagram, list):
-                    diagrams_data = parsed_diagram
-                elif parsed_diagram:
-                    diagrams_data = [parsed_diagram]
-            elif isinstance(idf_data["diagram"], list):
-                diagrams_data = idf_data["diagram"]
-            elif idf_data["diagram"]:
-                diagrams_data = [idf_data["diagram"]]
-        elif "diagrams" in idf_data and idf_data["diagrams"]:
-            if isinstance(idf_data["diagrams"], str):
-                diagrams_data = json.loads(idf_data["diagrams"])
-            elif isinstance(idf_data["diagrams"], list):
-                diagrams_data = idf_data["diagrams"]
-
-        idf_data["diagrams"] = diagrams_data
-
-        # Parse devices field if it exists and is a string
-        if idf_data.get("devices") and isinstance(idf_data["devices"], str):
-            idf_data["devices"] = json.loads(idf_data["devices"])
-
-        # Parse location field for index (simplified version)
-        location_available = False
-        location_raw = idf_data.get("location")
-
-        # Skip processing if location is NULL or empty
-        if location_raw and str(location_raw).strip() and str(location_raw).strip().lower() not in ["null", "none", ""]:
-            try:
-                location_data = None
-
-                # Handle string JSON format
-                if isinstance(location_raw, str) and location_raw.strip():
-                    cleaned_location = location_raw.strip()
-                    if cleaned_location.startswith('[') or cleaned_location.startswith('{'):
-                        try:
-                            location_data = json.loads(cleaned_location)
-                        except json.JSONDecodeError:
-                            location_data = None
-                    else:
-                        # Simple string, treat as plain text - not location data
-                        location_data = None
-                elif isinstance(location_raw, (list, dict)):
-                    location_data = location_raw
-
-                # Check if we have valid location data
-                if isinstance(location_data, list) and len(location_data) > 0:
-                    first_item = location_data[0]
-                    if isinstance(first_item, dict) and first_item.get("url"):
-                        location_available = True
-                elif isinstance(location_data, dict) and location_data.get("url"):
-                    location_available = True
-
-            except Exception as e:
-                print(f"Error parsing location for {idf_data['code']}: {e}")
-                location_available = False
-
-        # Parse media field
-        media = None
-        if idf_data.get("media"):
-            media_data = json.loads(idf_data["media"]) if isinstance(idf_data["media"], str) else idf_data["media"]
-            media_data = convert_relative_urls_to_absolute(media_data)
-            if media_data.get("logo"):
-                from app.models.idf_models import IdfMedia, MediaLogo
-                media = IdfMedia(logo=MediaLogo(**media_data["logo"]))
-
-        # Convert relative URLs to absolute URLs
-        idf_data["gallery"] = convert_relative_urls_to_absolute(idf_data["gallery"])
-        idf_data["documents"] = convert_relative_urls_to_absolute(idf_data["documents"])
-        idf_data["diagrams"] = convert_relative_urls_to_absolute(idf_data["diagrams"])
-
         result.append(IdfIndex(
             cluster=idf_data["cluster"],
             project=idf_data["project"],
             code=idf_data["code"],
-            title=idf_data["title"],
-            site=idf_data["site"],
-            room=idf_data["room"],
+            title=idf_data.get("title", ""),
+            site=idf_data.get("site", ""),
+            room=idf_data.get("room", ""),
             health=health,
-            media=media
+            logo=convert_relative_to_absolute(idf_data.get("logo")) if idf_data.get("logo") else None
         ))
 
     return result
-
-
-def convert_relative_urls_to_absolute(data: Any) -> Any:
-    """Convert relative URLs to absolute URLs"""
-    if isinstance(data, dict):
-        if "url" in data and isinstance(data["url"], str):
-            if data["url"].startswith("/static"):
-                data = data.copy()
-                data["url"] = f"{settings.PUBLIC_BASE_URL}{data['url']}"
-            elif not data["url"].startswith(("http://", "https://", settings.PUBLIC_BASE_URL)):
-                # Handle relative URLs that don't start with /static
-                data = data.copy()
-                if data["url"].startswith("/"):
-                    data["url"] = f"{settings.PUBLIC_BASE_URL}{data['url']}"
-                else:
-                    data["url"] = f"{settings.PUBLIC_BASE_URL}/static/{data['url']}"
-        return {k: convert_relative_urls_to_absolute(v) for k, v in data.items()}
-    elif isinstance(data, list):
-        return [convert_relative_urls_to_absolute(item) for item in data]
-    return data
 
 
 @router.get("/{cluster}/{project}/idfs/{code}")
@@ -290,7 +142,6 @@ async def get_idf(
     _current_user: dict = Depends(get_current_user),
 ):
     """Get a specific IDF by code"""
-    # Map URL project to database project
     db_project = map_url_project_to_db_project(project)
 
     idf = await database.fetch_one(
@@ -301,216 +152,28 @@ async def get_idf(
     if not idf:
         raise HTTPException(status_code=404, detail="IDF not found")
 
-    # Convert to dict for processing
     idf_dict = dict(idf)
-
-    # Handle NULL values by providing defaults
-    idf_dict["gallery"] = idf_dict.get("gallery") or "[]"
-    idf_dict["documents"] = idf_dict.get("documents") or "[]"
-    idf_dict["diagram"] = idf_dict.get("diagram") or None
-    idf_dict["table_data"] = idf_dict.get("table_data") or None
-    idf_dict["location"] = idf_dict.get("location") or None
-    idf_dict["title"] = idf_dict.get("title") or idf_dict.get("code", "")
-    idf_dict["site"] = idf_dict.get("site") or ""
-    idf_dict["room"] = idf_dict.get("room") or ""
-    idf_dict["description"] = idf_dict.get("description") or None
-
-    # Parse JSON fields
-    if isinstance(idf_dict["gallery"], str) and idf_dict["gallery"]:
-        idf_dict["gallery"] = json.loads(idf_dict["gallery"])
-    else:
-        idf_dict["gallery"] = []
-
-    if isinstance(idf_dict["documents"], str) and idf_dict["documents"]:
-        idf_dict["documents"] = json.loads(idf_dict["documents"])
-    else:
-        idf_dict["documents"] = []
-    # Parse diagrams field (handle both old single diagram and new array)
-    diagrams_data = []
-    if idf_dict.get("diagram"):
-        if isinstance(idf_dict["diagram"], str):
-            try:
-                parsed_diagram = json.loads(idf_dict["diagram"])
-                if isinstance(parsed_diagram, list):
-                    diagrams_data = parsed_diagram
-                elif parsed_diagram:
-                    diagrams_data = [parsed_diagram]
-            except (json.JSONDecodeError, TypeError):
-                pass
-        elif isinstance(idf_dict["diagram"], list):
-            diagrams_data = idf_dict["diagram"]
-        elif idf_dict["diagram"]:
-            diagrams_data = [idf_dict["diagram"]]
-    elif idf_dict.get("diagrams"):
-        if isinstance(idf_dict["diagrams"], str):
-            try:
-                diagrams_data = json.loads(idf_dict["diagrams"])
-            except (json.JSONDecodeError, TypeError):
-                diagrams_data = []
-        elif isinstance(idf_dict["diagrams"], list):
-            diagrams_data = idf_dict["diagrams"]
-
-    idf_dict["diagrams"] = diagrams_data
-
-    # Parse dfo field and table data - check if table_data contains DFO information
-    dfo = None
-    table_data = None
-
-    try:
-        # Check if table_data contains DFO information (as shown in database screenshot)
-        if idf_dict.get("table_data"):
-            table_data_raw = idf_dict["table_data"]
-
-            # Parse table_data if it's a string
-            if isinstance(table_data_raw, str):
-                try:
-                    parsed_data = json.loads(table_data_raw)
-                except json.JSONDecodeError:
-                    parsed_data = table_data_raw
-            else:
-                parsed_data = table_data_raw
-
-            # Check if parsed_data is the DFO object itself (has url, kind, name but no columns/rows)
-            if isinstance(parsed_data, dict) and "url" in parsed_data and "kind" in parsed_data and "columns" not in parsed_data:
-                dfo = {
-                    "name": parsed_data.get("name", f"{idf_dict['code']}_dfo.png"),
-                    "url": parsed_data["url"],
-                    "kind": parsed_data.get("kind", "image")
-                }
-                dfo = convert_relative_urls_to_absolute(dfo)
-                # Since table_data contained DFO info, there's no actual table data
-                table_data = None
-            elif isinstance(parsed_data, dict) and "columns" in parsed_data and "rows" in parsed_data:
-                # This is actual table data
-                table_data = parsed_data
-            else:
-                # Neither DFO nor table data, set both to None/defaults
-                table_data = parsed_data if isinstance(parsed_data, dict) else None
-
-        # If no DFO found in table_data, check other sources
-        if not dfo:
-            # Check if there's a direct url column
-            if idf_dict.get("url"):
-                dfo = {
-                    "name": f"{idf_dict['code']}_dfo.png",
-                    "url": idf_dict["url"],
-                    "kind": "image"
-                }
-                dfo = convert_relative_urls_to_absolute(dfo)
-
-            # Then check if there's a dedicated dfo field
-            elif idf_dict.get("dfo"):
-                dfo_data = json.loads(idf_dict["dfo"]) if isinstance(idf_dict["dfo"], str) else idf_dict["dfo"]
-                # Handle both array and single object formats
-                if isinstance(dfo_data, list) and len(dfo_data) > 0:
-                    dfo_item = dfo_data[0]  # Take first item from array
-                    dfo = convert_relative_urls_to_absolute(dfo_item)
-                elif isinstance(dfo_data, dict):
-                    dfo = convert_relative_urls_to_absolute(dfo_data)
-
-            # If still no DFO data, create a default one based on the IDF code
-            if not dfo:
-                dfo = {
-                    "name": f"{idf_dict['code']}_dfo.png",
-                    "url": f"/static/{cluster}/{map_db_project_to_static_path(map_url_project_to_db_project(project))}/dfo/{idf_dict['code']}_dfo.png",
-                    "kind": "image"
-                }
-
-    except Exception as e:
-        print(f"Error parsing DFO data for {idf_dict['code']}: {e}")
-        # Fallback to default DFO
-        dfo = {
-            "name": f"{idf_dict['code']}_dfo.png", 
-            "url": f"/static/{cluster}/{map_db_project_to_static_path(map_url_project_to_db_project(project))}/dfo/{idf_dict['code']}_dfo.png",
-            "kind": "image"
-        }
-        table_data = None
 
     # Compute health if table exists
     health = None
-    if table_data and isinstance(table_data, dict):
+    if idf_dict.get("table_data"):
+        table_data = json.loads(idf_dict["table_data"]) if isinstance(idf_data["table_data"], str) else idf_data["table_data"]
         health = compute_health(table_data)
-
-    # Parse location field (handle both string JSON and array formats from database)
-    location = None
-    location_items: List[Dict[str, Any]] = []
-    location_raw = idf_dict.get("location")
-
-    # Skip processing if location is NULL, empty, or "null" string
-    if (location_raw and 
-        str(location_raw).strip() and 
-        str(location_raw).strip().lower() not in ["null", "none", ""]):
-        try:
-            location_data = None
-
-            # Handle string JSON format
-            if isinstance(location_raw, str) and location_raw.strip():
-                cleaned_location = location_raw.strip()
-                # Check if it's JSON format
-                if cleaned_location.startswith('[') or cleaned_location.startswith('{'):
-                    try:
-                        location_data = json.loads(cleaned_location)
-                    except json.JSONDecodeError as e:
-                        print(f"Failed to parse location JSON for {idf_dict['code']}: {cleaned_location[:100]}... Error: {e}")
-                        location_data = None
-                else:
-                    # Simple string, not JSON - skip
-                    location_data = None
-            elif isinstance(location_raw, (list, dict)):
-                # Already parsed data
-                location_data = location_raw
-
-            # Handle both array and single object formats
-            if isinstance(location_data, list) and len(location_data) > 0:
-                converted_items = [
-                    convert_relative_urls_to_absolute(item)
-                    for item in location_data
-                    if isinstance(item, dict) and item.get("url")
-                ]
-                if converted_items:
-                    location_items = converted_items
-                    location = converted_items[0]
-            elif isinstance(location_data, dict) and location_data.get("url"):
-                converted_item = convert_relative_urls_to_absolute(location_data)
-                location = converted_item
-                location_items = [converted_item] if isinstance(converted_item, dict) else []
-
-        except Exception as e:
-            print(f"Error parsing location data for {idf_dict['code']}: {e}")
-            location = None
-
-    # Parse media field
-    media = None
-    if idf_dict.get("media"):
-        try:
-            media_data = json.loads(idf_dict["media"]) if isinstance(idf_dict["media"], str) else idf_dict["media"]
-            media_data = convert_relative_urls_to_absolute(media_data)
-            if media_data.get("logo"):
-                from app.models.idf_models import IdfMedia, MediaLogo
-                media = IdfMedia(logo=MediaLogo(**media_data["logo"]))
-        except (json.JSONDecodeError, TypeError):
-            media = None
-
-    # Convert relative URLs to absolute URLs
-    idf_dict["gallery"] = convert_relative_urls_to_absolute(idf_dict["gallery"])
-    idf_dict["documents"] = convert_relative_urls_to_absolute(idf_dict["documents"])
-    idf_dict["diagrams"] = convert_relative_urls_to_absolute(idf_dict["diagrams"])
 
     return IdfPublic(
         cluster=idf_dict["cluster"],
         project=idf_dict["project"],
         code=idf_dict["code"],
-        title=idf_dict.get("title", idf_dict.get("name", "")),
+        title=idf_dict.get("title", ""),
         description=idf_dict.get("description"),
-        site=idf_dict.get("site"),
-        room=idf_dict.get("room"),
-        gallery=convert_relative_urls_to_absolute(idf_dict["gallery"]),
-        documents=convert_relative_urls_to_absolute(idf_dict["documents"]),
-        diagrams=convert_relative_urls_to_absolute(idf_dict["diagrams"]),
-        dfo=dfo,
-        location=location,
-        location_items=location_items,
-        table=table_data,
-        health=health,
-        media=media
+        site=idf_dict.get("site", ""),
+        room=idf_dict.get("room", ""),
+        images=convert_relative_to_absolute(idf_dict.get("images", [])),
+        documents=convert_relative_to_absolute(idf_dict.get("documents", [])),
+        diagrams=convert_relative_to_absolute(idf_dict.get("diagrams", [])),
+        location=convert_relative_to_absolute(idf_dict.get("location")) if idf_dict.get("location") else None,
+        dfo=convert_relative_to_absolute(idf_dict.get("dfo", [])),
+        logo=convert_relative_to_absolute(idf_dict.get("logo")) if idf_dict.get("logo") else None,
+        table=json.loads(idf_dict["table_data"]) if idf_dict.get("table_data") else None,
+        health=health
     )

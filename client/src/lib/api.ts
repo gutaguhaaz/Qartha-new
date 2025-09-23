@@ -154,27 +154,38 @@ export async function uploadCsv(cluster: string, project: string, code: string, 
   return requestForm(`/${cluster}/${project}/devices/upload_csv`, formData);
 }
 
-export async function uploadAsset(
+export async function uploadAssets(
+  cluster: string,
+  project: string,
+  code: string,
+  files: File[],
+  assetType: "images" | "documents" | "diagrams" | "dfo",
+) {
+  const formData = new FormData();
+  files.forEach(file => formData.append("files", file));
+  return requestForm(`/${cluster}/${project}/assets/${code}/${assetType}`, formData);
+}
+
+export async function uploadSingleAsset(
   cluster: string,
   project: string,
   code: string,
   file: File,
-  assetType: "images" | "documents" | "diagram" | "location",
+  assetType: "location" | "logo",
 ) {
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("code", code);
-  return requestForm(`/admin/${cluster}/${project}/assets/${assetType}`, formData);
+  return requestForm(`/${cluster}/${project}/assets/${code}/${assetType}`, formData);
 }
 
 export async function deleteAsset(
   cluster: string,
   project: string,
   code: string,
-  assetType: "images" | "documents" | "diagrams" | "location",
+  assetType: "images" | "documents" | "diagrams" | "dfo",
   index: number,
 ) {
-  return request(`/admin/${cluster}/${project}/assets/${code}/${assetType}/${index}`, { method: "DELETE" });
+  return request(`/${cluster}/${project}/assets/${code}/${assetType}/${index}`, { method: "DELETE" });
 }
 
 export async function uploadLogo(cluster: string, project: string, file: File) {

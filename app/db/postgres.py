@@ -43,13 +43,13 @@ CREATE TABLE IF NOT EXISTS idfs (
     description TEXT,
     site VARCHAR(255),
     room VARCHAR(255),
-    gallery JSONB NOT NULL DEFAULT '[]'::jsonb,
-    documents JSONB NOT NULL DEFAULT '[]'::jsonb,
-    diagrams JSONB NOT NULL DEFAULT '[]'::jsonb,
-    location JSONB NOT NULL DEFAULT '[]'::jsonb,
-    dfo JSONB,
+    images TEXT[] DEFAULT ARRAY[]::TEXT[],
+    documents TEXT[] DEFAULT ARRAY[]::TEXT[],
+    diagrams TEXT[] DEFAULT ARRAY[]::TEXT[],
+    location TEXT,
+    dfo TEXT[] DEFAULT ARRAY[]::TEXT[],
+    logo TEXT,
     table_data JSONB,
-    media JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE(cluster, project, code)
@@ -147,27 +147,12 @@ SEED_IDFS: Sequence[dict[str, Any]] = (
         "description": "Principal rack de distribución para operaciones Sabinas.",
         "site": "TrinityRail HQ",
         "room": "Rack A",
-        "gallery": [],
+        "images": [],
         "documents": [],
-        "diagrams": [
-            {
-                "url": "/static/Trinity/sabinas/diagrams/IDF-1001_diagram.png",
-                "name": "Diagrama general",
-                "kind": "diagram",
-            }
-        ],
-        "location": [
-            {
-                "url": "/static/Trinity/sabinas/location/IDF-1001_location.png",
-                "name": "Plano de ubicación",
-                "kind": "image",
-            }
-        ],
-        "dfo": {
-            "url": "/static/Trinity/sabinas/dfo/IDF-1001_dfo.png",
-            "name": "DFO",
-            "kind": "image",
-        },
+        "diagrams": ["Trinity/sabinas/IDF-1001/diagrams/diagram.png"],
+        "location": "Trinity/sabinas/IDF-1001/location/location.png",
+        "dfo": ["Trinity/sabinas/IDF-1001/dfo/dfo.png"],
+        "logo": "Trinity/sabinas/IDF-1001/logo/logo.png",
         "table_data": {
             "columns": [
                 {"key": "tray", "label": "Charola", "type": "text"},
@@ -189,12 +174,6 @@ SEED_IDFS: Sequence[dict[str, Any]] = (
                 }
             ],
         },
-        "media": {
-            "logo": {
-                "name": "Sabinas",
-                "url": "/static/Trinity/sabinas/logos/IDF-1001-logo.png",
-            }
-        },
     },
     {
         "cluster": "Trinity",
@@ -204,13 +183,13 @@ SEED_IDFS: Sequence[dict[str, Any]] = (
         "description": "Nodo redundante para continuidad operativa.",
         "site": "TrinityRail HQ",
         "room": "Rack B",
-        "gallery": [],
+        "images": [],
         "documents": [],
         "diagrams": [],
-        "location": [],
-        "dfo": None,
+        "location": None,
+        "dfo": [],
+        "logo": None,
         "table_data": None,
-        "media": None,
     },
 )
 
@@ -223,22 +202,18 @@ async def _seed_idfs() -> None:
     insert_query = """
         INSERT INTO idfs (
             cluster, project, code, title, description, site, room,
-            gallery, documents, diagrams, location, dfo, table_data, media
+            images, documents, diagrams, location, dfo, logo, table_data
         ) VALUES (
             :cluster, :project, :code, :title, :description, :site, :room,
-            :gallery, :documents, :diagrams, :location, :dfo, :table_data, :media
+            :images, :documents, :diagrams, :location, :dfo, :logo, :table_data
         )
     """
 
     for record in SEED_IDFS:
         payload = {**record}
-        for key in ("gallery", "documents", "diagrams", "location"):
-            payload[key] = json.dumps(payload.get(key, []))
-        payload["dfo"] = json.dumps(record.get("dfo")) if record.get("dfo") else None
         payload["table_data"] = (
             json.dumps(record.get("table_data")) if record.get("table_data") else None
         )
-        payload["media"] = json.dumps(record.get("media")) if record.get("media") else None
         await database.execute(insert_query, payload)
 
 

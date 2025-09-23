@@ -1,17 +1,16 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { MediaItem } from "@shared/schema";
 
 interface GalleryProps {
-  images: MediaItem[];
+  images: string[];
 }
 
 export default function Gallery({ images }: GalleryProps) {
-  const [selectedImage, setSelectedImage] = useState<MediaItem | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  const openLightbox = (image: MediaItem) => {
-    setSelectedImage(image);
+  const openLightbox = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
     setIsOpen(true);
   };
 
@@ -32,16 +31,16 @@ export default function Gallery({ images }: GalleryProps) {
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" data-testid="gallery-grid">
-        {images.map((image, index) => (
+        {images.map((imageUrl, index) => (
           <div
             key={index}
             className="aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => openLightbox(image)}
+            onClick={() => openLightbox(imageUrl)}
             data-testid={`image-${index}`}
           >
             <img
-              src={image.url}
-              alt={image.name || `Gallery image ${index + 1}`}
+              src={imageUrl}
+              alt={`Gallery image ${index + 1}`}
               className="w-full h-full object-cover"
               loading="lazy"
             />
@@ -52,13 +51,13 @@ export default function Gallery({ images }: GalleryProps) {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-4xl" data-testid="lightbox-dialog">
           <DialogTitle className="sr-only">
-            {selectedImage?.name || 'Image viewer'}
+            Image viewer
           </DialogTitle>
           {selectedImage && (
             <div className="relative">
               <img
-                src={selectedImage.url}
-                alt={selectedImage.name || 'Gallery image'}
+                src={selectedImage}
+                alt="Gallery image"
                 className="w-full h-auto max-h-[80vh] object-contain"
                 data-testid="lightbox-image"
               />
