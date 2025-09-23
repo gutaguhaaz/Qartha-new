@@ -127,7 +127,7 @@ export default function LogoWidget({
           />
           <div className="text-xs text-muted-foreground mt-1">{currentLogo.name || 'IDF Logo'}</div>
         </div>
-      )}</pre>
+      )}
 
       {/* No Logo State */}
       {!currentLogo && !preview && (
