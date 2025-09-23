@@ -243,7 +243,7 @@
       top: calc(100% + 8px);
       bottom: auto;
     }
-    
+
     [title]:hover::before {
       top: 100%;
       bottom: auto;
@@ -258,6 +258,7 @@
       opacity: 0;
       transform: translateX(-50%) translateY(-4px);
     }
+
     to {
       opacity: 1;
       transform: translateX(-50%) translateY(0);
@@ -621,9 +622,8 @@ button.create-idf {
   font-weight: bold;
 }
 
-.tabpaneladmin div[data-component-name="TabsContent"] {
-    padding: 15px !important;
-    border-radius: 13px !important;
-    background:#f2f2f2!important;
+.tabpaneladmin div[role="tabpanel"] {
+  padding: 15px !important;
+  border-radius: 13px !important;
+  background: #f2f2f2 !important;
 }
-
