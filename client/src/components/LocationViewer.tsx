@@ -236,7 +236,7 @@ export default function LocationViewer({ location }: LocationViewerProps) {
       >
         <img
           ref={imageRef}
-          src={typeof location.url === 'string' ? location.url : location.url.toString()}
+          src={typeof location.url === 'string' ? location.url : (location.url || '').toString()}
           alt={location.name || 'Location image'}
           className="absolute top-1/2 left-1/2 max-w-none transition-transform duration-200"
           style={{
