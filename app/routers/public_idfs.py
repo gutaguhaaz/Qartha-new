@@ -144,10 +144,31 @@ async def get_logo(
     project: str = "",
     _current_user: dict = Depends(get_current_user),
 ):
-    """Get cluster/project logo"""
-    import os
+    """Get cluster/project logo from media column"""
+    db_project = map_url_project_to_db_project(project)
     
-    # Map URL project to filesystem path
+    # Query for any IDF in this cluster/project that has a logo in media
+    idf = await database.fetch_one(
+        """SELECT media FROM idfs 
+           WHERE cluster = :cluster AND project = :project 
+           AND media IS NOT NULL 
+           AND media::text LIKE '%logo%'
+           LIMIT 1""",
+        {"cluster": cluster, "project": db_project}
+    )
+    
+    if idf and idf["media"]:
+        try:
+            media_data = json.loads(idf["media"]) if isinstance(idf["media"], str) else idf["media"]
+            if media_data and "logo" in media_data and media_data["logo"]:
+                logo_url = media_data["logo"]["url"]
+                if logo_url:
+                    return {"url": logo_url}
+        except (json.JSONDecodeError, KeyError, TypeError):
+            pass
+    
+    # Fallback to filesystem logo
+    import os
     project_path = project.lower().replace(" ", "")
     logo_path = f"static/{cluster}/{project_path}/logo.png"
     
