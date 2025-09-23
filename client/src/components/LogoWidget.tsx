@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, X, Image } from "lucide-react";
-import { uploadAsset } from "@/lib/api";
+import { Upload, X, Image, Trash2 } from "lucide-react";
+import { uploadAsset, deleteAsset } from "@/lib/api";
 
 interface LogoWidgetProps {
   cluster: string;
   project: string;
   code: string;
   currentLogo?: { name: string; url: string } | null;
+  idfLogo?: string | null;
 }
 
 export default function LogoWidget({
@@ -16,11 +17,18 @@ export default function LogoWidget({
   project,
   code,
   currentLogo,
+  idfLogo,
 }: LogoWidgetProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Determine which logo to show - IDF logo takes priority
+  const displayLogo = idfLogo ? { 
+    url: idfLogo.startsWith('http') ? idfLogo : `${import.meta.env.VITE_API_BASE_URL || ''}${idfLogo}`, 
+    name: 'IDF Logo' 
+  } : currentLogo;
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => uploadAsset(cluster, project, code, file, "logo"),
@@ -36,10 +44,6 @@ export default function LogoWidget({
       queryClient.invalidateQueries({ queryKey: ['/api', cluster, project, 'idfs', code] });
       queryClient.invalidateQueries({ queryKey: ['idfs', cluster, project] });
       queryClient.invalidateQueries({ queryKey: ['idfs', cluster, project, 'list'] });
-      // Force a complete refetch
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
     },
     onError: (error) => {
       toast({
@@ -48,6 +52,29 @@ export default function LogoWidget({
         variant: "destructive",
       });
       setPreview(null);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteAsset(cluster, project, code, "logo"),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Logo deleted successfully",
+      });
+      // Invalidate all relevant queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['admin', 'idf-detail', cluster, project, code] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'idfs', cluster, project] });
+      queryClient.invalidateQueries({ queryKey: ['/api', cluster, project, 'idfs', code] });
+      queryClient.invalidateQueries({ queryKey: ['idfs', cluster, project] });
+      queryClient.invalidateQueries({ queryKey: ['idfs', cluster, project, 'list'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete logo",
+        variant: "destructive",
+      });
     },
   });
 
@@ -101,36 +128,50 @@ export default function LogoWidget({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium">IDF Logo</h4>
-        {(currentLogo || preview) && (
-          <button
-            onClick={clearPreview}
-            className="text-xs text-muted-foreground hover:text-foreground"
-          >
-            Clear
-          </button>
+        {(displayLogo || preview) && (
+          <div className="flex items-center space-x-2">
+            {displayLogo && !preview && (
+              <button
+                onClick={() => deleteMutation.mutate()}
+                disabled={deleteMutation.isPending}
+                className="text-xs text-destructive hover:text-destructive/80 flex items-center space-x-1"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>{deleteMutation.isPending ? 'Deleting...' : 'Delete'}</span>
+              </button>
+            )}
+            {preview && (
+              <button
+                onClick={clearPreview}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         )}
       </div>
 
       {/* Current Logo Display */}
-      {currentLogo && !preview && (
+      {displayLogo && !preview && (
         <div className="relative">
           <img
-            src={currentLogo.url.startsWith('http') ? currentLogo.url : `${import.meta.env.VITE_API_BASE_URL || ''}${currentLogo.url}`}
-            alt={currentLogo.name || 'IDF Logo'}
+            src={displayLogo.url}
+            alt={displayLogo.name || 'IDF Logo'}
             className="h-16 w-auto object-contain border rounded"
             onError={(e) => {
-              console.error('Failed to load logo in widget:', currentLogo.url);
+              console.error('Failed to load logo in widget:', displayLogo.url);
               const target = e.target as HTMLImageElement;
               target.src = '/static/assets/placeholder-logo.png';
               target.onerror = null; // Prevent infinite loop
             }}
           />
-          <div className="text-xs text-muted-foreground mt-1">{currentLogo.name || 'IDF Logo'}</div>
+          <div className="text-xs text-muted-foreground mt-1">{displayLogo.name || 'IDF Logo'}</div>
         </div>
       )}
 
       {/* No Logo State */}
-      {!currentLogo && !preview && (
+      {!displayLogo && !preview && (
         <div className="text-center py-4">
           <div className="text-sm text-muted-foreground">No logo uploaded</div>
         </div>

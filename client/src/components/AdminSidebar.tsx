@@ -594,6 +594,7 @@ export default function AdminSidebar({
                           project={selectedProject}
                           code={selectedCode}
                           currentLogo={detail?.media?.logo}
+                          idfLogo={detail?.logo}
                         />
                       </CardContent>
                     </Card>
