@@ -156,6 +156,33 @@ async def list_idfs(
             table_data = json.loads(idf_data["table_data"]) if isinstance(idf_data["table_data"], str) else idf_data["table_data"]
             health = compute_health(table_data)
 
+        # Parse DFO data with URL cleaning
+        dfo_data = idf_data.get("dfo") # Changed from row.get("dfo") to idf_data.get("dfo")
+        if dfo_data:
+            try:
+                parsed_dfo = json.loads(dfo_data) if isinstance(dfo_data, str) else dfo_data
+                if isinstance(parsed_dfo, list) and len(parsed_dfo) > 0:
+                    # Clean up any malformed URLs in DFO data
+                    first_dfo = parsed_dfo[0]
+                    if isinstance(first_dfo, dict) and "url" in first_dfo:
+                        url = first_dfo["url"]
+                        # Clean malformed URLs that contain nested structures
+                        if "replit.dev" in url or "{'url':" in url:
+                            # Try to extract clean path from malformed URL
+                            import re
+                            match = re.search(r'/static/([^'"}]+)', url)
+                            if match:
+                                clean_url = f"/static/{match.group(1)}"
+                                first_dfo["url"] = clean_url
+                        elif not url.startswith("/static/"):
+                            first_dfo["url"] = f"/static/{url}"
+                    idf_data["dfo"] = first_dfo # Changed from result["dfo"] to idf_data["dfo"]
+            except (json.JSONDecodeError, TypeError):
+                idf_data["dfo"] = None # Changed from result["dfo"] to idf_data["dfo"]
+        else:
+            idf_data["dfo"] = None # Changed from result["dfo"] to idf_data["dfo"]
+
+
         result.append(IdfIndex(
             cluster=idf_data["cluster"],
             project=idf_data["project"],

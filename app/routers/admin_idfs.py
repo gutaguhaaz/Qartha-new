@@ -256,8 +256,8 @@ async def update_idf(
         else:
             location_value = json.dumps([idf_data.location])
 
-    # Update IDF data - NEVER change logo through PUT
-    params = {
+    # Prepare update data, including DFO field with corrected serialization
+    update_data: Dict[str, Any] = {
         "title": idf_data.title,
         "description": idf_data.description,
         "site": idf_data.site,
@@ -266,8 +266,39 @@ async def update_idf(
         "documents": _serialize_media_list(idf_data.documents),
         "diagrams": _serialize_media_list(idf_data.diagrams),
         "location": location_value,
-        "dfo": _serialize_media_list(idf_data.dfo),
+        "logo": current_idf["logo"] if current_idf else None, # Preserve logo
         "table_data": _serialize_table(idf_data.table),
+    }
+    
+    # Handle DFO field - ensure it's properly formatted with clean URLs
+    if idf_data.dfo is not None:
+        # Convert single DFO item to list format for consistency
+        if isinstance(idf_data.dfo, dict):
+            # Ensure the URL is clean and relative
+            clean_dfo = {
+                "url": idf_data.dfo["url"] if idf_data.dfo["url"].startswith("/static/") else f"/static/{idf_data.dfo['url']}",
+                "name": idf_data.dfo.get("name", "DFO"),
+                "kind": idf_data.dfo.get("kind", "diagram")
+            }
+            dfo_data = [clean_dfo]
+        else:
+            # Handle list of DFO items
+            dfo_data = []
+            for item in (idf_data.dfo or []):
+                if isinstance(item, dict):
+                    clean_item = {
+                        "url": item["url"] if item["url"].startswith("/static/") else f"/static/{item['url']}",
+                        "name": item.get("name", "DFO"),
+                        "kind": item.get("kind", "diagram")
+                    }
+                    dfo_data.append(clean_item)
+        update_data["dfo"] = json.dumps(dfo_data)
+    else:
+        update_data["dfo"] = None
+
+    # Update IDF data
+    params = {
+        **update_data,
         "cluster": cluster,
         "project": db_project,
         "code": code,
@@ -284,6 +315,7 @@ async def update_idf(
                diagrams = :diagrams,
                location = :location,
                dfo = :dfo,
+               logo = :logo,
                table_data = :table_data
          WHERE cluster = :cluster AND project = :project AND code = :code
         RETURNING *
