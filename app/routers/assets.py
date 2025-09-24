@@ -233,11 +233,11 @@ async def upload_dfo(
 
         relative_path = await _write_upload(file, file_path)
 
-        # Generate correct URL format: /static/cluster/project/code/dfo/filename
+        # Generate correct relative URL format
         uploaded_files.append({
             "url": f"/static/{cluster}/{folder_project}/{code}/dfo/{filename}",
             "name": file.filename or filename,
-            "kind": "dfo" if file.content_type.startswith("image/") else "document"
+            "kind": "diagram" if file.content_type.startswith("image/") else "document"
         })
 
     # Get current DFO to append to it, instead of overwriting
