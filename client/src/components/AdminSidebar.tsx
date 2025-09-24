@@ -107,8 +107,63 @@ export default function AdminSidebar({
   const handleRemoveGalleryItem = (index: number) => handleDeleteAsset("images", index); // Renamed for clarity
   const handleUploadLocation = (files: FileList | null) => handleUploadAsset("location", files);
   const handleRemoveLocationItem = (index: number) => handleDeleteAsset("location", index); // Renamed for clarity
-  const handleUploadDiagrams = (files: FileList | null) => handleUploadAsset("diagram", files);
-  const handleRemoveDiagramItem = (index: number) => handleDeleteAsset("diagrams", index); // Renamed for clarity
+  const handleUploadDiagrams = async (files: FileList | null) => {
+    if (!files || !selectedCode) return;
+    try {
+      const fileArray = Array.from(files);
+      await uploadAssets(selectedCluster, selectedProject, selectedCode, fileArray, "diagrams");
+
+      // Invalidate all relevant queries to refresh both admin and public views
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "idfs", selectedCluster, selectedProject],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+      });
+
+      toast({
+        title: "Diagrams updated",
+        description: `Uploaded ${fileArray.length} diagram(s) successfully`,
+      });
+    } catch (error) {
+      console.error("Failed to upload diagrams:", error);
+      toast({
+        title: "Error",
+        description: "Failed to upload diagrams",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleRemoveDiagramItem = async (index: number) => {
+    if (!selectedCode) return;
+    try {
+      await deleteAsset(selectedCluster, selectedProject, selectedCode, "diagrams", index);
+
+      // Invalidate all relevant queries to refresh both admin and public views
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "idfs", selectedCluster, selectedProject],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+      });
+
+      toast({ title: "Diagram deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete diagram:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete diagram",
+        variant: "destructive",
+      });
+    }
+  };
   const handleUploadDocuments = (files: FileList | null) => handleUploadAsset("documents", files);
   const handleRemoveDocumentItem = (index: number) => handleDeleteAsset("documents", index); // Renamed for clarity
 
@@ -341,7 +396,7 @@ export default function AdminSidebar({
   };
 
   const handleUploadAsset = async (
-    type: "images" | "documents" | "diagram" | "location",
+    type: "images" | "documents" | "diagrams" | "location",
     files: FileList | null,
   ) => {
     if (!files || !selectedCode) return;
