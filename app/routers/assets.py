@@ -555,11 +555,12 @@ async def delete_dfo(
     return {"message": "DFO file deleted", "path": removed_path}
 
 
-@router.delete("/{cluster}/{project}/assets/{code}/location")
+@router.delete("/{cluster}/{project}/assets/{code}/location/{index}")
 async def delete_location(
     cluster: str = Depends(validate_cluster),
     project: str = "",
     code: str = "",
+    index: int = 0,
     _admin: dict = Depends(get_current_admin),
 ):
     db_project = map_url_project_to_db_project(project)
@@ -567,6 +568,10 @@ async def delete_location(
     location = idf.get("location")
 
     if not location:
+        raise HTTPException(status_code=404, detail="Location image not found")
+
+    # For location, we only support index 0 since it's a single image
+    if index != 0:
         raise HTTPException(status_code=404, detail="Location image not found")
 
     # Remove file from filesystem

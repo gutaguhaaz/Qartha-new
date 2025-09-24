@@ -265,8 +265,20 @@ export default function AdminSidebar({
       setDocuments(normalizeMediaArray(idf.documents ?? []));
       setDiagrams(normalizeMediaArray(idf.diagrams ?? []));
 
-      const locations = idf.location_items ?? (idf.location ? [idf.location] : []);
-      setLocationItems(normalizeMediaArray(locations ?? []));
+      // Handle location as single image string
+      if (idf.location) {
+        // Location is stored as a single string path in the database
+        const locationUrl = typeof idf.location === 'string' ? idf.location : '';
+        // Ensure URL starts with /static/
+        const cleanUrl = locationUrl.startsWith('/static/') ? locationUrl : `/static/${locationUrl}`;
+        setLocationItems([{
+          url: cleanUrl,
+          name: 'Location Image',
+          kind: 'image'
+        }]);
+      } else {
+        setLocationItems([]);
+      }
 
       // Handle DFO data properly, ensuring names are preserved
       const dfoData = idf.dfo ?? [];
@@ -504,7 +516,7 @@ export default function AdminSidebar({
     try {
       const fileArray = Array.from(files);
       await uploadAssets(selectedCluster, selectedProject, selectedCode, fileArray, "images");
-      
+
       // Invalidate all relevant queries to refresh both admin and public views
       await queryClient.invalidateQueries({
         queryKey: ["admin", "idfs", selectedCluster, selectedProject],
@@ -515,7 +527,7 @@ export default function AdminSidebar({
       await queryClient.invalidateQueries({
         queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
       });
-      
+
       toast({
         title: "Gallery updated",
         description: `Uploaded ${fileArray.length} image(s) successfully`,
@@ -534,7 +546,7 @@ export default function AdminSidebar({
     if (!selectedCode) return;
     try {
       await deleteAsset(selectedCluster, selectedProject, selectedCode, "images", index);
-      
+
       // Invalidate all relevant queries to refresh both admin and public views
       await queryClient.invalidateQueries({
         queryKey: ["admin", "idfs", selectedCluster, selectedProject],
@@ -545,7 +557,7 @@ export default function AdminSidebar({
       await queryClient.invalidateQueries({
         queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
       });
-      
+
       toast({ title: "Image deleted successfully" });
     } catch (error) {
       console.error("Failed to delete gallery image:", error);
