@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { getIdf, getLogo } from "@/lib/api";
 import Gallery from "@/components/Gallery";
@@ -30,6 +30,7 @@ export default function PublicDetail({
   const [isAddIdfDialogOpen, setIsAddIdfDialogOpen] = useState(false);
   const { isAdmin, loading: authLoading } = useAuth();
   const canManage = isAdmin && !authLoading;
+  const queryClient = useQueryClient();
 
   // Listen for admin panel open events and tab reload events
   useEffect(() => {
