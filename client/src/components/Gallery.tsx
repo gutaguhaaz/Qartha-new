@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 interface GalleryProps {
-  images: string[];
+  images: (string | { url: string; name?: string })[];
 }
 
 export default function Gallery({ images }: GalleryProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
   const openLightbox = (imageUrl: string) => {
     setSelectedImage(imageUrl);
@@ -19,7 +20,12 @@ export default function Gallery({ images }: GalleryProps) {
     setSelectedImage(null);
   };
 
-  if (!images || images.length === 0) {
+  // Normalize images to URLs
+  const normalizedImages = images?.map(item => 
+    typeof item === 'string' ? item : item?.url || ''
+  ).filter(Boolean) || [];
+
+  if (!normalizedImages || normalizedImages.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground" data-testid="gallery-empty">
         <i className="fas fa-images text-4xl mb-4"></i>
@@ -31,21 +37,31 @@ export default function Gallery({ images }: GalleryProps) {
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" data-testid="gallery-grid">
-        {images.map((imageUrl, index) => (
-          <div
-            key={index}
-            className="aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => openLightbox(imageUrl)}
-            data-testid={`image-${index}`}
-          >
-            <img
-              src={imageUrl}
-              alt={`Gallery image ${index + 1}`}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          </div>
-        ))}
+        {normalizedImages.map((imageUrl, index) => {
+          // Handle both absolute and relative URLs
+          const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `${API_BASE}${imageUrl}`;
+          
+          return (
+            <div
+              key={index}
+              className="aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => openLightbox(fullImageUrl)}
+              data-testid={`image-${index}`}
+            >
+              <img
+                src={fullImageUrl}
+                alt={`Gallery image ${index + 1}`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                onError={(e) => {
+                  console.error('Failed to load gallery image:', fullImageUrl);
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
+              />
+            </div>
+          );
+        })}
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
