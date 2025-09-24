@@ -1,0 +1,105 @@
+-- Respaldo completo generado el Wed Sep 24 10:08:02 PM UTC 2025
+-- Base: Development (postgresql://neondb_owner:npg_Xsudlv4BF0Ww@ep-empty-pond-aeqjiaws.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require)
+
+-- ESQUEMA:
+-- Respaldo de esquema generado el Wed Sep 24 10:08:00 PM UTC 2025
+-- Base: Development (postgresql://neondb_owner:npg_Xsudlv4BF0Ww@ep-empty-pond-aeqjiaws.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require)
+
+-- Error obteniendo estructura de tablas
+
+-- Indices y constraints (si existen)
+ CREATE UNIQUE INDEX devices_pkey ON public.devices USING btree (id);
+ CREATE INDEX idx_devices_cluster_project_idf ON public.devices USING btree (cluster, project, idf_code);
+ CREATE UNIQUE INDEX idfs_cluster_project_code_key ON public.idfs USING btree (cluster, project, code);
+ CREATE UNIQUE INDEX idfs_pkey ON public.idfs USING btree (id);
+ CREATE INDEX idx_idfs_cluster_project_code ON public.idfs USING btree (cluster, project, code);
+ CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email);
+ CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id);
+
+
+-- DATOS:
+-- Respaldo de datos generado el Wed Sep 24 10:08:01 PM UTC 2025
+-- Base: Development (postgresql://neondb_owner:npg_Xsudlv4BF0Ww@ep-empty-pond-aeqjiaws.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require)
+
+-- Tabla: devices
+TRUNCATE TABLE devices RESTART IDENTITY CASCADE;
+INSERT INTO devices (id, cluster, project, idf_code, name, model, serial, rack, site, notes, created_at) VALUES
+
+-- Tabla: idfs
+TRUNCATE TABLE idfs RESTART IDENTITY CASCADE;
+INSERT INTO idfs (id, cluster, project, code, title, description, site, room, documents, created_at, location, diagrams, dfo, logo, images, media, table_data) VALUES
+('2,Trinity,Sabinas Project,IDF-Fiber Hut,IDF-Fiber Hut,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Fiber Hut,,,,,,,,{},'),
+('4,Trinity,Sabinas Project,IDF-0401,IDF-0401,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Main Guard Shack,,,,,,,,{},'),
+('63,Trinity,Monclova Project,IDF-1801,IDF-1801,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Bay 8-9,,,,,,,,{},'),
+('64,Trinity,Monclova Project,IDF-1703,IDF-1703,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Bay 6,,,,,,,,{},'),
+('36,Trinity,Monclova Project,IDF-0601,IDF-0601,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,DFT,,,,,,,,{},'),
+('65,Trinity,Monclova Project,IDF-0705,IDF-0705,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Bay 13,,,,,,,,{},'),
+('13,Trinity,Sabinas Project,IDF-2204,IDF-2204,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Fabrication Bay 1,,,,,,,,{},'),
+('14,Trinity,Sabinas Project,IDF-1001,IDF-1001,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Paint Shop 2,,,,,,,,{},'),
+('15,Trinity,Sabinas Project,IDF-0801,IDF-0801,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,La Palapa,,,,,,,,{},'),
+('16,Trinity,Sabinas Project,IDF-2401,IDF-2401,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Fabrication Bay 4,,,,,,,,{},'),
+('17,Trinity,Sabinas Project,IDF-2402,IDF-2402,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Fabrication Bay 4,,,,,,,,{},'),
+('29,Trinity,Sabinas Project,IDF-1101,IDF-1101,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Logistis & Transportation,,,,,,,,{},'),
+('30,Trinity,Sabinas Project,IDF-9002,IDF-9002,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Mgmt Parking,,,,,,,,{},'),
+('31,Trinity,Sabinas Project,IDF-8002,IDF-8002,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Security Tower 2,,,,,,,,{},'),
+('32,Trinity,Sabinas Project,IDF-Fuel Pump,IDF-Fuel Pump,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Fuel Pump,,,,,,,,{},'),
+('33,Trinity,Monclova Project,MDF-0101,MDF-0101,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,IT,,,,,,,,{},'),
+('34,Trinity,Monclova Project,IDF-0301,IDF-0301,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Admin Building,,,,,,,,{},'),
+('35,Trinity,Monclova Project,IDF-0401,IDF-0401,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,La Hacienda,,,,,,,,{},'),
+('37,Trinity,Monclova Project,IDF-0703,IDF-0703,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Bay 11,,,,,,,,{},'),
+('38,Trinity,Monclova Project,IDF-0701,IDF-0701,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Bay 15,,,,,,,,{},'),
+('39,Trinity,Monclova Project,IDF-0901,IDF-0901,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Wheels & Axles,,,,,,,,{},'),
+('40,Trinity,Monclova Project,IDF-1101,IDF-1101,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Paint Quality,,,,,,,,{},'),
+('41,Trinity,Monclova Project,IDF-1401,IDF-1401,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Central Maintenance,,,,,,,,{},'),
+('42,Trinity,Monclova Project,IDF-1701,IDF-1701,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Bay 6 Kronos,,,,,,,,{},'),
+('43,Trinity,Monclova Project,IDF-1802,IDF-1802,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Bay 8-9,,,,,,,,{},'),
+('18,Trinity,Sabinas Project,IDF-2403,IDF-2403,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Fabrication Bay 4,,,,,,,,{},'),
+('19,Trinity,Sabinas Project,IDF-2404,IDF-2404,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Fabrication Bay 4,,,,,,,,{},'),
+('21,Trinity,Sabinas Project,IDF-1003,IDF-1003,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Paint Shop 2,,,,,,,,{},'),
+('22,Trinity,Sabinas Project,IDF-1002,IDF-1002,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Paint Shop 2,,,,,,,,{},'),
+('44,Trinity,Monclova Project,IDF-1702,IDF-1702,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Bay 6,,,,,,,,{},'),
+('45,Trinity,Monclova Project,IDF-1601,IDF-1601,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Transportes,,,,,,,,{},'),
+('46,Trinity,Monclova Project,IDF-1901,IDF-1901,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,CADT,,,,,,,,{},'),
+('47,Trinity,Monclova Project,IDF-1704,IDF-1704,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Bay 7,,,,,,,,{},'),
+('48,Trinity,Monclova Project,IDF-1803,IDF-1803,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Bay 8-9,,,,,,,,{},'),
+('49,Trinity,Monclova Project,IDF-1501,IDF-1501,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Heat Treat/Ovens,,,,,,,,{},'),
+('50,Trinity,Monclova Project,IDF-1001,IDF-1001,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Linings,,,,,,,,{},'),
+('51,Trinity,Monclova Project,IDF-1301,IDF-1301,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Materials Offices,,,,,,,,{},'),
+('52,Trinity,Monclova Project,IDF-0201,IDF-0201,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,X-Ray,,,,,,,,{},'),
+('53,Trinity,Monclova Project,IDF-0704,IDF-0704,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Bay 14,,,,,,,,{},'),
+('54,Trinity,Monclova Project,IDF-0702,IDF-0702,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Bay 11,,,,,,,,{},'),
+('55,Trinity,Monclova Project,IDF-0801,IDF-0801,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Bay 21,,,,,,,,{},'),
+('56,Trinity,Monclova Project,IDF-0902,IDF-0902,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Wheels & Axles,,,,,,,,{},'),
+('57,Trinity,Monclova Project,IDF-1106,IDF-1106,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Paint Shop,,,,,,,,{},'),
+('58,Trinity,Monclova Project,IDF-1105,IDF-1105,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Paint Shop,,,,,,,,{},'),
+('59,Trinity,Monclova Project,IDF-9001,IDF-9001,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Gate 7,,,,,,,,{},'),
+('60,Trinity,Monclova Project,IDF-1201,IDF-1201,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,La Palapa,,,,,,,,{},'),
+('61,Trinity,Monclova Project,IDF-0501,IDF-0501,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Security/Garage,,,,,,,,{},'),
+('62,Trinity,Monclova Project,IDF-1102,IDF-1102,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Paint Shop,,,,,,,,{},'),
+('5,Trinity,Sabinas Project,IDF-0601,IDF-0601,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Engineering,,,,,,,,{},'),
+('6,Trinity,Sabinas Project,IDF-0903,IDF-0903,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Paint Shop 1,,,,,,,,{},'),
+('7,Trinity,Sabinas Project,IDF-0502,IDF-0502,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Shipping Warehouse,,,,,,,,{},'),
+('8,Trinity,Sabinas Project,IDF-0902,IDF-0902,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Paint Shop 1,,,,,,,,{},'),
+('9,Trinity,Sabinas Project,IDF-0906,IDF-0906,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Paint Shop 1,,,,,,,,{},'),
+('10,Trinity,Sabinas Project,IDF-2201,IDF-2201,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Fabrication Bay 1,,,,,,,,{},'),
+('11,Trinity,Sabinas Project,IDF-2202,IDF-2202,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Fabrication Bay 1,,,,,,,,{},'),
+('12,Trinity,Sabinas Project,IDF-2203,IDF-2203,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Fabrication Bay 1,,,,,,,,{},'),
+('23,Trinity,Sabinas Project,IDF-1401,IDF-1401,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Paint Warehouse,,,,,,,,{},'),
+('24,Trinity,Sabinas Project,IDF-0501,IDF-0501,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Materials Warehouse,,,,,,,,{},'),
+('25,Trinity,Sabinas Project,IDF-0701,IDF-0701,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Medical Center,,,,,,,,{},'),
+('26,Trinity,Sabinas Project,IDF-0901,IDF-0901,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Paint Shop 1,,,,,,,,{},'),
+('27,Trinity,Sabinas Project,IDF-0904,IDF-0904,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Paint Shop 1,,,,,,,,{},'),
+('28,Trinity,Sabinas Project,IDF-0905,IDF-0905,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Paint Shop 1,,,,,,,,{},'),
+('3,Trinity,Sabinas Project,IDF-0301,IDF-0301,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,La Hacienda,,,,,,,,{},'),
+('66,Trinity,Monclova Project,IDF-0706,IDF-0706,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Bay 14,,,,,,,,{},'),
+('67,Trinity,Monclova Project,IDF-1103,IDF-1103,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Paint Shop,,,,,,,,{},'),
+('68,Trinity,Monclova Project,IDF-1104,IDF-1104,Primary IDF supporting the administrative office areas for the Trinity – Monclova project.,Monclova,Paint Shop,,,,,,,,{},'),
+('1,Trinity,Sabinas Project,MDF-0101,MDF-0101,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Admin Building,,,,,,,,{},'),
+('20,Trinity,Sabinas Project,IDF-1004,IDF-1004,Primary IDF supporting the administrative office areas for the Trinity – Sabinas project.,Sabinas,Paint Shop 2,'[{''url'': ''/static/Trinity/sabinas/IDF-1004/documents/1758694461412.xlsx'', ''kind'': ''document'', ''name'': ''IDF-1004_0.xlsx'', ''title'': ''IDF-1004_0''}]',,'''Trinity/sabinas/IDF-1004/location/location.jpg''','[{''url'': ''/static/Trinity/sabinas/IDF-1004/diagrams/1758690246500.jpg'', ''kind'': ''diagram'', ''name'': ''Diagram 1''}, {''url'': ''/static/Trinity/sabinas/IDF-1004/diagrams/1758690251088.jpg'', ''kind'': ''diagram'', ''name'': ''Diagram 2''}]','[{''url'': ''/static/Trinity/sabinas/IDF-1004/dfo/1758678868283.png'', ''kind'': ''diagram'', ''name'': ''dfo-diagram-1.png''}]',Trinity/sabinas/IDF-1004/logo/logo.png,'[''Trinity/sabinas/IDF-1004/images/1758679825545.jpg'', ''Trinity/sabinas/IDF-1004/images/1758679825546.jpg'']',{},');
+
+-- Tabla: users
+TRUNCATE TABLE users RESTART IDENTITY CASCADE;
+INSERT INTO users (id, email, password_hash, role, full_name, is_active, created_at, updated_at, last_login_at) VALUES
+('1,lgutierrez@example.com,$2b$12$qGjwaqYvWi6rqvLfYiAJEeHsQ8/5VZ3EiC56xmSYCpvJp./vU9nBC,admin,Luis Gutierrez,t,2025-09-21 19:05:19.460933+00,2025-09-21 19:05:19.460933+00,2025-09-24 20:06:45.804165+00'),
+('3,mflores@inprotelecom.com,$2b$12$cTUtsmj1Sr4b8PLpX9ufb.i65Z5CuOHbJ0si2h.JIw.MTmoH9mHXy,admin,Mauricio Flores,t,2025-09-24 20:05:15.978716+00,2025-09-24 20:05:15.978716+00,2025-09-24 20:16:28.164497+00');
+
