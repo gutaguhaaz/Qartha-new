@@ -40,15 +40,31 @@ export default function DocumentsViewer({ item, cluster, project, code }: Docume
     const handleReloadDocuments = async () => {
       if (cluster && project && code) {
         try {
-          // Force refetch fresh data
-          const freshData = await queryClient.fetchQuery({
+          console.log("Reloading documents for:", { cluster, project, code });
+          
+          // First invalidate the query
+          await queryClient.invalidateQueries({
             queryKey: ["/api", cluster, project, "idfs", code],
-            queryFn: () => getIdf(cluster, project, code),
           });
 
-          if (freshData?.documents) {
-            setLocalDocuments(freshData.documents);
-          }
+          // Wait a bit and then force refetch fresh data
+          setTimeout(async () => {
+            try {
+              const freshData = await queryClient.fetchQuery({
+                queryKey: ["/api", cluster, project, "idfs", code],
+                queryFn: () => getIdf(cluster, project, code),
+                staleTime: 0, // Force fresh fetch
+              });
+
+              console.log("Fresh data received:", freshData?.documents);
+
+              if (freshData?.documents) {
+                setLocalDocuments(freshData.documents);
+              }
+            } catch (fetchError) {
+              console.error("Error fetching fresh data:", fetchError);
+            }
+          }, 50);
         } catch (error) {
           console.error("Error reloading documents:", error);
         }

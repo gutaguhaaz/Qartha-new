@@ -54,22 +54,28 @@ export default function PublicDetail({
     };
 
     const handleReloadDocumentsTab = async () => {
-      if (activeTab === "documents") {
-        try {
-          // Force invalidate and refetch data
-          await queryClient.invalidateQueries({
-            queryKey: ["/api", cluster, project, "idfs", code],
-          });
-          
-          // Force a fresh fetch after a small delay
-          setTimeout(async () => {
+      try {
+        console.log("Reloading documents tab, current tab:", activeTab);
+        
+        // Always invalidate and refetch, regardless of active tab
+        await queryClient.invalidateQueries({
+          queryKey: ["/api", cluster, project, "idfs", code],
+        });
+        
+        // Force a fresh fetch after a small delay
+        setTimeout(async () => {
+          try {
             await queryClient.refetchQueries({
               queryKey: ["/api", cluster, project, "idfs", code],
+              staleTime: 0,
             });
-          }, 100);
-        } catch (error) {
-          console.error("Error reloading documents tab:", error);
-        }
+            console.log("Documents tab reloaded successfully");
+          } catch (refetchError) {
+            console.error("Error refetching documents:", refetchError);
+          }
+        }, 100);
+      } catch (error) {
+        console.error("Error reloading documents tab:", error);
       }
     };
 
