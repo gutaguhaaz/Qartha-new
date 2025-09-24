@@ -119,6 +119,12 @@ export type IdfPublic = z.infer<typeof idfPublicSchema>;
 export type IdfUpsert = z.infer<typeof idfUpsertSchema>;
 export type Device = z.infer<typeof deviceSchema>;
 
+export interface MediaItem {
+  url: string;
+  name?: string;
+  kind?: string;
+}
+
 export interface IdfPublic {
   cluster: string;
   project: string;
@@ -127,14 +133,17 @@ export interface IdfPublic {
   description?: string;
   site?: string;
   room?: string;
-  images: string[];
-  documents: string[];
-  diagrams: string[];
-  location?: string;
-  dfo: string[];
+  images: (string | MediaItem)[];
+  documents: (string | MediaItem)[];
+  diagrams: (string | MediaItem)[];
+  location?: string | (string | MediaItem)[];
+  dfo: (string | MediaItem)[];
   logo?: string;
   table?: IdfTable;
   health?: IdfHealth;
+  media?: {
+    logo?: MediaItem;
+  };
 }
 
 export interface IdfIndex {

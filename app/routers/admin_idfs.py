@@ -48,12 +48,31 @@ def _serialize_table(table: Optional[Any]) -> Optional[str]:
     return json.dumps(table.model_dump())
 
 
+def _serialize_media_list(items: Any) -> str:
+    """Convert media items to JSON, handling both string and object formats."""
+    if not items:
+        return json.dumps([])
+    
+    serialized_items = []
+    for item in items:
+        if isinstance(item, str):
+            serialized_items.append(item)
+        elif hasattr(item, 'model_dump'):
+            serialized_items.append(item.model_dump())
+        elif isinstance(item, dict):
+            serialized_items.append(item)
+        else:
+            serialized_items.append(str(item))
+    
+    return json.dumps(serialized_items)
+
+
 def _prepare_common_values(data: IdfUpsert) -> Dict[str, Any]:
     # Handle location - keep as JSON string if it's a list, or convert to JSON
     location_value = None
     if data.location:
         if isinstance(data.location, list):
-            location_value = json.dumps(data.location)
+            location_value = _serialize_media_list(data.location)
         else:
             location_value = json.dumps([data.location])
     
@@ -62,11 +81,11 @@ def _prepare_common_values(data: IdfUpsert) -> Dict[str, Any]:
         "description": data.description,
         "site": data.site,
         "room": data.room,
-        "images": json.dumps(data.images),
-        "documents": json.dumps(data.documents),
-        "diagrams": json.dumps(data.diagrams),
+        "images": _serialize_media_list(data.images),
+        "documents": _serialize_media_list(data.documents),
+        "diagrams": _serialize_media_list(data.diagrams),
         "location": location_value,
-        "dfo": json.dumps(data.dfo),
+        "dfo": _serialize_media_list(data.dfo),
         "logo": data.logo,
         "table_data": _serialize_table(data.table),
     }
@@ -86,6 +105,18 @@ def _load_json(value: Any) -> Any:
     return value
 
 
+def _load_media_list(value: Any) -> List[Any]:
+    """Load and normalize media list, handling both string and object formats."""
+    loaded = _load_json(value)
+    if not loaded:
+        return []
+    
+    if not isinstance(loaded, list):
+        return []
+    
+    return loaded
+
+
 def _row_to_idf_public(row: Dict[str, Any]) -> IdfPublic:
     table_data = _load_json(row.get("table_data"))
     location_data = _load_json(row.get("location"))
@@ -98,11 +129,11 @@ def _row_to_idf_public(row: Dict[str, Any]) -> IdfPublic:
         description=row.get("description"),
         site=row.get("site"),
         room=row.get("room"),
-        images=_load_json(row.get("images")) or [],
-        documents=_load_json(row.get("documents")) or [],
-        diagrams=_load_json(row.get("diagrams")) or [],
+        images=_load_media_list(row.get("images")),
+        documents=_load_media_list(row.get("documents")),
+        diagrams=_load_media_list(row.get("diagrams")),
         location=location_data,
-        dfo=_load_json(row.get("dfo")) or [],
+        dfo=_load_media_list(row.get("dfo")),
         logo=row.get("logo"),
         table=table_data if isinstance(table_data, dict) else None,
     )

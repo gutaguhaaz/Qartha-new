@@ -35,7 +35,6 @@ import {
   deleteAsset,
   getIdf,
   getIdfs,
-  MediaPayload,
   updateIdf,
   uploadAsset,
   uploadIdfLogo,
@@ -65,7 +64,7 @@ interface AdminSidebarProps {
   };
 }
 
-type MediaList = MediaPayload[];
+type MediaList = MediaItem[];
 
 const normalizeProject = (value: string) => value || config.defaults.project;
 
@@ -181,13 +180,25 @@ export default function AdminSidebar({
         site: idf.site ?? "",
         room: idf.room ?? "",
       });
-      setGallery(idf.gallery ?? []);
-      setDocuments(idf.documents ?? []);
-      setDiagrams(idf.diagrams ?? []);
-      const locations =
-        idf.location_items ?? (idf.location ? [idf.location] : []);
-      setLocationItems(locations ?? []);
-      setDfo(idf.dfo ?? []);
+      
+      // Normalize media arrays to handle both string and object formats
+      const normalizeMediaArray = (items: any[]): MediaList => {
+        return (items || []).map(item => {
+          if (typeof item === 'string') {
+            return { url: item, name: '', kind: 'unknown' };
+          }
+          return item;
+        });
+      };
+      
+      setGallery(normalizeMediaArray(idf.images ?? []));
+      setDocuments(normalizeMediaArray(idf.documents ?? []));
+      setDiagrams(normalizeMediaArray(idf.diagrams ?? []));
+      
+      const locations = idf.location_items ?? (idf.location ? [idf.location] : []);
+      setLocationItems(normalizeMediaArray(locations ?? []));
+      
+      setDfo(normalizeMediaArray(idf.dfo ?? []));
       setTableData(idf.table ?? null);
       setLogoPreview(idf.media?.logo?.url ?? null);
     }
@@ -221,7 +232,7 @@ export default function AdminSidebar({
         description: generalForm.description,
         site: generalForm.site,
         room: generalForm.room,
-        gallery,
+        images: gallery,
         documents,
         diagrams,
         location: locationItems,

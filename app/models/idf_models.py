@@ -6,6 +6,12 @@ from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field, HttpUrl
 
 
+class MediaItem(BaseModel):
+    url: str
+    name: Optional[str] = None
+    kind: Optional[str] = None
+
+
 class TableColumn(BaseModel):
     key: str
     label: str
@@ -50,11 +56,11 @@ class IdfPublic(BaseModel):
     description: Optional[str] = None
     site: Optional[str] = ""
     room: Optional[str] = ""
-    images: List[str] = Field(default_factory=list)
-    documents: List[str] = Field(default_factory=list)
-    diagrams: List[str] = Field(default_factory=list)
-    location: Optional[Union[str, List[str]]] = None
-    dfo: List[str] = Field(default_factory=list)
+    images: List[Union[str, MediaItem]] = Field(default_factory=list)
+    documents: List[Union[str, MediaItem]] = Field(default_factory=list)
+    diagrams: List[Union[str, MediaItem]] = Field(default_factory=list)
+    location: Optional[Union[str, List[Union[str, MediaItem]]]] = None
+    dfo: List[Union[str, MediaItem]] = Field(default_factory=list)
     logo: Optional[str] = None
     table: Optional[IdfTable] = None
     health: Optional[IdfHealth] = None
@@ -65,11 +71,11 @@ class IdfUpsert(BaseModel):
     description: Optional[str] = None
     site: Optional[str] = None
     room: Optional[str] = None
-    images: List[str] = Field(default_factory=list)
-    documents: List[str] = Field(default_factory=list)
-    diagrams: List[str] = Field(default_factory=list)
-    location: Optional[Union[str, List[str]]] = None
-    dfo: List[str] = Field(default_factory=list)
+    images: List[Union[str, MediaItem]] = Field(default_factory=list)
+    documents: List[Union[str, MediaItem]] = Field(default_factory=list)
+    diagrams: List[Union[str, MediaItem]] = Field(default_factory=list)
+    location: Optional[Union[str, List[Union[str, MediaItem]]]] = None
+    dfo: List[Union[str, MediaItem]] = Field(default_factory=list)
     logo: Optional[str] = None
     table: Optional[IdfTable] = None
 
