@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.db.database import database
-from app.models.idf_models import IdfHealth, HealthCounts, IdfIndex, IdfPublic
+from app.models.idf_models import IdfHealth, HealthCounts, IdfIndex, IdfPublic, MediaItem
 from app.routers.auth import get_current_user
 from app.core.config import settings
 
