@@ -219,32 +219,23 @@ export default function AdminSidebar({
         i === index ? { ...doc, title: newTitle } : doc
       ));
 
-      // Force invalidate and refetch ALL relevant queries
-      const queryPromises = [
-        queryClient.invalidateQueries({
-          queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["admin", "idfs", selectedCluster, selectedProject],
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
-        }),
-      ];
+      // Invalidate queries in sequence to avoid conflicts
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+      });
+      
+      await queryClient.invalidateQueries({
+        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+      });
 
-      await Promise.all(queryPromises);
-
-      // Force fresh data fetch with multiple attempts to ensure it propagates
-      setTimeout(async () => {
-        await queryClient.refetchQueries({
-          queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
-        });
-        // Trigger reload event after refetch
-        window.dispatchEvent(new CustomEvent("reloadDocumentsTab"));
-      }, 100);
-
-      // Also trigger immediate reload
-      window.dispatchEvent(new CustomEvent("reloadDocumentsTab"));
+      // Use a single timeout to trigger reload
+      setTimeout(() => {
+        try {
+          window.dispatchEvent(new CustomEvent("reloadDocumentsTab"));
+        } catch (e) {
+          console.warn("Could not dispatch reload event:", e);
+        }
+      }, 200);
 
       toast({
         title: "Document title updated",

@@ -39,14 +39,18 @@ export default function DocumentsViewer({ item, cluster, project, code }: Docume
   useEffect(() => {
     const handleReloadDocuments = async () => {
       if (cluster && project && code) {
-        // Force refetch fresh data
-        const freshData = await queryClient.fetchQuery({
-          queryKey: ["/api", cluster, project, "idfs", code],
-          queryFn: () => getIdf(cluster, project, code),
-        });
-        
-        if (freshData?.documents) {
-          setLocalDocuments(freshData.documents);
+        try {
+          // Force refetch fresh data
+          const freshData = await queryClient.fetchQuery({
+            queryKey: ["/api", cluster, project, "idfs", code],
+            queryFn: () => getIdf(cluster, project, code),
+          });
+          
+          if (freshData?.documents) {
+            setLocalDocuments(freshData.documents);
+          }
+        } catch (error) {
+          console.error("Error reloading documents:", error);
         }
       }
     };
