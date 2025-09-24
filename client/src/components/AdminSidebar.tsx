@@ -723,13 +723,6 @@ export default function AdminSidebar({
                             );
                           })}
                         </div>
-                        {dfo.length > 0 && (
-                          <div className="flex justify-end">
-                            <Button onClick={handleSaveGeneral}>
-                              <Save className="mr-2 h-4 w-4" /> Save DFO names
-                            </Button>
-                          </div>
-                        )}
                       </CardContent>
                     </Card>
                   </TabsContent>
