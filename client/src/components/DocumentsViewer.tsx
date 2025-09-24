@@ -17,6 +17,7 @@ export default function DocumentsViewer({ item }: DocumentsViewerProps) {
   const documents = item || [];
 
   const getFileIcon = (filename: string) => {
+    if (!filename) return <File className="w-5 h-5 text-gray-500" />;
     const extension = filename.split('.').pop()?.toLowerCase();
     switch (extension) {
       case 'xlsx':
@@ -76,7 +77,7 @@ export default function DocumentsViewer({ item }: DocumentsViewerProps) {
             className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-lg hover:bg-accent/50 transition-colors"
           >
             <div className="flex items-center space-x-3">
-              {getFileIcon(doc.name || doc.url)}
+              {getFileIcon(doc.name || doc.url || 'document')}
               <div>
                 <p className="font-medium text-foreground">
                   {doc.title || doc.name || `Document ${index + 1}`}
