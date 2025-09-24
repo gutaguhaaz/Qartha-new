@@ -3,7 +3,7 @@ import asyncio
 from app.db.database import database, init_database, close_database
 
 async def add_media_column():
-    """Add media column back to idfs table"""
+    """Add media and table_data columns back to idfs table"""
     await init_database()
     
     try:
@@ -15,7 +15,15 @@ async def add_media_column():
         
         print("✅ Added media column back to idfs table")
         
-        # Optionally, you can populate it with basic structure for existing records
+        # Add the table_data column back
+        await database.execute("""
+            ALTER TABLE idfs 
+            ADD COLUMN IF NOT EXISTS table_data JSONB DEFAULT NULL
+        """)
+        
+        print("✅ Added table_data column back to idfs table")
+        
+        # Initialize media column with empty JSON objects
         await database.execute("""
             UPDATE idfs 
             SET media = '{}'::jsonb 
@@ -25,7 +33,7 @@ async def add_media_column():
         print("✅ Initialized media column with empty JSON objects")
         
     except Exception as e:
-        print(f"❌ Error adding media column: {e}")
+        print(f"❌ Error adding columns: {e}")
     finally:
         await close_database()
 
