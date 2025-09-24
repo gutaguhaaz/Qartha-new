@@ -185,8 +185,40 @@ export default function AdminSidebar({
       const normalizeMediaArray = (items: any[]): MediaList => {
         return (items || []).map(item => {
           if (typeof item === 'string') {
-            return { url: item, name: '', kind: 'unknown' };
+            // Clean up malformed URLs
+            let cleanUrl = item;
+            if (item.includes("{'url':")) {
+              const match = item.match(/\/static\/([^']+)/);
+              if (match) {
+                cleanUrl = `/static/${match[1]}`;
+              }
+            }
+            // Ensure relative URL
+            if (cleanUrl.includes('replit.dev/')) {
+              const staticIndex = cleanUrl.indexOf('/static/');
+              if (staticIndex !== -1) {
+                cleanUrl = cleanUrl.substring(staticIndex);
+              }
+            }
+            return { url: cleanUrl, name: '', kind: 'unknown' };
           }
+          
+          // Clean up object URLs too
+          if (item.url && item.url.includes("{'url':")) {
+            const match = item.url.match(/\/static\/([^']+)/);
+            if (match) {
+              item.url = `/static/${match[1]}`;
+            }
+          }
+          
+          // Convert absolute URLs to relative
+          if (item.url && item.url.includes('replit.dev/')) {
+            const staticIndex = item.url.indexOf('/static/');
+            if (staticIndex !== -1) {
+              item.url = item.url.substring(staticIndex);
+            }
+          }
+          
           return item;
         });
       };

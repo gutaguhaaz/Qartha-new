@@ -1,4 +1,3 @@
-
 import { useState, useRef, useCallback, useEffect } from "react";
 
 interface MediaItem {
@@ -50,7 +49,37 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
   }
 
   const currentItem = items[currentIndex];
-  const correctedUrl = currentItem;
+
+  // Fix URL handling - ensure it's always a relative path starting with /static/
+  const correctedUrl = (() => {
+    if (!currentItem) return '';
+
+    let url = currentItem;
+
+    // Remove absolute URL if present
+    if (url.includes('replit.dev/')) {
+      const staticIndex = url.indexOf('/static/');
+      if (staticIndex !== -1) {
+        url = url.substring(staticIndex);
+      }
+    }
+
+    // Remove any malformed nested data structures
+    if (url.includes("{'url':")) {
+      const match = url.match(/\/static\/([^']+)/);
+      if (match) {
+        url = `/static/${match[1]}`;
+      }
+    }
+
+    // Ensure it starts with /static/
+    if (!url.startsWith('/static/')) {
+      url = `/static/${url.replace(/^\/static\//, '')}`;
+    }
+
+    return url;
+  })();
+
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));

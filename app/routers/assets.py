@@ -247,7 +247,7 @@ async def upload_dfo(
         
         # Create complete DFO object with name and kind
         dfo_object = {
-            "url": f"/static/{relative_path}",
+            "url": relative_path,
             "name": file.filename or f"DFO {len(current_dfo) + len(new_dfo_objects) + 1}",
             "kind": "diagram" if file.content_type.startswith("image/") else "document"
         }
