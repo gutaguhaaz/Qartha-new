@@ -64,6 +64,14 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
         url = `/static/${match[1]}`;
       }
     }
+    // Handle URLs that contain nested data structures with replit domain
+    else if (url.includes("replit.dev//static/{'url':")) {
+      // Extract the clean path from malformed URL like: https://domain//static/{'url': '/static/...'}
+      const match = url.match(/'\/static\/([^']+)'/);
+      if (match) {
+        url = `/static/${match[1]}`;
+      }
+    }
     // Handle URLs that contain nested data structures
     else if (url.includes("/static/{'url':")) {
       // Extract the clean path from malformed URL
@@ -100,8 +108,8 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
       url = `/static/${url.replace(/^\/+/, '')}`;
     }
 
-    // Remove any trailing malformed data
-    url = url.split("'")[0].split('"')[0].split('}')[0].split(',')[0];
+    // Remove any trailing malformed data including commas and quotes
+    url = url.split("'")[0].split('"')[0].split('}')[0].split(',')[0].split(' ')[0];
 
     return url;
   })();
