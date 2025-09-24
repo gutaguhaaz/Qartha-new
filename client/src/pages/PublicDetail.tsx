@@ -45,8 +45,10 @@ export default function PublicDetail({
 
     const handleReloadDiagramsTab = () => {
       if (activeTab === "diagram") {
-        // Force re-fetch of IDF data
-        window.location.reload();
+        // Invalidate queries to refresh data without page reload
+        queryClient.invalidateQueries({
+          queryKey: ["/api", cluster, project, "idfs", code],
+        });
       }
     };
 

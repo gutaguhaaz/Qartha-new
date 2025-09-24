@@ -171,6 +171,18 @@ export default function AdminSidebar({
   const handleUploadDocuments = (files: FileList | null) => handleUploadAsset("documents", files);
   const handleRemoveDocumentItem = (index: number) => handleDeleteAsset("documents", index); // Renamed for clarity
 
+  // Function to handle reloading the diagrams tab without a full page refresh
+  const handleReloadDiagramsTab = () => {
+    if (activeTab === "diagrams") {
+      // Invalidate queries to refresh data without page reload
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+      });
+    }
+  };
 
   useEffect(() => {
     if (preloadIdf && isOpen) {
@@ -785,7 +797,10 @@ export default function AdminSidebar({
               {detail ? (
                 <Tabs
                   value={activeTab}
-                  onValueChange={(value) => setActiveTab(value as TabValue)}
+                  onValueChange={(value) => {
+                    setActiveTab(value as TabValue);
+                    handleReloadDiagramsTab(); // Ensure reload logic runs on tab change
+                  }}
                   className="admin-tabs tabpaneladmin"
                 >
                   <TabsList className="admin-tabs grid w-full grid-cols-6 gap-1 h-auto p-1">
@@ -1162,20 +1177,6 @@ export default function AdminSidebar({
                                     >
                                       Remove
                                     </Button>
-                                  </div>
-                                  <div>
-                                    <Label htmlFor={`diagram-name-${index}`} className="text-xs">Display Name</Label>
-                                    <Input
-                                      id={`diagram-name-${index}`}
-                                      value={item.name || ''}
-                                      onChange={(e) => {
-                                        const newDiagrams = [...diagrams];
-                                        newDiagrams[index] = { ...item, name: e.target.value };
-                                        setDiagrams(newDiagrams);
-                                      }}
-                                      placeholder="Enter diagram name"
-                                      className="text-xs"
-                                    />
                                   </div>
                                 </div>
                               </div>
