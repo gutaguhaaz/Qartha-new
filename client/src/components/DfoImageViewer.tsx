@@ -21,19 +21,22 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
   const imageRef = useRef<HTMLImageElement>(null);
 
   // Handle different data structures
-  let items: Array<{url: string, name?: string}> = [];
+  let items: Array<{ url: string; name?: string }> = [];
   if (item) {
-    if (typeof item === 'string') {
-      items = [{url: item}];
+    if (typeof item === "string") {
+      items = [{ url: item }];
     } else if (Array.isArray(item)) {
       // Handle array of objects with url property or array of strings
-      items = item.map(i => {
-        if (typeof i === 'string') return {url: i};
-        if (i && typeof i === 'object' && i.url) return {url: i.url, name: i.name};
-        return null;
-      }).filter(Boolean);
-    } else if (item && typeof item === 'object' && item.url) {
-      items = [{url: item.url, name: item.name}];
+      items = item
+        .map((i) => {
+          if (typeof i === "string") return { url: i };
+          if (i && typeof i === "object" && i.url)
+            return { url: i.url, name: i.name };
+          return null;
+        })
+        .filter(Boolean);
+    } else if (item && typeof item === "object" && item.url) {
+      items = [{ url: item.url, name: item.name }];
     }
   }
 
@@ -41,9 +44,9 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
 
   // Fix URL handling - ensure it's always a relative path starting with /static/
   const correctedUrl = (() => {
-    if (!currentItem) return '';
+    if (!currentItem) return "";
 
-    let url = typeof currentItem === 'string' ? currentItem : currentItem.url;
+    let url = typeof currentItem === "string" ? currentItem : currentItem.url;
 
     // Handle deeply nested malformed URLs with replit domain and nested objects
     if (url.includes("replit.dev") && url.includes("//static/{'url':")) {
@@ -64,11 +67,13 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
     // Handle URLs that contain nested data structures
     else if (url.includes("/static/{'url':")) {
       // Extract the clean path from malformed URL
-      const match = url.match(/\/static\/([^\/]+\/[^\/]+\/[^\/]+\/dfo\/[^'"\s}]+)/);
+      const match = url.match(
+        /\/static\/([^\/]+\/[^\/]+\/[^\/]+\/dfo\/[^'"\s}]+)/,
+      );
       if (match) {
         url = `/static/${match[1]}`;
       }
-    } 
+    }
     // Handle other malformed formats with nested objects
     else if (url.includes("{'url':")) {
       // Handle other malformed formats
@@ -76,51 +81,55 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
       if (match) {
         url = match[1];
       }
-    } 
+    }
     // Handle absolute URLs with replit domain
-    else if (url.includes('replit.dev/')) {
+    else if (url.includes("replit.dev/")) {
       // Remove absolute URL domain if present
-      const staticIndex = url.indexOf('/static/');
+      const staticIndex = url.indexOf("/static/");
       if (staticIndex !== -1) {
         url = url.substring(staticIndex);
       }
     }
 
     // Clean up any remaining malformed parts
-    if (url.startsWith('/static/{') || url.includes('//static/')) {
+    if (url.startsWith("/static/{") || url.includes("//static/")) {
       // If URL starts with malformed data, return empty to trigger error handling
-      return '';
+      return "";
     }
 
     // Ensure it starts with /static/
-    if (!url.startsWith('/static/')) {
-      url = `/static/${url.replace(/^\/+/, '')}`;
+    if (!url.startsWith("/static/")) {
+      url = `/static/${url.replace(/^\/+/, "")}`;
     }
 
     // Remove any trailing malformed data including commas and quotes
-    url = url.split("'")[0].split('"')[0].split('}')[0].split(',')[0].split(' ')[0];
+    url = url
+      .split("'")[0]
+      .split('"')[0]
+      .split("}")[0]
+      .split(",")[0]
+      .split(" ")[0];
 
     return url;
   })();
 
-
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
+  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 25, 200));
+  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 25, 50));
 
   const handleDownload = () => {
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = correctedUrl;
     link.download = `dfo-diagram-${currentIndex + 1}`;
     link.click();
   };
 
   const handlePrevious = () => {
-    setCurrentIndex(prev => prev > 0 ? prev - 1 : items.length - 1);
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : items.length - 1));
     handleCenter();
   };
 
   const handleNext = () => {
-    setCurrentIndex(prev => prev < items.length - 1 ? prev + 1 : 0);
+    setCurrentIndex((prev) => (prev < items.length - 1 ? prev + 1 : 0));
     handleCenter();
   };
 
@@ -134,7 +143,7 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
   }, []);
 
   const toggleFullscreen = () => {
-    setIsFullscreen(prev => !prev);
+    setIsFullscreen((prev) => !prev);
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -149,15 +158,18 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
     e.preventDefault();
   };
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging || !imageRef.current) return;
-    const dx = e.clientX - dragStart.x;
-    const dy = e.clientY - dragStart.y;
-    setPosition({
-      x: dragStart.posX + dx,
-      y: dragStart.posY + dy,
-    });
-  }, [isDragging, dragStart]);
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isDragging || !imageRef.current) return;
+      const dx = e.clientX - dragStart.x;
+      const dy = e.clientY - dragStart.y;
+      setPosition({
+        x: dragStart.posX + dx,
+        y: dragStart.posY + dy,
+      });
+    },
+    [isDragging, dragStart],
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -165,30 +177,33 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
 
   useEffect(() => {
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp, { once: true });
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp, { once: true });
     } else {
-      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener("mousemove", handleMouseMove);
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const imageStyle = {
     transform: `scale(${zoom / 100}) translate(${position.x}px, ${position.y}px)`,
-    transformOrigin: 'center center',
-    cursor: isDragging ? 'grabbing' : 'grab',
+    transformOrigin: "center center",
+    cursor: isDragging ? "grabbing" : "grab",
   };
 
   const containerClasses = `border border-border rounded-lg overflow-hidden min-h-96 
-    ${isFullscreen ? 'fixed inset-0 z-50 bg-black bg-opacity-80' : 'bg-muted/50'}`;
+    ${isFullscreen ? "fixed inset-0 z-50 bg-black bg-opacity-80" : "bg-muted/50"}`;
 
   if (!items || items.length === 0) {
     return (
-      <div className="bg-card border border-border rounded-lg p-6" data-testid="dfo-empty">
+      <div
+        className="bg-card border border-border rounded-lg p-6"
+        data-testid="dfo-empty"
+      >
         <div className="text-center py-12 text-muted-foreground">
           <i className="fas fa-table text-4xl mb-4"></i>
           <p>No DFO diagram available</p>
@@ -198,25 +213,36 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
   }
 
   return (
-    <div className={containerClasses} data-testid="dfo-viewer" ref={containerRef}>
-      <div className={`flex flex-col mb-4 p-4 ${isFullscreen ? 'bg-gray-800' : ''}`}>
+    <div
+      className={containerClasses}
+      data-testid="dfo-viewer"
+      ref={containerRef}
+    >
+      <div
+        className={`flex flex-col mb-4 p-4 ${isFullscreen ? "bg-gray-800" : ""}`}
+      >
         <div className="flex items-center justify-between mb-4">
-          <h3 className={`text-lg font-semibold ${isFullscreen ? 'text-white' : ''}`} data-testid="dfo-title">
-            {currentItem?.name || `DFO Layout ${currentIndex + 1}`} ({currentIndex + 1} of {items.length})
+          <h3
+            className={`text-lg font-semibold ${isFullscreen ? "text-white" : ""}`}
+            data-testid="dfo-title"
+          >
+            {currentItem?.name ||
+              `Distribution Fiber Optic ${currentIndex + 1}`}{" "}
+            ({currentIndex + 1} of {items.length})
           </h3>
           <div className="flex items-center space-x-2">
             {items.length > 1 && (
               <>
                 <button
                   onClick={handlePrevious}
-                  className={`px-3 py-1 rounded-md text-sm transition-colors ${isFullscreen ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
+                  className={`px-3 py-1 rounded-md text-sm transition-colors ${isFullscreen ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
                   data-testid="button-previous-dfo"
                 >
                   <i className="fas fa-chevron-left"></i>
                 </button>
                 <button
                   onClick={handleNext}
-                  className={`px-3 py-1 rounded-md text-sm transition-colors ${isFullscreen ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
+                  className={`px-3 py-1 rounded-md text-sm transition-colors ${isFullscreen ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
                   data-testid="button-next-dfo"
                 >
                   <i className="fas fa-chevron-right"></i>
@@ -232,7 +258,10 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
                 >
                   <i className="fas fa-search-minus"></i>
                 </button>
-                <span className="text-sm text-muted-foreground min-w-12 text-center" data-testid="zoom-level">
+                <span
+                  className="text-sm text-muted-foreground min-w-12 text-center"
+                  data-testid="zoom-level"
+                >
                   {zoom}%
                 </span>
                 <button
@@ -253,17 +282,19 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
             )}
             <button
               onClick={handleCenter}
-              className={`px-3 py-1 rounded-md text-sm transition-colors ${isFullscreen ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
+              className={`px-3 py-1 rounded-md text-sm transition-colors ${isFullscreen ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
               data-testid="button-center-dfo"
             >
               <i className="fas fa-compress-alt"></i>
             </button>
             <button
               onClick={toggleFullscreen}
-              className={`px-3 py-1 rounded-md text-sm transition-colors ${isFullscreen ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
+              className={`px-3 py-1 rounded-md text-sm transition-colors ${isFullscreen ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
               data-testid="button-fullscreen-dfo"
             >
-              <i className={isFullscreen ? "fas fa-compress" : "fas fa-expand"}></i>
+              <i
+                className={isFullscreen ? "fas fa-compress" : "fas fa-expand"}
+              ></i>
             </button>
           </div>
         </div>
@@ -276,38 +307,50 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
                 key={index}
                 onClick={() => goToImage(index)}
                 className={`w-16 h-12 border-2 rounded overflow-hidden transition-all ${
-                  index === currentIndex 
-                    ? 'border-primary' 
-                    : isFullscreen 
-                      ? 'border-gray-600 hover:border-gray-400' 
-                      : 'border-border hover:border-primary/50'
+                  index === currentIndex
+                    ? "border-primary"
+                    : isFullscreen
+                      ? "border-gray-600 hover:border-gray-400"
+                      : "border-border hover:border-primary/50"
                 }`}
                 data-testid={`thumbnail-${index}`}
               >
                 <img
                   src={(() => {
-                    let url = typeof item === 'string' ? item : item.url;
-                    if (url.includes("replit.dev") && url.includes("//static/{'url':")) {
+                    let url = typeof item === "string" ? item : item.url;
+                    if (
+                      url.includes("replit.dev") &&
+                      url.includes("//static/{'url':")
+                    ) {
                       const match = url.match(/'\/static\/([^']+)'/);
                       if (match) url = `/static/${match[1]}`;
                     } else if (url.includes("/static/{'url':")) {
-                      const match = url.match(/\/static\/([^\/]+\/[^\/]+\/[^\/]+\/dfo\/[^'"\s}]+)/);
+                      const match = url.match(
+                        /\/static\/([^\/]+\/[^\/]+\/[^\/]+\/dfo\/[^'"\s}]+)/,
+                      );
                       if (match) url = `/static/${match[1]}`;
                     } else if (url.includes("{'url':")) {
                       const match = url.match(/['"](\/static\/[^'"]+)['"]/);
                       if (match) url = match[1];
-                    } else if (url.includes('replit.dev/')) {
-                      const staticIndex = url.indexOf('/static/');
+                    } else if (url.includes("replit.dev/")) {
+                      const staticIndex = url.indexOf("/static/");
                       if (staticIndex !== -1) url = url.substring(staticIndex);
                     }
-                    if (!url.startsWith('/static/')) url = `/static/${url.replace(/^\/+/, '')}`;
-                    return url.split("'")[0].split('"')[0].split('}')[0].split(',')[0].split(' ')[0];
+                    if (!url.startsWith("/static/"))
+                      url = `/static/${url.replace(/^\/+/, "")}`;
+                    return url
+                      .split("'")[0]
+                      .split('"')[0]
+                      .split("}")[0]
+                      .split(",")[0]
+                      .split(" ")[0];
                   })()}
                   alt={`DFO ${index + 1}`}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA2NCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yOCAyN বস্তু2LjUgMjQuNUwzNi41IDMyLjVIMjhWMjRaWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
+                    target.src =
+                      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA2NCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yOCAyN বস্তু2LjUgMjQuNUwzNi41IDMyLjVIMjhWMjRaWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K";
                   }}
                 />
               </button>
@@ -316,11 +359,15 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
         )}
       </div>
 
-      <div className="relative w-full h-full flex items-center justify-center" style={{ height: isFullscreen ? 'calc(100vh - 60px)' : '400px' }} data-testid="dfo-container">
+      <div
+        className="relative w-full h-full flex items-center justify-center"
+        style={{ height: isFullscreen ? "calc(100vh - 60px)" : "400px" }}
+        data-testid="dfo-container"
+      >
         <div
           className="relative w-full h-full overflow-hidden cursor-grab"
           onMouseDown={handleMouseDown}
-          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+          style={{ cursor: isDragging ? "grabbing" : "grab" }}
         >
           <img
             ref={imageRef}
