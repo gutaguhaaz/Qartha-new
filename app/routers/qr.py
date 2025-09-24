@@ -24,6 +24,8 @@ def _absolute_frontend_url(request: Request, cluster: str, project: str, code: s
     project_mapping = {
         "Sabinas Project": "sabinas",
         "Sabinas": "sabinas", 
+        "Monclova Project": "monclova",
+        "Monclova": "monclova",
         "Trinity": "trinity",
         "trinity": "trinity"
     }
