@@ -90,7 +90,12 @@ export default function PublicList() {
   };
 
 
-  const getHealthIndicatorClass = (level?: string) => {
+  const getHealthIndicatorClass = (level?: string, hasContent?: boolean) => {
+    // If there's no health level but there is content, show green
+    if ((!level || level === "gray") && hasContent) {
+      return "bg-green-500";
+    }
+    
     switch (level) {
       case "green":
         return "bg-green-500";
@@ -341,13 +346,11 @@ export default function PublicList() {
                   </div>
                 </div>
                 <div
-                  className={`health-indicator ${getHealthIndicatorClass(idf.health?.level)} ${
-                    (idf.gallery && idf.gallery.length > 0) || 
-                    (idf.documents && idf.documents.length > 0) || 
-                    (idf.diagram && idf.diagram.length > 0) || 
-                    (idf.table_data && Object.keys(idf.table_data).length > 0) || 
-                    (idf.location && idf.location.length > 0) 
-                      ? 'active-animation' : ''
+                  className={`health-indicator ${getHealthIndicatorClass(
+                    idf.health?.level,
+                    idf.hasContent
+                  )} ${
+                    idf.hasContent ? 'active-animation' : ''
                   }`}
                   title={getHealthTitle(idf.health?.level)}
                   data-testid={`health-${idf.code}`}

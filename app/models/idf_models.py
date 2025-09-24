@@ -46,6 +46,7 @@ class IdfIndex(BaseModel):
     room: Optional[str] = ""
     health: Optional[IdfHealth] = None
     logo: Optional[str] = None
+    hasContent: Optional[bool] = False
 
 
 class IdfPublic(BaseModel):

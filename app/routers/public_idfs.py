@@ -82,6 +82,50 @@ def compute_health(table_data: Optional[Dict[str, Any]]):
     return {"level": level, "counts": counts}
 
 
+def has_content(idf_data: dict) -> bool:
+    """Check if IDF has any content in galleries, documents, diagrams, dfo, location, or table data"""
+    # Check for non-empty arrays/strings in various fields
+    content_fields = ["images", "documents", "diagrams", "dfo", "location"]
+    
+    for field in content_fields:
+        field_value = idf_data.get(field)
+        if field_value:
+            # Handle JSON strings
+            if isinstance(field_value, str):
+                try:
+                    parsed_value = json.loads(field_value)
+                    if isinstance(parsed_value, list) and len(parsed_value) > 0:
+                        return True
+                    elif isinstance(parsed_value, str) and parsed_value.strip():
+                        return True
+                except (json.JSONDecodeError, TypeError):
+                    # If not JSON, treat as string
+                    if field_value.strip():
+                        return True
+            # Handle lists
+            elif isinstance(field_value, list) and len(field_value) > 0:
+                return True
+            # Handle non-empty strings
+            elif isinstance(field_value, str) and field_value.strip():
+                return True
+    
+    # Check table data
+    table_data = idf_data.get("table_data")
+    if table_data:
+        try:
+            if isinstance(table_data, str):
+                parsed_table = json.loads(table_data)
+            else:
+                parsed_table = table_data
+            
+            if isinstance(parsed_table, dict) and parsed_table.get("rows"):
+                return True
+        except (json.JSONDecodeError, TypeError):
+            pass
+    
+    return False
+
+
 def convert_relative_to_absolute(paths, single_value=False):
     """Convert relative paths to relative URLs for proper static file serving"""
     if paths is None:
@@ -187,6 +231,9 @@ async def list_idfs(
             idf_data["dfo"] = None # Changed from result["dfo"] to idf_data["dfo"]
 
 
+        # Check if IDF has content
+        content_exists = has_content(idf_data)
+
         result.append(IdfIndex(
             cluster=idf_data["cluster"],
             project=idf_data["project"],
@@ -195,7 +242,8 @@ async def list_idfs(
             site=idf_data.get("site", ""),
             room=idf_data.get("room", ""),
             health=health,
-            logo=convert_relative_to_absolute(idf_data.get("logo"), single_value=True) if idf_data.get("logo") else None
+            logo=convert_relative_to_absolute(idf_data.get("logo"), single_value=True) if idf_data.get("logo") else None,
+            hasContent=content_exists
         ))
 
     return result

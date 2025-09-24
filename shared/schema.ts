@@ -154,6 +154,7 @@ export interface IdfIndex {
   room?: string;
   health?: IdfHealth;
   logo?: string;
+  hasContent?: boolean;
 }
 
 export interface IdfCreate {
