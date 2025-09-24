@@ -45,7 +45,7 @@ export default function DocumentsViewer({ item, cluster, project, code }: Docume
             queryKey: ["/api", cluster, project, "idfs", code],
             queryFn: () => getIdf(cluster, project, code),
           });
-          
+
           if (freshData?.documents) {
             setLocalDocuments(freshData.documents);
           }
@@ -127,12 +127,16 @@ export default function DocumentsViewer({ item, cluster, project, code }: Docume
             <div className="flex items-center space-x-3">
               {getFileIcon(doc.name || doc.url || 'document')}
               <div>
-                <p className="font-medium text-foreground">
-                  {doc.title || doc.name || `Document ${index + 1}`}
+                <p className="font-semibold text-foreground text-base">
+                  {doc.title && doc.title !== "undefined" ? doc.title : `Document ${index + 1}`}
                 </p>
-                <p className="text-sm text-muted-foreground capitalize">
-                  {doc.kind || 'document'} • {doc.url?.split('.').pop()?.toUpperCase() || 'FILE'}
-                </p>
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                  <span>{doc.name || doc.url?.split('/').pop() || 'document'}</span>
+                  <span>•</span>
+                  <span className="capitalize">{doc.kind || 'document'}</span>
+                  <span>•</span>
+                  <span>{doc.url?.split('.').pop()?.toUpperCase() || 'FILE'}</span>
+                </div>
               </div>
             </div>
 

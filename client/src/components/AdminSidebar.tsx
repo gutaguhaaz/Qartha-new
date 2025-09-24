@@ -1447,23 +1447,23 @@ function AssetSection({
                     ) : (
                       <>
                         <div className="flex items-center space-x-2">
-                          <span className="font-medium truncate">
-                            {item.title || item.name || `Document ${index + 1}`}
+                          <span className="font-semibold text-base truncate">
+                            {item.title && item.title !== "undefined" ? item.title : `Document ${index + 1}`}
                           </span>
                           {allowTitleEdit && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleStartEditing(index, item.title || item.name || "")}
+                              onClick={() => handleStartEditing(index, item.title && item.title !== "undefined" ? item.title : "")}
                               className="h-6 px-2 text-xs opacity-60 hover:opacity-100"
                             >
                               Edit
                             </Button>
                           )}
                         </div>
-                        {item.title && item.name && item.title !== item.name && (
-                          <span className="text-xs text-muted-foreground truncate">{item.name}</span>
-                        )}
+                        <span className="text-sm text-muted-foreground truncate">
+                          {item.name || item.url?.split('/').pop() || 'document'}
+                        </span>
                       </>
                     )}
                   </div>

@@ -153,7 +153,7 @@ async def upload_documents(
         # Validate file types
         allowed_extensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.zip', '.rar']
         file_extension = Path(file.filename or "").suffix.lower()
-        
+
         if file_extension not in allowed_extensions:
             raise HTTPException(
                 status_code=400, 
@@ -165,15 +165,14 @@ async def upload_documents(
         file_path = STATIC_ROOT / cluster / folder_project / code / "documents" / filename
 
         relative_path = await _write_upload(file, file_path)
-        
+
         # Create document object with metadata
-        document_item = {
+        new_documents.append({
             "url": f"/static/{relative_path}",
             "name": file.filename or f"document{file_extension}",
-            "title": Path(file.filename or "").stem if file.filename else f"Document {len(current_documents) + len(new_documents) + 1}",
+            "title": Path(file.filename or "").stem if file.filename else "undefined",
             "kind": "document"
-        }
-        new_documents.append(document_item)
+        })
 
     updated_documents = current_documents + new_documents
 
@@ -219,7 +218,7 @@ async def upload_diagrams(
         file_path = STATIC_ROOT / cluster / folder_project / code / "diagrams" / filename
 
         relative_path = await _write_upload(file, file_path)
-        
+
         # Create media item object
         media_item = {
             "url": f"/static/{relative_path}",
