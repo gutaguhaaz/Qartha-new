@@ -50,33 +50,57 @@ echo "🔄 Iniciando respaldo completo de la base '$DB_LABEL'..."
 
 # 4) Respaldo del esquema (estructura) usando psql
 echo "📐 Respaldando esquema (estructura de tablas)..."
-psql "$BACKUP_URL" -c "\
-COPY (
-  SELECT 
-    'CREATE TABLE ' || schemaname || '.' || tablename || ' (' || 
-    string_agg(column_name || ' ' || data_type || 
-      CASE 
-        WHEN character_maximum_length IS NOT NULL 
-        THEN '(' || character_maximum_length || ')' 
-        ELSE '' 
-      END, ', ') || ');' as create_statement
-  FROM information_schema.tables t
-  JOIN information_schema.columns c ON c.table_name = t.tablename
-  WHERE t.schemaname = 'public' AND t.tabletype = 'BASE TABLE'
-  GROUP BY schemaname, tablename
-) TO STDOUT
-" > "$BACKUP_SCHEMA" 2>/dev/null || {
-    # Si falla el método anterior, usar pg_dump con opciones compatibles
-    echo "⚠️  Método avanzado falló, usando pg_dump básico..."
-    PGCLIENTENCODING=UTF8 pg_dump --version >/dev/null 2>&1 || {
-        echo "❌ pg_dump no disponible"
-        exit 1
-    }
-    PGCLIENTENCODING=UTF8 pg_dump --schema-only --no-owner --no-privileges "$BACKUP_URL" > "$BACKUP_SCHEMA" 2>/dev/null || {
-        echo "❌ Error al hacer respaldo del esquema"
-        exit 1
-    }
-}
+
+# Crear respaldo del esquema usando solo psql
+{
+    echo "-- Respaldo de esquema generado el $(date)"
+    echo "-- Base: $DB_LABEL ($BACKUP_URL)"
+    echo ""
+    
+    # Obtener CREATE TABLE statements
+    psql "$BACKUP_URL" -t -c "
+        SELECT 
+            'CREATE TABLE ' || schemaname || '.' || tablename || ' (' ||
+            string_agg(
+                column_name || ' ' || 
+                CASE 
+                    WHEN data_type = 'character varying' THEN 'VARCHAR(' || character_maximum_length || ')'
+                    WHEN data_type = 'character' THEN 'CHAR(' || character_maximum_length || ')'
+                    WHEN data_type = 'numeric' THEN 'NUMERIC(' || coalesce(numeric_precision::text, '') || 
+                        CASE WHEN numeric_scale IS NOT NULL THEN ',' || numeric_scale ELSE '' END || ')'
+                    WHEN data_type = 'integer' THEN 'INTEGER'
+                    WHEN data_type = 'bigint' THEN 'BIGINT'
+                    WHEN data_type = 'smallint' THEN 'SMALLINT'
+                    WHEN data_type = 'boolean' THEN 'BOOLEAN'
+                    WHEN data_type = 'text' THEN 'TEXT'
+                    WHEN data_type = 'json' THEN 'JSON'
+                    WHEN data_type = 'jsonb' THEN 'JSONB'
+                    WHEN data_type = 'timestamp without time zone' THEN 'TIMESTAMP'
+                    WHEN data_type = 'timestamp with time zone' THEN 'TIMESTAMPTZ'
+                    WHEN data_type = 'date' THEN 'DATE'
+                    WHEN data_type = 'uuid' THEN 'UUID'
+                    ELSE UPPER(data_type)
+                END ||
+                CASE WHEN is_nullable = 'NO' THEN ' NOT NULL' ELSE '' END
+                , ', '
+            ) || ');'
+        FROM information_schema.tables t
+        JOIN information_schema.columns c ON c.table_name = t.tablename AND c.table_schema = t.schemaname
+        WHERE t.schemaname = 'public' AND t.table_type = 'BASE TABLE'
+        GROUP BY t.schemaname, t.tablename
+        ORDER BY t.tablename;
+    " 2>/dev/null || echo "-- Error obteniendo estructura de tablas"
+    
+    echo ""
+    echo "-- Indices y constraints (si existen)"
+    psql "$BACKUP_URL" -t -c "
+        SELECT indexdef || ';'
+        FROM pg_indexes 
+        WHERE schemaname = 'public'
+        ORDER BY tablename, indexname;
+    " 2>/dev/null || echo "-- No se pudieron obtener índices"
+    
+} > "$BACKUP_SCHEMA"
 echo "✅ Esquema guardado: $BACKUP_SCHEMA"
 
 # 5) Respaldo de datos usando COPY
