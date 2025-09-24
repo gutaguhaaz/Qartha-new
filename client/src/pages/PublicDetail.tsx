@@ -464,17 +464,7 @@ export default function PublicDetail({
 
         {activeTab === "documents" && (
           <div data-testid="tab-content-documents">
-            <DocumentsViewer 
-              item={idf.documents} 
-              cluster={cluster}
-              project={project}
-              code={code}
-              onReload={() => {
-                queryClient.invalidateQueries({
-                  queryKey: ["/api", cluster, project, "idfs", code],
-                });
-              }}
-            />
+            <DocumentsViewer item={idf.documents} />
           </div>
         )}
 
