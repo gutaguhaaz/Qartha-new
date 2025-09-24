@@ -239,67 +239,88 @@ async def update_idf(
     db_project = map_url_project_to_db_project(project)
     await _fetch_idf(cluster, db_project, code)
 
-    # Get current IDF data to preserve logo
+    # Get current IDF data to preserve existing fields
     current_idf = await database.fetch_one(
         """
-        SELECT logo FROM idfs 
+        SELECT * FROM idfs 
         WHERE cluster = :cluster AND project = :project AND code = :code
         """,
         {"cluster": cluster, "project": db_project, "code": code}
     )
 
-    # Handle location - keep as JSON string if it's a list, or convert to JSON
-    location_value = None
-    if idf_data.location:
-        if isinstance(idf_data.location, list):
-            location_value = _serialize_media_list(idf_data.location)
-        else:
-            location_value = json.dumps([idf_data.location])
-
-    # Prepare update data, including DFO field with corrected serialization
-    update_data: Dict[str, Any] = {
-        "title": idf_data.title,
-        "description": idf_data.description,
-        "site": idf_data.site,
-        "room": idf_data.room,
-        "images": _serialize_media_list(idf_data.images),
-        "documents": _serialize_media_list(idf_data.documents),
-        "diagrams": _serialize_media_list(idf_data.diagrams),
-        "location": location_value,
-        "logo": current_idf["logo"] if current_idf else None, # Preserve logo
-        "table_data": _serialize_table(idf_data.table),
-    }
+    # Prepare update data - only update provided fields
+    update_data: Dict[str, Any] = {}
     
-    # Handle DFO field - preserve existing DFO if new data is empty or None
-    if idf_data.dfo is not None and len(idf_data.dfo) > 0:
-        # Convert single DFO item to list format for consistency
-        if isinstance(idf_data.dfo, dict):
-            # Ensure the URL is clean and relative
-            clean_dfo = {
-                "url": idf_data.dfo["url"] if idf_data.dfo["url"].startswith("/static/") else f"/static/{idf_data.dfo['url']}",
-                "name": idf_data.dfo.get("name", "DFO"),
-                "kind": idf_data.dfo.get("kind", "diagram")
-            }
-            dfo_data = [clean_dfo]
-        else:
-            # Handle list of DFO items
-            dfo_data = []
-            for item in (idf_data.dfo or []):
-                if isinstance(item, dict):
-                    clean_item = {
-                        "url": item["url"] if item["url"].startswith("/static/") else f"/static/{item['url']}",
-                        "name": item.get("name", "DFO"),
-                        "kind": item.get("kind", "diagram")
-                    }
-                    dfo_data.append(clean_item)
-        update_data["dfo"] = json.dumps(dfo_data)
+    # Always update basic fields if they are provided
+    update_data["title"] = idf_data.title
+    update_data["description"] = idf_data.description
+    update_data["site"] = idf_data.site
+    update_data["room"] = idf_data.room
+
+    # Only update media fields if they are explicitly provided in the request
+    if hasattr(idf_data, 'images') and idf_data.images is not None:
+        update_data["images"] = _serialize_media_list(idf_data.images)
     else:
-        # Preserve existing DFO data if no new DFO data provided
-        current_idf_full = await database.fetch_one(
-            "SELECT dfo FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
-            {"cluster": cluster, "project": db_project, "code": code}
-        )
-        update_data["dfo"] = current_idf_full["dfo"] if current_idf_full else None
+        update_data["images"] = current_idf["images"]  # Preserve existing
+
+    if hasattr(idf_data, 'documents') and idf_data.documents is not None:
+        update_data["documents"] = _serialize_media_list(idf_data.documents)
+    else:
+        update_data["documents"] = current_idf["documents"]  # Preserve existing
+
+    if hasattr(idf_data, 'diagrams') and idf_data.diagrams is not None:
+        update_data["diagrams"] = _serialize_media_list(idf_data.diagrams)
+    else:
+        update_data["diagrams"] = current_idf["diagrams"]  # Preserve existing
+
+    if hasattr(idf_data, 'location') and idf_data.location is not None:
+        if isinstance(idf_data.location, list):
+            update_data["location"] = _serialize_media_list(idf_data.location)
+        else:
+            update_data["location"] = json.dumps([idf_data.location])
+    else:
+        update_data["location"] = current_idf["location"]  # Preserve existing
+
+    if hasattr(idf_data, 'table') and idf_data.table is not None:
+        update_data["table_data"] = _serialize_table(idf_data.table)
+    else:
+        update_data["table_data"] = current_idf["table_data"]  # Preserve existing
+
+    # Always preserve logo unless explicitly provided
+    if hasattr(idf_data, 'logo') and idf_data.logo is not None:
+        update_data["logo"] = idf_data.logo
+    else:
+        update_data["logo"] = current_idf["logo"]  # Preserve existing
+    
+    # Handle DFO field - only update if explicitly provided
+    if hasattr(idf_data, 'dfo') and idf_data.dfo is not None:
+        if len(idf_data.dfo) > 0:
+            # Convert single DFO item to list format for consistency
+            if isinstance(idf_data.dfo, dict):
+                # Ensure the URL is clean and relative
+                clean_dfo = {
+                    "url": idf_data.dfo["url"] if idf_data.dfo["url"].startswith("/static/") else f"/static/{idf_data.dfo['url']}",
+                    "name": idf_data.dfo.get("name", "DFO"),
+                    "kind": idf_data.dfo.get("kind", "diagram")
+                }
+                dfo_data = [clean_dfo]
+            else:
+                # Handle list of DFO items
+                dfo_data = []
+                for item in (idf_data.dfo or []):
+                    if isinstance(item, dict):
+                        clean_item = {
+                            "url": item["url"] if item["url"].startswith("/static/") else f"/static/{item['url']}",
+                            "name": item.get("name", "DFO"),
+                            "kind": item.get("kind", "diagram")
+                        }
+                        dfo_data.append(clean_item)
+            update_data["dfo"] = json.dumps(dfo_data)
+        else:
+            update_data["dfo"] = json.dumps([])  # Explicitly clear DFO
+    else:
+        # Preserve existing DFO data when not provided in request
+        update_data["dfo"] = current_idf["dfo"]
 
     # Update IDF data
     params = {

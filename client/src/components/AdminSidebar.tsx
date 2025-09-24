@@ -304,22 +304,12 @@ export default function AdminSidebar({
   const handleSaveGeneral = async () => {
     if (!selectedCode || !idfDetailQuery.data) return;
     try {
-      // Preserve ALL existing media and only update general fields
-      const currentData = idfDetailQuery.data;
-
+      // Only send the general form fields - no media fields at all
       await updateIdf(selectedCluster, selectedProject, selectedCode, {
         title: generalForm.title,
         description: generalForm.description,
         site: generalForm.site,
         room: generalForm.room,
-        // Preserve all existing media exactly as they are
-        images: currentData.images || [],
-        documents: currentData.documents || [],
-        diagrams: currentData.diagrams || [],
-        location: currentData.location_items || (currentData.location ? [currentData.location] : []),
-        dfo: currentData.dfo || [],
-        table: currentData.table,
-        logo: currentData.logo, // Preserve existing logo
       });
       toast({ title: "IDF updated", description: "General information saved" });
       refreshIdf();
