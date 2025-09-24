@@ -37,17 +37,6 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
     }
   }
 
-  if (!items || items.length === 0) {
-    return (
-      <div className="bg-card border border-border rounded-lg p-6" data-testid="dfo-empty">
-        <div className="text-center py-12 text-muted-foreground">
-          <i className="fas fa-table text-4xl mb-4"></i>
-          <p>No DFO diagram available</p>
-        </div>
-      </div>
-    );
-  }
-
   const currentItem = items[currentIndex];
 
   // Fix URL handling - ensure it's always a relative path starting with /static/
@@ -197,6 +186,17 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
   const containerClasses = `border border-border rounded-lg overflow-hidden min-h-96 
     ${isFullscreen ? 'fixed inset-0 z-50 bg-black bg-opacity-80' : 'bg-muted/50'}`;
 
+  if (!items || items.length === 0) {
+    return (
+      <div className="bg-card border border-border rounded-lg p-6" data-testid="dfo-empty">
+        <div className="text-center py-12 text-muted-foreground">
+          <i className="fas fa-table text-4xl mb-4"></i>
+          <p>No DFO diagram available</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={containerClasses} data-testid="dfo-viewer" ref={containerRef}>
       <div className={`flex flex-col mb-4 p-4 ${isFullscreen ? 'bg-gray-800' : ''}`}>
@@ -267,7 +267,7 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
             </button>
           </div>
         </div>
-        
+
         {/* Thumbnails for multiple images */}
         {items.length > 1 && (
           <div className="flex space-x-2 justify-center">
@@ -307,7 +307,7 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA2NCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yOCAyNEwyOC41IDI0LjVMMzYuNSAzMi41SDI4VjI0WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
+                    target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA2NCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yOCAyN বস্তু2LjUgMjQuNUwzNi41IDMyLjVIMjhWMjRaWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
                   }}
                 />
               </button>
