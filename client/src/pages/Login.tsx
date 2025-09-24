@@ -13,8 +13,8 @@ import { useLocation } from "wouter";
 import { Eye, EyeOff } from "lucide-react";
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState("lgutierrez@example.com");
-  const [password, setPassword] = useState("123456789");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
