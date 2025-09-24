@@ -1,4 +1,10 @@
-import { FileText, Download, FileSpreadsheet, File, Archive } from "lucide-react";
+import {
+  FileText,
+  Download,
+  FileSpreadsheet,
+  File,
+  Archive,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getIdf } from "@/lib/api";
@@ -17,14 +23,20 @@ interface DocumentsViewerProps {
   code?: string;
 }
 
-export default function DocumentsViewer({ item, cluster, project, code }: DocumentsViewerProps) {
+export default function DocumentsViewer({
+  item,
+  cluster,
+  project,
+  code,
+}: DocumentsViewerProps) {
   const [localDocuments, setLocalDocuments] = useState<Document[]>(item || []);
   const queryClient = useQueryClient();
 
   // Query to get fresh IDF data when needed
   const { data: freshIdfData } = useQuery({
     queryKey: ["/api", cluster, project, "idfs", code],
-    queryFn: () => cluster && project && code ? getIdf(cluster, project, code) : null,
+    queryFn: () =>
+      cluster && project && code ? getIdf(cluster, project, code) : null,
     enabled: false, // Only run when manually refetched
   });
 
@@ -42,7 +54,7 @@ export default function DocumentsViewer({ item, cluster, project, code }: Docume
       if (cluster && project && code) {
         try {
           console.log("Reloading documents for:", { cluster, project, code });
-          
+
           // First invalidate the query
           await queryClient.invalidateQueries({
             queryKey: ["/api", cluster, project, "idfs", code],
@@ -74,25 +86,26 @@ export default function DocumentsViewer({ item, cluster, project, code }: Docume
     };
 
     window.addEventListener("reloadDocumentsTab", handleReloadDocuments);
-    return () => window.removeEventListener("reloadDocumentsTab", handleReloadDocuments);
+    return () =>
+      window.removeEventListener("reloadDocumentsTab", handleReloadDocuments);
   }, [cluster, project, code, queryClient]);
 
   const documents = localDocuments;
 
   const getFileIcon = (filename: string) => {
     if (!filename) return <File className="w-5 h-5 text-gray-500" />;
-    const extension = filename.split('.').pop()?.toLowerCase();
+    const extension = filename.split(".").pop()?.toLowerCase();
     switch (extension) {
-      case 'xlsx':
-      case 'xls':
+      case "xlsx":
+      case "xls":
         return <FileSpreadsheet className="w-5 h-5 text-green-500" />;
-      case 'pdf':
+      case "pdf":
         return <FileText className="w-5 h-5 text-red-500" />;
-      case 'doc':
-      case 'docx':
+      case "doc":
+      case "docx":
         return <FileText className="w-5 h-5 text-blue-500" />;
-      case 'zip':
-      case 'rar':
+      case "zip":
+      case "rar":
         return <Archive className="w-5 h-5 text-purple-500" />;
       default:
         return <File className="w-5 h-5 text-gray-500" />;
@@ -102,13 +115,13 @@ export default function DocumentsViewer({ item, cluster, project, code }: Docume
   const handleDownload = (url: string, filename?: string, title?: string) => {
     // Create a proper download URL using the API base
     const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
-    const downloadUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
+    const downloadUrl = url.startsWith("http") ? url : `${API_BASE}${url}`;
 
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = downloadUrl;
-    link.download = filename || title || 'document';
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
+    link.download = filename || title || "document";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -143,17 +156,25 @@ export default function DocumentsViewer({ item, cluster, project, code }: Docume
             className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-lg hover:bg-accent/50 transition-colors"
           >
             <div className="flex items-center space-x-3">
-              {getFileIcon(doc.name || doc.url || 'document')}
+              {getFileIcon(doc.name || doc.url || "document")}
               <div>
                 <p className="font-semibold text-foreground text-base">
-                  {doc.title && doc.title.trim() !== "" && doc.title !== "undefined" ? doc.title : `Document ${index + 1}`}
+                  {doc.title &&
+                  doc.title.trim() !== "" &&
+                  doc.title !== "undefined"
+                    ? doc.title
+                    : `SW ports ${index + 1}`}
                 </p>
                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <span>{doc.name || doc.url?.split('/').pop() || 'document'}</span>
+                  <span>
+                    {doc.name || doc.url?.split("/").pop() || "document"}
+                  </span>
                   <span>•</span>
-                  <span className="capitalize">{doc.kind || 'document'}</span>
+                  <span className="capitalize">{doc.kind || "document"}</span>
                   <span>•</span>
-                  <span>{doc.url?.split('.').pop()?.toUpperCase() || 'FILE'}</span>
+                  <span>
+                    {doc.url?.split(".").pop()?.toUpperCase() || "FILE"}
+                  </span>
                 </div>
               </div>
             </div>
