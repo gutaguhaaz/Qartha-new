@@ -374,7 +374,9 @@ async def get_idf(
                 "kind": "document"
             }
             print(f"Processed string document: {doc_item}")
-            processed_documents.append(doc_item)</old_str></old_str>
+            processed_documents.append(doc_item)
+
+    return IdfPublic(</old_str></old_str>
 
     return IdfPublic(
         cluster=idf_dict["cluster"],
