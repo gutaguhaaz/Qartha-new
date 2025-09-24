@@ -233,7 +233,7 @@ async def upload_dfo(
     elif current_dfo is None:
         current_dfo = []
 
-    new_paths = []
+    new_dfo_objects = []
     for file in files:
         # Allow both images and PDFs for DFO
         if not file.content_type or not (file.content_type.startswith("image/") or file.content_type == "application/pdf"):
@@ -244,16 +244,23 @@ async def upload_dfo(
         file_path = STATIC_ROOT / cluster / folder_project / code / "dfo" / filename
 
         relative_path = await _write_upload(file, file_path)
-        new_paths.append(relative_path)
+        
+        # Create complete DFO object with name and kind
+        dfo_object = {
+            "url": f"/static/{relative_path}",
+            "name": file.filename or f"DFO {len(current_dfo) + len(new_dfo_objects) + 1}",
+            "kind": "diagram" if file.content_type.startswith("image/") else "document"
+        }
+        new_dfo_objects.append(dfo_object)
 
-    updated_dfo = current_dfo + new_paths
+    updated_dfo = current_dfo + new_dfo_objects
 
     await database.execute(
         "UPDATE idfs SET dfo = :dfo WHERE cluster = :cluster AND project = :project AND code = :code",
         {"dfo": json.dumps(updated_dfo), "cluster": cluster, "project": db_project, "code": code},
     )
 
-    return {"paths": new_paths, "message": f"Uploaded {len(files)} DFO files successfully"}
+    return {"paths": [obj["url"] for obj in new_dfo_objects], "message": f"Uploaded {len(files)} DFO files successfully"}
 
 
 # ---------------------------------------------------------------------------
@@ -514,7 +521,13 @@ async def delete_dfo(
     if index < 0 or index >= len(dfo):
         raise HTTPException(status_code=404, detail="DFO file not found")
 
-    removed_path = dfo.pop(index)
+    removed_item = dfo.pop(index)
+    
+    # Handle both old format (string) and new format (object)
+    if isinstance(removed_item, dict):
+        removed_path = removed_item.get("url", "").replace("/static/", "")
+    else:
+        removed_path = removed_item
 
     # Remove file from filesystem
     try:
