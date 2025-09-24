@@ -599,8 +599,8 @@ export default function AdminSidebar({
                         </div>
                         <div className="grid grid-cols-1 gap-3">
                           {dfo.map((item, index) => {
-                            const isImage = item.url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-                            const isPdf = item.url.match(/\.pdf$/i);
+                            const isImage = item.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                            const isPdf = item.url?.match(/\.pdf$/i);
 
                             return (
                               <div
@@ -663,6 +663,13 @@ export default function AdminSidebar({
                             );
                           })}
                         </div>
+                        {dfo.length > 0 && (
+                          <div className="flex justify-end">
+                            <Button onClick={handleSaveGeneral}>
+                              <Save className="mr-2 h-4 w-4" /> Save DFO names
+                            </Button>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   </TabsContent>
@@ -842,8 +849,8 @@ export default function AdminSidebar({
                         </div>
                         <div className="grid grid-cols-1 gap-3">
                           {diagrams.map((item, index) => {
-                            const isImage = item.url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-                            const isPdf = item.url.match(/\.pdf$/i);
+                            const isImage = item.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                            const isPdf = item.url?.match(/\.pdf$/i);
 
                             return (
                               <div
