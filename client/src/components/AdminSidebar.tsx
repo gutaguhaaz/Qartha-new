@@ -168,8 +168,84 @@ export default function AdminSidebar({
       });
     }
   };
-  const handleUploadDocuments = (files: FileList | null) => handleUploadAsset("documents", files);
-  const handleRemoveDocumentItem = (index: number) => handleDeleteAsset("documents", index); // Renamed for clarity
+  const handleUploadDocuments = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    if (!selectedCluster || !selectedProject || !selectedCode) return;
+
+    setUploading(true);
+    try {
+      const filesArray = Array.from(files);
+      const result = await uploadAssets(selectedCluster, selectedProject, selectedCode, filesArray, "documents");
+
+      if (result?.documents) {
+        // Use the documents returned by the API which include titles
+        setDocuments(prev => [...prev, ...result.documents]);
+
+        // Specifically invalidate the current IDF detail query
+        await queryClient.invalidateQueries({
+          queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+        });
+
+        // Also invalidate public queries to refresh the documents tab
+        await queryClient.invalidateQueries({
+          queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+        });
+
+        toast({
+          title: "Documents uploaded successfully",
+          description: `${files.length} file(s) uploaded. The documents will update automatically.`,
+        });
+      }
+    } catch (error) {
+      console.error("Error uploading documents:", error);
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+  const handleRemoveDocumentItem = async (index: number) => {
+    if (!selectedCluster || !selectedProject || !selectedCode) return;
+
+    try {
+      await deleteAsset(selectedCluster, selectedProject, selectedCode, "documents", index);
+
+      // Update local state
+      setDocuments(prev => prev.filter((_, i) => i !== index));
+
+      // Invalidate both the general list and specific IDF queries to refresh data
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "idfs", selectedCluster, selectedProject],
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+      });
+
+      // Also invalidate public queries to refresh the documents tab
+      await queryClient.invalidateQueries({
+        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+      });
+
+      // Trigger custom reload event for documents tab
+      window.dispatchEvent(new CustomEvent("reloadDocumentsTab"));
+
+      toast({
+        title: "Document removed",
+        description: "Document has been deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error removing document:", error);
+      toast({
+        title: "Remove failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Function to handle reloading the diagrams tab without a full page refresh
   const handleReloadDiagramsTab = () => {

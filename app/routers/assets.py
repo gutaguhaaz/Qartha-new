@@ -148,23 +148,41 @@ async def upload_documents(
     elif current_documents is None:
         current_documents = []
 
-    new_paths = []
+    new_documents = []
     for file in files:
-        extension = Path(file.filename or "document.pdf").suffix or ".pdf"
-        filename = f"{int(time.time() * 1000)}{extension}"
+        # Validate file types
+        allowed_extensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.zip', '.rar']
+        file_extension = Path(file.filename or "").suffix.lower()
+        
+        if file_extension not in allowed_extensions:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"File {file.filename} has unsupported extension. Allowed: {', '.join(allowed_extensions)}"
+            )
+
+        timestamp = int(time.time() * 1000)
+        filename = f"{timestamp}{file_extension}"
         file_path = STATIC_ROOT / cluster / folder_project / code / "documents" / filename
 
         relative_path = await _write_upload(file, file_path)
-        new_paths.append(relative_path)
+        
+        # Create document object with metadata
+        document_item = {
+            "url": f"/static/{relative_path}",
+            "name": file.filename or f"document{file_extension}",
+            "title": Path(file.filename or "").stem if file.filename else f"Document {len(current_documents) + len(new_documents) + 1}",
+            "kind": "document"
+        }
+        new_documents.append(document_item)
 
-    updated_documents = current_documents + new_paths
+    updated_documents = current_documents + new_documents
 
     await database.execute(
         "UPDATE idfs SET documents = :documents WHERE cluster = :cluster AND project = :project AND code = :code",
         {"documents": json.dumps(updated_documents), "cluster": cluster, "project": db_project, "code": code},
     )
 
-    return {"paths": new_paths, "message": f"Uploaded {len(files)} documents successfully"}
+    return {"documents": new_documents, "message": f"Uploaded {len(files)} documents successfully"}
 
 
 @router.post("/{cluster}/{project}/assets/{code}/diagrams")
@@ -469,7 +487,15 @@ async def delete_document(
     if index < 0 or index >= len(documents):
         raise HTTPException(status_code=404, detail="Document not found")
 
-    removed_path = documents.pop(index)
+    removed_item = documents.pop(index)
+
+    # Handle both old format (string) and new format (object)
+    if isinstance(removed_item, dict):
+        removed_path = removed_item.get("url", "").replace("/static/", "")
+        removed_title = removed_item.get("title", removed_item.get("name", ""))
+    else:
+        removed_path = removed_item
+        removed_title = "Document"
 
     # Remove file from filesystem
     try:
@@ -482,7 +508,7 @@ async def delete_document(
         {"documents": json.dumps(documents), "cluster": cluster, "project": db_project, "code": code},
     )
 
-    return {"message": "Document deleted", "path": removed_path}
+    return {"message": "Document deleted", "path": removed_path, "title": removed_title}
 
 
 @router.delete("/{cluster}/{project}/assets/{code}/diagrams/{index}")

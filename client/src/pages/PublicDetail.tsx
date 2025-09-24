@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { getIdf, getLogo } from "@/lib/api";
 import Gallery from "@/components/Gallery";
-import DocList from "@/components/DocList";
+import DocumentsViewer from "@/components/DocumentsViewer";
 import PdfOrImage from "@/components/PdfOrImage";
 import DfoImageViewer from "@/components/DfoImageViewer";
 import DiagramsViewer from "@/components/DiagramsViewer";
@@ -53,14 +53,25 @@ export default function PublicDetail({
       }
     };
 
+    const handleReloadDocumentsTab = () => {
+      if (activeTab === "documents") {
+        // Invalidate queries to refresh data without page reload
+        queryClient.invalidateQueries({
+          queryKey: ["/api", cluster, project, "idfs", code],
+        });
+      }
+    };
+
     window.addEventListener("openAdminWithIdf", handleOpenAdmin);
     window.addEventListener("reloadDiagramsTab", handleReloadDiagramsTab);
+    window.addEventListener("reloadDocumentsTab", handleReloadDocumentsTab);
     
     return () => {
       window.removeEventListener("openAdminWithIdf", handleOpenAdmin);
       window.removeEventListener("reloadDiagramsTab", handleReloadDiagramsTab);
+      window.removeEventListener("reloadDocumentsTab", handleReloadDocumentsTab);
     };
-  }, [canManage, activeTab]);
+  }, [canManage, activeTab, queryClient]);
 
   const {
     data: idf,
@@ -453,7 +464,17 @@ export default function PublicDetail({
 
         {activeTab === "documents" && (
           <div data-testid="tab-content-documents">
-            <DocList documents={documents} />
+            <DocumentsViewer 
+              item={idf.documents} 
+              cluster={cluster}
+              project={project}
+              code={code}
+              onReload={() => {
+                queryClient.invalidateQueries({
+                  queryKey: ["/api", cluster, project, "idfs", code],
+                });
+              }}
+            />
           </div>
         )}
 
