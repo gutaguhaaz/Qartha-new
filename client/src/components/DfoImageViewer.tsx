@@ -135,6 +135,11 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
     handleCenter();
   };
 
+  const goToImage = (index: number) => {
+    setCurrentIndex(index);
+    handleCenter();
+  };
+
   const handleCenter = useCallback(() => {
     setPosition({ x: 0, y: 0 });
   }, []);
@@ -194,54 +199,121 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
 
   return (
     <div className={containerClasses} data-testid="dfo-viewer" ref={containerRef}>
-      <div className={`flex items-center justify-between mb-4 p-4 ${isFullscreen ? 'bg-gray-800' : ''}`}>
-        <h3 className={`text-lg font-semibold ${isFullscreen ? 'text-white' : ''}`} data-testid="dfo-title">
-          {currentItem?.name || `DFO Layout ${currentIndex + 1}`} ({currentIndex + 1} of {items.length})
-        </h3>
-        <div className="flex items-center space-x-2">
-          {!isFullscreen && (
-            <>
-              <button
-                onClick={handleZoomOut}
-                className="px-3 py-1 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80 transition-colors"
-                data-testid="button-zoom-out"
-              >
-                <i className="fas fa-search-minus"></i>
-              </button>
-              <span className="text-sm text-muted-foreground min-w-12 text-center" data-testid="zoom-level">
-                {zoom}%
-              </span>
-              <button
-                onClick={handleZoomIn}
-                className="px-3 py-1 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80 transition-colors"
-                data-testid="button-zoom-in"
-              >
-                <i className="fas fa-search-plus"></i>
-              </button>
-              <button
-                onClick={handleDownload}
-                className="px-3 py-1 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80 transition-colors"
-                data-testid="button-download-dfo"
-              >
-                <i className="fas fa-download"></i>
-              </button>
-            </>
-          )}
-          <button
-            onClick={handleCenter}
-            className={`px-3 py-1 rounded-md text-sm transition-colors ${isFullscreen ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
-            data-testid="button-center-dfo"
-          >
-            <i className="fas fa-compress-alt"></i>
-          </button>
-          <button
-            onClick={toggleFullscreen}
-            className={`px-3 py-1 rounded-md text-sm transition-colors ${isFullscreen ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
-            data-testid="button-fullscreen-dfo"
-          >
-            <i className={isFullscreen ? "fas fa-compress" : "fas fa-expand"}></i>
-          </button>
+      <div className={`flex flex-col mb-4 p-4 ${isFullscreen ? 'bg-gray-800' : ''}`}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className={`text-lg font-semibold ${isFullscreen ? 'text-white' : ''}`} data-testid="dfo-title">
+            {currentItem?.name || `DFO Layout ${currentIndex + 1}`} ({currentIndex + 1} of {items.length})
+          </h3>
+          <div className="flex items-center space-x-2">
+            {items.length > 1 && (
+              <>
+                <button
+                  onClick={handlePrevious}
+                  className={`px-3 py-1 rounded-md text-sm transition-colors ${isFullscreen ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
+                  data-testid="button-previous-dfo"
+                >
+                  <i className="fas fa-chevron-left"></i>
+                </button>
+                <button
+                  onClick={handleNext}
+                  className={`px-3 py-1 rounded-md text-sm transition-colors ${isFullscreen ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
+                  data-testid="button-next-dfo"
+                >
+                  <i className="fas fa-chevron-right"></i>
+                </button>
+              </>
+            )}
+            {!isFullscreen && (
+              <>
+                <button
+                  onClick={handleZoomOut}
+                  className="px-3 py-1 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80 transition-colors"
+                  data-testid="button-zoom-out"
+                >
+                  <i className="fas fa-search-minus"></i>
+                </button>
+                <span className="text-sm text-muted-foreground min-w-12 text-center" data-testid="zoom-level">
+                  {zoom}%
+                </span>
+                <button
+                  onClick={handleZoomIn}
+                  className="px-3 py-1 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80 transition-colors"
+                  data-testid="button-zoom-in"
+                >
+                  <i className="fas fa-search-plus"></i>
+                </button>
+                <button
+                  onClick={handleDownload}
+                  className="px-3 py-1 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-secondary/80 transition-colors"
+                  data-testid="button-download-dfo"
+                >
+                  <i className="fas fa-download"></i>
+                </button>
+              </>
+            )}
+            <button
+              onClick={handleCenter}
+              className={`px-3 py-1 rounded-md text-sm transition-colors ${isFullscreen ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
+              data-testid="button-center-dfo"
+            >
+              <i className="fas fa-compress-alt"></i>
+            </button>
+            <button
+              onClick={toggleFullscreen}
+              className={`px-3 py-1 rounded-md text-sm transition-colors ${isFullscreen ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
+              data-testid="button-fullscreen-dfo"
+            >
+              <i className={isFullscreen ? "fas fa-compress" : "fas fa-expand"}></i>
+            </button>
+          </div>
         </div>
+        
+        {/* Thumbnails for multiple images */}
+        {items.length > 1 && (
+          <div className="flex space-x-2 justify-center">
+            {items.map((item, index) => (
+              <button
+                key={index}
+                onClick={() => goToImage(index)}
+                className={`w-16 h-12 border-2 rounded overflow-hidden transition-all ${
+                  index === currentIndex 
+                    ? 'border-primary' 
+                    : isFullscreen 
+                      ? 'border-gray-600 hover:border-gray-400' 
+                      : 'border-border hover:border-primary/50'
+                }`}
+                data-testid={`thumbnail-${index}`}
+              >
+                <img
+                  src={(() => {
+                    let url = typeof item === 'string' ? item : item.url;
+                    if (url.includes("replit.dev") && url.includes("//static/{'url':")) {
+                      const match = url.match(/'\/static\/([^']+)'/);
+                      if (match) url = `/static/${match[1]}`;
+                    } else if (url.includes("/static/{'url':")) {
+                      const match = url.match(/\/static\/([^\/]+\/[^\/]+\/[^\/]+\/dfo\/[^'"\s}]+)/);
+                      if (match) url = `/static/${match[1]}`;
+                    } else if (url.includes("{'url':")) {
+                      const match = url.match(/['"](\/static\/[^'"]+)['"]/);
+                      if (match) url = match[1];
+                    } else if (url.includes('replit.dev/')) {
+                      const staticIndex = url.indexOf('/static/');
+                      if (staticIndex !== -1) url = url.substring(staticIndex);
+                    }
+                    if (!url.startsWith('/static/')) url = `/static/${url.replace(/^\/+/, '')}`;
+                    return url.split("'")[0].split('"')[0].split('}')[0].split(',')[0].split(' ')[0];
+                  })()}
+                  alt={`DFO ${index + 1}`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA2NCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yOCAyNEwyOC41IDI0LjVMMzYuNSAzMi41SDI4VjI0WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="relative w-full h-full flex items-center justify-center" style={{ height: isFullscreen ? 'calc(100vh - 60px)' : '400px' }} data-testid="dfo-container">

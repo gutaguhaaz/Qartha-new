@@ -717,20 +717,7 @@ export default function AdminSidebar({
                                       Remove
                                     </Button>
                                   </div>
-                                  <div>
-                                    <Label htmlFor={`dfo-name-${index}`} className="text-xs">Display Name</Label>
-                                    <Input
-                                      id={`dfo-name-${index}`}
-                                      value={item.name || 'DFO'}
-                                      onChange={(e) => {
-                                        const newDfo = [...dfo];
-                                        newDfo[index] = { ...item, name: e.target.value };
-                                        setDfo(newDfo);
-                                      }}
-                                      placeholder="Enter DFO name"
-                                      className="text-xs"
-                                    />
-                                  </div>
+                                  
                                 </div>
                               </div>
                             );
