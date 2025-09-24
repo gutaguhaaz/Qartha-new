@@ -345,39 +345,27 @@ async def get_idf(
     # Process documents with proper structure preservation
     documents_data = parse_asset_field(idf_dict.get("documents", []))
     processed_documents = []
-    
-    # Debug: print raw documents data
-    print(f"Raw documents from DB: {idf_dict.get('documents', [])}")
-    print(f"Parsed documents data: {documents_data}")
-    
     for doc in documents_data:
         if isinstance(doc, dict):
             # Preserve all fields and fix URL
             url = doc.get("url", "")
             if not url.startswith("/static/"):
                 url = f"/static/{url}"
-            doc_item = {
+            processed_documents.append({
                 "url": url,
                 "title": doc.get("title", ""),
                 "name": doc.get("name", ""),
                 "kind": doc.get("kind", "document")
-            }
-            print(f"Processed document: {doc_item}")
-            processed_documents.append(doc_item)
+            })
         elif isinstance(doc, str):
             # String format - create basic structure
             url = doc if doc.startswith("/static/") else f"/static/{doc}"
-            doc_item = {
+            processed_documents.append({
                 "url": url,
                 "title": "",
                 "name": "",
                 "kind": "document"
-            }
-            print(f"Processed string document: {doc_item}")
-            processed_documents.append(doc_item)
-
-    return IdfPublic(
-        cluster=idf_dict["cluster"],</old_str></old_str>
+            })
 
     return IdfPublic(
         cluster=idf_dict["cluster"],
@@ -389,13 +377,6 @@ async def get_idf(
         room=idf_dict.get("room", ""),
         images=convert_relative_to_absolute(parse_asset_field(idf_dict.get("images", []))),
         documents=processed_documents,
-        diagrams=convert_relative_to_absolute(parse_asset_field(idf_dict.get("diagrams", []))),
-        location=location_item.url if location_item else None,
-        dfo=convert_relative_to_absolute(parse_asset_field(idf_dict.get("dfo", []))),
-        logo=convert_relative_to_absolute(parse_asset_field(idf_dict.get("logo")), single_value=True) if idf_dict.get("logo") else None,
-        table=table_data,
-        health=health
-    )</old_str>
         diagrams=convert_relative_to_absolute(parse_asset_field(idf_dict.get("diagrams", []))),
         location=location_item.url if location_item else None,
         dfo=convert_relative_to_absolute(parse_asset_field(idf_dict.get("dfo", []))),
