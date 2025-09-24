@@ -104,7 +104,6 @@ export default function AdminSidebar({
   const [uploading, setUploading] = useState(false); // State for handling upload progress
 
   // Mock handlers for upload/delete for each section
-  const handleUploadGallery = (files: FileList | null) => handleUploadAsset("images", files);
   const handleRemoveGalleryItem = (index: number) => handleDeleteAsset("images", index); // Renamed for clarity
   const handleUploadLocation = (files: FileList | null) => handleUploadAsset("location", files);
   const handleRemoveLocationItem = (index: number) => handleDeleteAsset("location", index); // Renamed for clarity
