@@ -302,10 +302,11 @@ async def upload_location(
     # Ensure we're using the correct format - just the relative path without /static/ prefix
     clean_relative_path = relative_path.replace("static/", "") if relative_path.startswith("static/") else relative_path
 
-    # Location is stored as a simple string path, not JSON
+    # Location is stored as JSONB, so we need to store it as JSON string
+    import json
     await database.execute(
         "UPDATE idfs SET location = :location WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"location": clean_relative_path, "cluster": cluster, "project": db_project, "code": code},
+        {"location": json.dumps(clean_relative_path), "cluster": cluster, "project": db_project, "code": code},
     )
 
     return {"path": relative_path, "message": "Location image uploaded successfully"}
@@ -585,8 +586,8 @@ async def delete_location(
         pass
 
     await database.execute(
-        "UPDATE idfs SET location = NULL WHERE cluster = :cluster AND project = :project AND code = :code",
-        {"cluster": cluster, "project": db_project, "code": code},
+        "UPDATE idfs SET location = :location WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"location": None, "cluster": cluster, "project": db_project, "code": code},
     )
 
     return {"message": "Location image deleted", "path": location}
