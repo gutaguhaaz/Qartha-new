@@ -237,7 +237,7 @@ async def upload_dfo(
         uploaded_files.append({
             "url": f"/static/{cluster}/{folder_project}/{code}/dfo/{filename}",
             "name": file.filename or "DFO",
-            "kind": "diagram" if file.content_type.startswith("image/") else "document"
+            "kind": "diagram" if file.content_type and file.content_type.startswith("image/") else "document"
         })
 
     # Get current DFO to append to it, instead of overwriting
@@ -249,7 +249,22 @@ async def upload_dfo(
         except json.JSONDecodeError:
             current_dfo = []
 
-    updated_dfo = current_dfo + uploaded_files
+    # Ensure current_dfo contains only clean objects
+    clean_current_dfo = []
+    for item in current_dfo:
+        if isinstance(item, dict) and "url" in item:
+            # Clean up any existing malformed URLs
+            url = item["url"]
+            if url.startswith("/static/") and not ("{'url':" in url or "replit.dev" in url):
+                clean_current_dfo.append(item)
+        elif isinstance(item, str) and item.startswith("/static/"):
+            clean_current_dfo.append({
+                "url": item,
+                "name": "DFO",
+                "kind": "diagram"
+            })
+
+    updated_dfo = clean_current_dfo + uploaded_files
 
     # Update database
     result = await database.execute(
