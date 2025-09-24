@@ -27,8 +27,13 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
     if (typeof item === 'string') {
       items = [item];
     } else if (Array.isArray(item)) {
-      items = item;
-    } else if (item.url) {
+      // Handle array of objects with url property or array of strings
+      items = item.map(i => {
+        if (typeof i === 'string') return i;
+        if (i && typeof i === 'object' && i.url) return i.url;
+        return '';
+      }).filter(url => url && typeof url === 'string');
+    } else if (item && typeof item === 'object' && item.url) {
       items = [item.url];
     }
   }
