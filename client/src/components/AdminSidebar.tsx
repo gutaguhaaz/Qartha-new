@@ -419,6 +419,11 @@ export default function AdminSidebar({
           queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
         });
 
+        // Also invalidate public queries to refresh the DFO tab
+        await queryClient.invalidateQueries({
+          queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+        });
+
         toast({
           title: "DFO uploaded successfully",
           description: `${files.length} file(s) uploaded. The diagram will update automatically.`,
@@ -453,6 +458,11 @@ export default function AdminSidebar({
       // Specifically invalidate the current IDF detail query
       await queryClient.invalidateQueries({
         queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+      });
+
+      // Also invalidate public queries to refresh the DFO tab
+      await queryClient.invalidateQueries({
+        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
       });
 
       toast({
