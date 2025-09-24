@@ -320,15 +320,14 @@ export default function AdminSidebar({
       setDocuments(normalizeMediaArray(idf.documents ?? []));
       setDiagrams(normalizeMediaArray(idf.diagrams ?? []));
 
-      // Handle location as single image, not array
+      // Handle location as single image string
       if (idf.location) {
-        if (typeof idf.location === 'string') {
-          setLocationItems([{ url: idf.location, name: '', kind: 'image' }]);
-        } else if (Array.isArray(idf.location)) {
-          setLocationItems(normalizeMediaArray(idf.location));
-        } else {
-          setLocationItems([idf.location]);
-        }
+        // Location is stored as a single string path in the database
+        setLocationItems([{ 
+          url: typeof idf.location === 'string' ? idf.location : idf.location.url || '', 
+          name: 'Location Image', 
+          kind: 'image' 
+        }]);
       } else {
         setLocationItems([]);
       }

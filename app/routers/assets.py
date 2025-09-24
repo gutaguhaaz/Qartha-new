@@ -299,6 +299,7 @@ async def upload_location(
 
     relative_path = await _write_upload(file, file_path)
 
+    # Store location as a single string path, not JSON array
     await database.execute(
         "UPDATE idfs SET location = :location WHERE cluster = :cluster AND project = :project AND code = :code",
         {"location": relative_path, "cluster": cluster, "project": db_project, "code": code},
@@ -576,6 +577,7 @@ async def delete_location(
     except OSError:
         pass
 
+    # Set location to NULL (empty)
     await database.execute(
         "UPDATE idfs SET location = NULL WHERE cluster = :cluster AND project = :project AND code = :code",
         {"cluster": cluster, "project": db_project, "code": code},
