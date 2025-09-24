@@ -105,63 +105,8 @@ export default function AdminSidebar({
 
   // Mock handlers for upload/delete for each section
   const handleRemoveGalleryItem = (index: number) => handleDeleteAsset("images", index); // Renamed for clarity
-  const handleUploadLocation = async (files: FileList | null) => {
-    if (!files || files.length === 0 || !selectedCode) return;
-    try {
-      const file = files[0]; // Only take the first file since location is single image
-      await uploadAsset(selectedCluster, selectedProject, selectedCode, file, "location");
-      
-      // Invalidate all relevant queries to refresh both admin and public views
-      await queryClient.invalidateQueries({
-        queryKey: ["admin", "idfs", selectedCluster, selectedProject],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
-      });
-      
-      toast({
-        title: "Location updated",
-        description: "Location image uploaded successfully",
-      });
-    } catch (error) {
-      console.error("Failed to upload location image:", error);
-      toast({
-        title: "Error",
-        description: "Failed to upload location image",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleRemoveLocationItem = async () => {
-    if (!selectedCode) return;
-    try {
-      await deleteAsset(selectedCluster, selectedProject, selectedCode, "location", 0);
-      
-      // Invalidate all relevant queries to refresh both admin and public views
-      await queryClient.invalidateQueries({
-        queryKey: ["admin", "idfs", selectedCluster, selectedProject],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
-      });
-      
-      toast({ title: "Location image deleted successfully" });
-    } catch (error) {
-      console.error("Failed to delete location image:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete location image",
-        variant: "destructive",
-      });
-    }
-  };
+  const handleUploadLocation = (files: FileList | null) => handleUploadAsset("location", files);
+  const handleRemoveLocationItem = (index: number) => handleDeleteAsset("location", index); // Renamed for clarity
   const handleUploadDiagrams = (files: FileList | null) => handleUploadAsset("diagram", files);
   const handleRemoveDiagramItem = (index: number) => handleDeleteAsset("diagrams", index); // Renamed for clarity
   const handleUploadDocuments = (files: FileList | null) => handleUploadAsset("documents", files);
@@ -320,17 +265,8 @@ export default function AdminSidebar({
       setDocuments(normalizeMediaArray(idf.documents ?? []));
       setDiagrams(normalizeMediaArray(idf.diagrams ?? []));
 
-      // Handle location as single image string
-      if (idf.location) {
-        // Location is stored as a single string path in the database
-        setLocationItems([{ 
-          url: typeof idf.location === 'string' ? idf.location : idf.location.url || '', 
-          name: 'Location Image', 
-          kind: 'image' 
-        }]);
-      } else {
-        setLocationItems([]);
-      }
+      const locations = idf.location_items ?? (idf.location ? [idf.location] : []);
+      setLocationItems(normalizeMediaArray(locations ?? []));
 
       // Handle DFO data properly, ensuring names are preserved
       const dfoData = idf.dfo ?? [];
@@ -969,80 +905,73 @@ export default function AdminSidebar({
                       <CardHeader>
                         <CardTitle>Location</CardTitle>
                         <p className="text-sm text-muted-foreground">
-                          Upload blueprint or location photo (single image)
+                          Upload blueprints or location photos
                         </p>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div>
-                          <Label htmlFor="location-upload">Upload image</Label>
+                          <Label htmlFor="location-upload">Upload files</Label>
                           <Input
                             id="location-upload"
                             type="file"
                             accept="image/*"
+                            multiple
                             onChange={(event) =>
                               handleUploadLocation(event.target.files)
                             }
                           />
                         </div>
-                        {locationItems.length > 0 && (
-                          <div className="space-y-3">
-                            {locationItems.map((item, index) => (
-                              <div
-                                key={index}
-                                className="flex items-start space-x-3 rounded border border-border p-3"
-                              >
-                                <div className="flex-shrink-0">
-                                  <img
-                                    src={item.url}
-                                    alt={item.name || "Location image"}
-                                    className="w-16 h-16 object-cover rounded border border-border"
-                                    onError={(e) => {
-                                      const target = e.target as HTMLImageElement;
-                                      target.style.display = 'none';
-                                      target.nextElementSibling!.style.display = 'flex';
-                                    }}
-                                  />
-                                  <div className="hidden w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
-                                    <i className="fas fa-exclamation-triangle text-yellow-500"></i>
-                                  </div>
-                                </div>
-
-                                <div className="flex-1 space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium">Location Image</span>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleRemoveLocationItem()}
-                                    >
-                                      Remove
-                                    </Button>
-                                  </div>
-                                  <div>
-                                    <Label htmlFor="location-name" className="text-xs">Display Name</Label>
-                                    <Input
-                                      id="location-name"
-                                      value={item.name || ''}
-                                      onChange={(e) => {
-                                        const newLocationItems = [...locationItems];
-                                        newLocationItems[0] = { ...item, name: e.target.value };
-                                        setLocationItems(newLocationItems);
-                                      }}
-                                      placeholder="Enter location name"
-                                      className="text-xs"
-                                    />
-                                  </div>
+                        <div className="grid grid-cols-1 gap-3">
+                          {locationItems.map((item, index) => (
+                            <div
+                              key={index}
+                              className="flex items-start space-x-3 rounded border border-border p-3"
+                            >
+                              <div className="flex-shrink-0">
+                                <img
+                                  src={item.url}
+                                  alt={item.name || `Location image ${index + 1}`}
+                                  className="w-16 h-16 object-cover rounded border border-border"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    target.nextElementSibling!.style.display = 'flex';
+                                  }}
+                                />
+                                <div className="hidden w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
+                                  <i className="fas fa-exclamation-triangle text-yellow-500"></i>
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        )}
-                        {locationItems.length === 0 && (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <i className="fas fa-map-marker-alt text-4xl mb-4"></i>
-                            <p>No location image uploaded</p>
-                          </div>
-                        )}
+
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium">Location Image {index + 1}</span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveLocationItem(index)}
+                                  >
+                                    Remove
+                                  </Button>
+                                </div>
+                                <div>
+                                  <Label htmlFor={`location-name-${index}`} className="text-xs">Display Name</Label>
+                                  <Input
+                                    id={`location-name-${index}`}
+                                    value={item.name || ''}
+                                    onChange={(e) => {
+                                      const newLocationItems = [...locationItems];
+                                      newLocationItems[index] = { ...item, name: e.target.value };
+                                      setLocationItems(newLocationItems);
+                                    }}
+                                    placeholder="Enter location name"
+                                    className="text-xs"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </CardContent>
                     </Card>
                   </TabsContent>

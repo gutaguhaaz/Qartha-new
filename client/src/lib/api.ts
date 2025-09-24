@@ -200,7 +200,7 @@ export async function deleteAsset(
   cluster: string,
   project: string,
   code: string,
-  assetType: "images" | "documents" | "diagrams" | "dfo" | "location",
+  assetType: "images" | "documents" | "diagrams" | "dfo",
   index: number,
 ) {
   return request(`/${cluster}/${project}/assets/${code}/${assetType}/${index}`, { method: "DELETE" });

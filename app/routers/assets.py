@@ -299,7 +299,6 @@ async def upload_location(
 
     relative_path = await _write_upload(file, file_path)
 
-    # Store location as a single string path, not JSON array
     await database.execute(
         "UPDATE idfs SET location = :location WHERE cluster = :cluster AND project = :project AND code = :code",
         {"location": relative_path, "cluster": cluster, "project": db_project, "code": code},
@@ -556,12 +555,11 @@ async def delete_dfo(
     return {"message": "DFO file deleted", "path": removed_path}
 
 
-@router.delete("/{cluster}/{project}/assets/{code}/location/{index}")
+@router.delete("/{cluster}/{project}/assets/{code}/location")
 async def delete_location(
     cluster: str = Depends(validate_cluster),
     project: str = "",
     code: str = "",
-    index: int = 0,
     _admin: dict = Depends(get_current_admin),
 ):
     db_project = map_url_project_to_db_project(project)
@@ -577,7 +575,6 @@ async def delete_location(
     except OSError:
         pass
 
-    # Set location to NULL (empty)
     await database.execute(
         "UPDATE idfs SET location = NULL WHERE cluster = :cluster AND project = :project AND code = :code",
         {"cluster": cluster, "project": db_project, "code": code},
