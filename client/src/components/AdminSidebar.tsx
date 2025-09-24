@@ -304,21 +304,22 @@ export default function AdminSidebar({
   const handleSaveGeneral = async () => {
     if (!selectedCode || !idfDetailQuery.data) return;
     try {
-      // Preserve existing logo when saving general info
-      const currentLogo = idfDetailQuery.data.logo;
+      // Preserve ALL existing media and only update general fields
+      const currentData = idfDetailQuery.data;
 
       await updateIdf(selectedCluster, selectedProject, selectedCode, {
         title: generalForm.title,
         description: generalForm.description,
         site: generalForm.site,
         room: generalForm.room,
-        images: gallery,
-        documents,
-        diagrams,
-        location: locationItems,
-        dfo,
-        table: tableData,
-        logo: currentLogo, // Preserve existing logo
+        // Preserve all existing media exactly as they are
+        images: currentData.images || [],
+        documents: currentData.documents || [],
+        diagrams: currentData.diagrams || [],
+        location: currentData.location_items || (currentData.location ? [currentData.location] : []),
+        dfo: currentData.dfo || [],
+        table: currentData.table,
+        logo: currentData.logo, // Preserve existing logo
       });
       toast({ title: "IDF updated", description: "General information saved" });
       refreshIdf();

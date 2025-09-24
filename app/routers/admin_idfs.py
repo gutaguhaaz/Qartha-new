@@ -270,8 +270,8 @@ async def update_idf(
         "table_data": _serialize_table(idf_data.table),
     }
     
-    # Handle DFO field - ensure it's properly formatted with clean URLs
-    if idf_data.dfo is not None:
+    # Handle DFO field - preserve existing DFO if new data is empty or None
+    if idf_data.dfo is not None and len(idf_data.dfo) > 0:
         # Convert single DFO item to list format for consistency
         if isinstance(idf_data.dfo, dict):
             # Ensure the URL is clean and relative
@@ -294,7 +294,12 @@ async def update_idf(
                     dfo_data.append(clean_item)
         update_data["dfo"] = json.dumps(dfo_data)
     else:
-        update_data["dfo"] = None
+        # Preserve existing DFO data if no new DFO data provided
+        current_idf_full = await database.fetch_one(
+            "SELECT dfo FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
+            {"cluster": cluster, "project": db_project, "code": code}
+        )
+        update_data["dfo"] = current_idf_full["dfo"] if current_idf_full else None
 
     # Update IDF data
     params = {
