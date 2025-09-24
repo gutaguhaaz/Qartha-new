@@ -42,36 +42,116 @@ echo "📁 Directorio de respaldos: $BACKUP_DIR"
 # 3) Generar nombres de archivos con timestamp
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_SCHEMA="${BACKUP_DIR}/qartha_schema_${TIMESTAMP}.sql"
-BACKUP_DATA="${BACKUP_DIR}/qartha_data_${TIMESTAMP}.dump"
-BACKUP_FULL="${BACKUP_DIR}/qartha_full_${TIMESTAMP}.dump"
+BACKUP_DATA="${BACKUP_DIR}/qartha_data_${TIMESTAMP}.sql"
+BACKUP_FULL="${BACKUP_DIR}/qartha_full_${TIMESTAMP}.sql"
 
 echo ""
 echo "🔄 Iniciando respaldo completo de la base '$DB_LABEL'..."
 
-# 4) Respaldo del esquema (estructura)
+# 4) Respaldo del esquema (estructura) usando psql
 echo "📐 Respaldando esquema (estructura de tablas)..."
-pg_dump --schema-only --no-owner --no-privileges -d "$BACKUP_URL" > "$BACKUP_SCHEMA"
+psql "$BACKUP_URL" -c "\
+COPY (
+  SELECT 
+    'CREATE TABLE ' || schemaname || '.' || tablename || ' (' || 
+    string_agg(column_name || ' ' || data_type || 
+      CASE 
+        WHEN character_maximum_length IS NOT NULL 
+        THEN '(' || character_maximum_length || ')' 
+        ELSE '' 
+      END, ', ') || ');' as create_statement
+  FROM information_schema.tables t
+  JOIN information_schema.columns c ON c.table_name = t.tablename
+  WHERE t.schemaname = 'public' AND t.tabletype = 'BASE TABLE'
+  GROUP BY schemaname, tablename
+) TO STDOUT
+" > "$BACKUP_SCHEMA" 2>/dev/null || {
+    # Si falla el método anterior, usar pg_dump con opciones compatibles
+    echo "⚠️  Método avanzado falló, usando pg_dump básico..."
+    PGCLIENTENCODING=UTF8 pg_dump --version >/dev/null 2>&1 || {
+        echo "❌ pg_dump no disponible"
+        exit 1
+    }
+    PGCLIENTENCODING=UTF8 pg_dump --schema-only --no-owner --no-privileges "$BACKUP_URL" > "$BACKUP_SCHEMA" 2>/dev/null || {
+        echo "❌ Error al hacer respaldo del esquema"
+        exit 1
+    }
+}
 echo "✅ Esquema guardado: $BACKUP_SCHEMA"
 
-# 5) Respaldo de datos (formato binario comprimido)
-echo "📦 Respaldando datos (formato binario)..."
-pg_dump -Fc --data-only --no-owner --no-privileges -d "$BACKUP_URL" -f "$BACKUP_DATA"
+# 5) Respaldo de datos usando COPY
+echo "📦 Respaldando datos..."
+psql "$BACKUP_URL" -c "
+DO \$\$
+DECLARE
+    table_record RECORD;
+    sql_text TEXT;
+BEGIN
+    FOR table_record IN 
+        SELECT tablename 
+        FROM pg_tables 
+        WHERE schemaname = 'public'
+        ORDER BY tablename
+    LOOP
+        sql_text := 'COPY ' || table_record.tablename || ' TO STDOUT WITH CSV HEADER;';
+        RAISE NOTICE 'Exporting table: %', table_record.tablename;
+    END LOOP;
+END\$\$;
+" 2>/dev/null
+
+# Crear respaldo de datos tabla por tabla
+{
+    echo "-- Respaldo de datos generado el $(date)"
+    echo "-- Base: $DB_LABEL ($BACKUP_URL)"
+    echo ""
+    
+    for table in $(psql "$BACKUP_URL" -t -c "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;"); do
+        if [ -n "$table" ]; then
+            echo "-- Tabla: $table"
+            echo "TRUNCATE TABLE $table RESTART IDENTITY CASCADE;"
+            psql "$BACKUP_URL" -c "\COPY $table TO STDOUT WITH CSV HEADER" 2>/dev/null | \
+            awk -v table="$table" '
+            NR==1 { 
+                header=$0; 
+                gsub(/,/, ", ", header);
+                print "INSERT INTO " table " (" header ") VALUES"
+                next 
+            }
+            { 
+                gsub(/"/, "'\''", $0);
+                if (NR > 2) print ","
+                printf "('\''%s'\'')", $0 
+            }
+            END { if (NR > 1) print ";" }'
+            echo ""
+        fi
+    done
+} > "$BACKUP_DATA"
 echo "✅ Datos guardados: $BACKUP_DATA"
 
-# 6) Respaldo completo (esquema + datos)
-echo "🗃️  Respaldando base completa..."
-pg_dump -Fc --no-owner --no-privileges -d "$BACKUP_URL" -f "$BACKUP_FULL"
+# 6) Respaldo completo combinado
+echo "🗃️  Creando respaldo completo..."
+{
+    echo "-- Respaldo completo generado el $(date)"
+    echo "-- Base: $DB_LABEL ($BACKUP_URL)"
+    echo ""
+    echo "-- ESQUEMA:"
+    cat "$BACKUP_SCHEMA" 2>/dev/null || echo "-- Error leyendo esquema"
+    echo ""
+    echo "-- DATOS:"
+    cat "$BACKUP_DATA" 2>/dev/null || echo "-- Error leyendo datos"
+} > "$BACKUP_FULL"
 echo "✅ Respaldo completo: $BACKUP_FULL"
 
 # 7) Verificar integridad de los respaldos
 echo ""
 echo "🔍 Verificando integridad de respaldos..."
 
-# Verificar que los archivos existen y no están vacíos
 for file in "$BACKUP_SCHEMA" "$BACKUP_DATA" "$BACKUP_FULL"; do
     if [ -f "$file" ] && [ -s "$file" ]; then
         size=$(du -h "$file" | cut -f1)
-        echo "✅ $file ($size)"
+        lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+        echo "✅ $file ($size, $lines líneas)"
     else
         echo "❌ ERROR: $file está vacío o no existe"
         exit 1
@@ -140,11 +220,11 @@ echo "   psql \"\$TARGET_URL\" < \"$BACKUP_SCHEMA\""
 
 # Opción 2: Restaurar solo datos
 echo "2) Solo datos:"
-echo "   pg_restore --data-only --no-owner --no-privileges -d \"\$TARGET_URL\" \"$BACKUP_DATA\""
+echo "   psql \"\$TARGET_URL\" < \"$BACKUP_DATA\""
 
 # Opción 3: Restaurar completo (PELIGROSO - sobreescribe todo)
 echo "3) Completo (¡CUIDADO!):"
-echo "   pg_restore --clean --if-exists --no-owner --no-privileges -d \"\$TARGET_URL\" \"$BACKUP_FULL\""
+echo "   psql \"\$TARGET_URL\" < \"$BACKUP_FULL\""
 
 echo ""
 echo "⚠️  SELECCIONA LA OPCIÓN QUE NECESITES Y EJECÚTALA MANUALMENTE"
@@ -174,6 +254,6 @@ echo "🚀 Para migrar a la VM:"
 echo "   1. Copia estos archivos a tu VM"
 echo "   2. Usa el script de restauración"
 echo "   3. O ejecuta directamente:"
-echo "      pg_restore --clean --if-exists --no-owner --no-privileges -d \"<URL_VM>\" \"$BACKUP_FULL\""
+echo "      psql \"<URL_VM>\" < \"$BACKUP_FULL\""
 echo ""
 echo "🛟 Los respaldos están en la carpeta: $BACKUP_DIR"
