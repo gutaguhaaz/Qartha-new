@@ -265,17 +265,22 @@ export default function AdminSidebar({
       setDocuments(normalizeMediaArray(idf.documents ?? []));
       setDiagrams(normalizeMediaArray(idf.diagrams ?? []));
 
-      // Handle location as single image string
+      // Handle location as MediaItem object or string
       if (idf.location) {
-        // Location is stored as a single string path in the database
-        const locationUrl = typeof idf.location === 'string' ? idf.location : '';
-        // Ensure URL starts with /static/
-        const cleanUrl = locationUrl.startsWith('/static/') ? locationUrl : `/static/${locationUrl}`;
-        setLocationItems([{
-          url: cleanUrl,
-          name: 'Location Image',
-          kind: 'image'
-        }]);
+        if (typeof idf.location === 'object' && idf.location.url) {
+          // Location is already a MediaItem object
+          setLocationItems([idf.location]);
+        } else if (typeof idf.location === 'string') {
+          // Location is a string path
+          const cleanUrl = idf.location.startsWith('/static/') ? idf.location : `/static/${idf.location}`;
+          setLocationItems([{
+            url: cleanUrl,
+            name: 'Location Image',
+            kind: 'image'
+          }]);
+        } else {
+          setLocationItems([]);
+        }
       } else {
         setLocationItems([]);
       }

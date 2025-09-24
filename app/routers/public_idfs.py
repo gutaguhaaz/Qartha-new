@@ -309,6 +309,39 @@ async def get_idf(
                 return [field_data] if field_data.strip() else []
         return field_data
 
+    # This section was modified to correctly handle the location field
+    location_item = None
+    if idf_dict.get("location"):
+        location_value = idf_dict["location"]
+        if isinstance(location_value, str):
+            try:
+                # Try to parse as JSON first (new format)
+                location_data = json.loads(location_value)
+                if isinstance(location_data, str):
+                    # It's a JSON string containing the path
+                    # Ensure the path has /static/ prefix
+                    clean_path = location_data
+                    if not clean_path.startswith("/static/"):
+                        clean_path = f"/static/{clean_path}"
+                    location_item = MediaItem(
+                        url=clean_path,
+                        name="Location Image",
+                        kind="image"
+                    )
+            except json.JSONDecodeError:
+                # Fallback to old format (direct string path)
+                clean_path = location_value
+                if not clean_path.startswith("/static/"):
+                    clean_path = f"/static/{clean_path}"
+                location_item = MediaItem(
+                    url=clean_path,
+                    name="Location Image",
+                    kind="image"
+                )
+        elif isinstance(location_value, dict):
+            # Already a dict format
+            location_item = MediaItem(**location_value)
+
     return IdfPublic(
         cluster=idf_dict["cluster"],
         project=idf_dict["project"],
@@ -320,7 +353,7 @@ async def get_idf(
         images=convert_relative_to_absolute(parse_asset_field(idf_dict.get("images", []))),
         documents=convert_relative_to_absolute(parse_asset_field(idf_dict.get("documents", []))),
         diagrams=convert_relative_to_absolute(parse_asset_field(idf_dict.get("diagrams", []))),
-        location=convert_relative_to_absolute(parse_asset_field(idf_dict.get("location")), single_value=True) if idf_dict.get("location") else None,
+        location=location_item.url if location_item else None,
         dfo=convert_relative_to_absolute(parse_asset_field(idf_dict.get("dfo", []))),
         logo=convert_relative_to_absolute(parse_asset_field(idf_dict.get("logo")), single_value=True) if idf_dict.get("logo") else None,
         table=table_data,
