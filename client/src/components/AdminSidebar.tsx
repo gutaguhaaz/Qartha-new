@@ -247,7 +247,7 @@ export default function AdminSidebar({
     }
   };
 
-  // Function to handle reloading the diagrams tab without a full page refresh
+  // Function to reload the diagrams tab without a full page refresh
   const handleReloadDiagramsTab = () => {
     if (activeTab === "diagrams") {
       // Invalidate queries to refresh data without page reload
@@ -361,7 +361,7 @@ export default function AdminSidebar({
               }
             }
 
-            // Ensure relative URL
+            // Convert absolute URLs to relative
             if (cleanUrl.includes('replit.dev/')) {
               const staticIndex = cleanUrl.indexOf('/static/');
               if (staticIndex !== -1) {
