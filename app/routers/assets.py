@@ -192,12 +192,23 @@ async def upload_diagrams(
 
     new_paths = []
     for file in files:
+        # Allow both images and PDFs for diagrams
+        if not file.content_type or not (file.content_type.startswith("image/") or file.content_type == "application/pdf"):
+            raise HTTPException(status_code=400, detail=f"File {file.filename} must be an image or PDF")
+
         extension = Path(file.filename or "diagram.png").suffix or ".png"
         filename = f"{int(time.time() * 1000)}{extension}"
         file_path = STATIC_ROOT / cluster / folder_project / code / "diagrams" / filename
 
         relative_path = await _write_upload(file, file_path)
-        new_paths.append(relative_path)
+        
+        # Create media item object
+        media_item = {
+            "url": f"/static/{relative_path}",
+            "name": f"Diagram {len(current_diagrams) + len(new_paths) + 1}",
+            "kind": "diagram"
+        }
+        new_paths.append(media_item)
 
     updated_diagrams = current_diagrams + new_paths
 
@@ -498,7 +509,13 @@ async def delete_diagram(
     if index < 0 or index >= len(diagrams):
         raise HTTPException(status_code=404, detail="Diagram not found")
 
-    removed_path = diagrams.pop(index)
+    removed_item = diagrams.pop(index)
+
+    # Handle both old format (string) and new format (object)
+    if isinstance(removed_item, dict):
+        removed_path = removed_item.get("url", "").replace("/static/", "")
+    else:
+        removed_path = removed_item
 
     # Remove file from filesystem
     try:

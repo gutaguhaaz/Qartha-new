@@ -6,6 +6,7 @@ import Gallery from "@/components/Gallery";
 import DocList from "@/components/DocList";
 import PdfOrImage from "@/components/PdfOrImage";
 import DfoImageViewer from "@/components/DfoImageViewer";
+import DiagramsViewer from "@/components/DiagramsViewer";
 import AdminSidebar from "@/components/AdminSidebar";
 import AddIdfDialog from "@/components/AddIdfDialog";
 import LocationViewer from "@/components/LocationViewer";
@@ -30,7 +31,7 @@ export default function PublicDetail({
   const { isAdmin, loading: authLoading } = useAuth();
   const canManage = isAdmin && !authLoading;
 
-  // Listen for admin panel open events
+  // Listen for admin panel open events and tab reload events
   useEffect(() => {
     if (!canManage) {
       setIsAdminOpen(false);
@@ -42,11 +43,21 @@ export default function PublicDetail({
       setIsAdminOpen(true);
     };
 
+    const handleReloadDiagramsTab = () => {
+      if (activeTab === "diagram") {
+        // Force re-fetch of IDF data
+        window.location.reload();
+      }
+    };
+
     window.addEventListener("openAdminWithIdf", handleOpenAdmin);
+    window.addEventListener("reloadDiagramsTab", handleReloadDiagramsTab);
+    
     return () => {
       window.removeEventListener("openAdminWithIdf", handleOpenAdmin);
+      window.removeEventListener("reloadDiagramsTab", handleReloadDiagramsTab);
     };
-  }, [canManage]);
+  }, [canManage, activeTab]);
 
   const {
     data: idf,
@@ -431,31 +442,8 @@ export default function PublicDetail({
 
         {activeTab === "diagram" && (
           <div data-testid="tab-content-diagram">
-            <div className="space-y-6">
-              {idf.diagrams && idf.diagrams.length > 0 ? (
-                <div className="space-y-6">
-                  <div className="text-sm text-muted-foreground mb-4">
-                    {idf.diagrams.length} diagram{idf.diagrams.length !== 1 ? 's' : ''} available
-                  </div>
-                  {idf.diagrams.map((diagram: MediaItem, index: number) => (
-                    <div key={index} className="bg-card rounded-lg border p-6">
-                      <div className="mb-4">
-                        <h3 className="text-lg font-semibold text-foreground">
-                          {diagram.name || `Diagram ${index + 1}`}
-                        </h3>
-                      </div>
-                      <div className="flex justify-center">
-                        <PdfOrImage item={diagram} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  <i className="fas fa-project-diagram text-4xl mb-4"></i>
-                  <p>No diagrams available</p>
-                </div>
-              )}
+            <div className="bg-card border border-border rounded-lg overflow-hidden">
+              <DiagramsViewer item={idf.diagrams} />
             </div>
           </div>
         )}

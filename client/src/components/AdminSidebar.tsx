@@ -108,10 +108,10 @@ export default function AdminSidebar({
   const handleUploadLocation = (files: FileList | null) => handleUploadAsset("location", files);
   const handleRemoveLocationItem = (index: number) => handleDeleteAsset("location", index); // Renamed for clarity
   const handleUploadDiagrams = async (files: FileList | null) => {
-    if (!files || !selectedCode) return;
+    if (!files || files.length === 0 || !selectedCode) return;
     try {
       const fileArray = Array.from(files);
-      await uploadAssets(selectedCluster, selectedProject, selectedCode, fileArray, "diagrams");
+      const result = await uploadAssets(selectedCluster, selectedProject, selectedCode, fileArray, "diagrams");
 
       // Invalidate all relevant queries to refresh both admin and public views
       await queryClient.invalidateQueries({
@@ -123,6 +123,10 @@ export default function AdminSidebar({
       await queryClient.invalidateQueries({
         queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
       });
+
+      // Trigger reload in the diagrams tab if it's currently active
+      const diagramsTabReloadEvent = new CustomEvent("reloadDiagramsTab");
+      window.dispatchEvent(diagramsTabReloadEvent);
 
       toast({
         title: "Diagrams updated",
@@ -137,7 +141,7 @@ export default function AdminSidebar({
       });
     }
   };
-  
+
   const handleRemoveDiagramItem = async (index: number) => {
     if (!selectedCode) return;
     try {
