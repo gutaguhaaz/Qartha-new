@@ -844,24 +844,21 @@ export default function AdminSidebar({
                           {gallery.map((item, index) => (
                             <div
                               key={index}
-                              className="flex items-start space-x-3 rounded border border-border p-3"
+                              className="flex items-center space-x-3 p-3 border rounded-lg"
                             >
-                              <div className="flex-shrink-0">
-                                <img
-                                  src={item.url}
-                                  alt={item.name || `Gallery image ${index + 1}`}
-                                  className="w-16 h-16 object-cover rounded border border-border"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                    target.nextElementSibling!.style.display = 'flex';
-                                  }}
-                                />
-                                <div className="hidden w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
-                                  <i className="fas fa-exclamation-triangle text-yellow-500"></i>
-                                </div>
+                              <img
+                                src={typeof item === 'string' ? item : item.url}
+                                alt={`Gallery ${index + 1}`}
+                                className="w-16 h-16 object-cover rounded"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  target.nextElementSibling!.style.display = 'flex';
+                                }}
+                              />
+                              <div className="hidden w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
+                                <i className="fas fa-exclamation-triangle text-yellow-500"></i>
                               </div>
-
                               <div className="flex-1 space-y-2">
                                 <div className="flex items-center justify-between">
                                   <span className="text-sm font-medium">Gallery Image {index + 1}</span>
@@ -872,20 +869,6 @@ export default function AdminSidebar({
                                   >
                                     Remove
                                   </Button>
-                                </div>
-                                <div>
-                                  <Label htmlFor={`gallery-name-${index}`} className="text-xs">Display Name</Label>
-                                  <Input
-                                    id={`gallery-name-${index}`}
-                                    value={item.name || ''}
-                                    onChange={(e) => {
-                                      const newGallery = [...gallery];
-                                      newGallery[index] = { ...item, name: e.target.value };
-                                      setGallery(newGallery);
-                                    }}
-                                    placeholder="Enter display name"
-                                    className="text-xs"
-                                  />
                                 </div>
                               </div>
                             </div>
