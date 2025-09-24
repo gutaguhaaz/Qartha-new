@@ -341,7 +341,9 @@ export default function AdminSidebar({
   ) => {
     if (!files || !selectedCode) return;
     try {
-      for (const file of Array.from(files)) {
+      if (type === "location") {
+        // Location only supports single file
+        const file = files[0];
         await uploadAsset(
           selectedCluster,
           selectedProject,
@@ -349,11 +351,26 @@ export default function AdminSidebar({
           file,
           type,
         );
+        toast({
+          title: "Upload complete",
+          description: "Location image uploaded successfully",
+        });
+      } else {
+        // Multiple files for other types
+        for (const file of Array.from(files)) {
+          await uploadAsset(
+            selectedCluster,
+            selectedProject,
+            selectedCode,
+            file,
+            type,
+          );
+        }
+        toast({
+          title: "Upload complete",
+          description: `Uploaded ${files.length} file(s)`,
+        });
       }
-      toast({
-        title: "Upload complete",
-        description: `Uploaded ${files.length} file(s)`,
-      });
       refreshIdf();
     } catch (error) {
       console.error(error);
@@ -922,12 +939,11 @@ export default function AdminSidebar({
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div>
-                          <Label htmlFor="location-upload">Upload files</Label>
+                          <Label htmlFor="location-upload">Upload location image</Label>
                           <Input
                             id="location-upload"
                             type="file"
                             accept="image/*"
-                            multiple
                             onChange={(event) =>
                               handleUploadLocation(event.target.files)
                             }
