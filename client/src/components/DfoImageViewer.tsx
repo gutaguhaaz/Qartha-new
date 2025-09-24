@@ -21,19 +21,19 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
   const imageRef = useRef<HTMLImageElement>(null);
 
   // Handle different data structures
-  let items: string[] = [];
+  let items: Array<{url: string, name?: string}> = [];
   if (item) {
     if (typeof item === 'string') {
-      items = [item];
+      items = [{url: item}];
     } else if (Array.isArray(item)) {
       // Handle array of objects with url property or array of strings
       items = item.map(i => {
-        if (typeof i === 'string') return i;
-        if (i && typeof i === 'object' && i.url) return i.url;
-        return '';
-      }).filter(url => url && typeof url === 'string');
+        if (typeof i === 'string') return {url: i};
+        if (i && typeof i === 'object' && i.url) return {url: i.url, name: i.name};
+        return null;
+      }).filter(Boolean);
     } else if (item && typeof item === 'object' && item.url) {
-      items = [item.url];
+      items = [{url: item.url, name: item.name}];
     }
   }
 
@@ -54,7 +54,7 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
   const correctedUrl = (() => {
     if (!currentItem) return '';
 
-    let url = currentItem;
+    let url = typeof currentItem === 'string' ? currentItem : currentItem.url;
 
     // Remove absolute URL if present
     if (url.includes('replit.dev/')) {
@@ -162,7 +162,7 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
     <div className={containerClasses} data-testid="dfo-viewer" ref={containerRef}>
       <div className={`flex items-center justify-between mb-4 p-4 ${isFullscreen ? 'bg-gray-800' : ''}`}>
         <h3 className={`text-lg font-semibold ${isFullscreen ? 'text-white' : ''}`} data-testid="dfo-title">
-          DFO Layout {currentIndex + 1} of {items.length}
+          {currentItem?.name || `DFO Layout ${currentIndex + 1}`} ({currentIndex + 1} of {items.length})
         </h3>
         <div className="flex items-center space-x-2">
           {!isFullscreen && (

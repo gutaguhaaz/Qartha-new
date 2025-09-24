@@ -254,7 +254,14 @@ export default function AdminSidebar({
       const locations = idf.location_items ?? (idf.location ? [idf.location] : []);
       setLocationItems(normalizeMediaArray(locations ?? []));
       
-      setDfo(normalizeMediaArray(idf.dfo ?? []));
+      // Handle DFO data properly, ensuring names are preserved
+      const dfoData = idf.dfo ?? [];
+      const normalizedDfo = Array.isArray(dfoData) ? dfoData.map(item => {
+        if (typeof item === 'string') return { url: item, name: 'DFO', kind: 'diagram' };
+        if (typeof item === 'object' && item.url) return { ...item, name: item.name || 'DFO' };
+        return { url: '', name: 'DFO', kind: 'diagram' };
+      }) : [];
+      setDfo(normalizedDfo);
       setTableData(idf.table ?? null);
       setLogoPreview(idf.media?.logo?.url ?? null);
     }
@@ -714,7 +721,7 @@ export default function AdminSidebar({
                                     <Label htmlFor={`dfo-name-${index}`} className="text-xs">Display Name</Label>
                                     <Input
                                       id={`dfo-name-${index}`}
-                                      value={item.name || ''}
+                                      value={item.name || 'DFO'}
                                       onChange={(e) => {
                                         const newDfo = [...dfo];
                                         newDfo[index] = { ...item, name: e.target.value };
