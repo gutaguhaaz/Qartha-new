@@ -83,7 +83,7 @@ export default function DocumentsViewer({ item }: DocumentsViewerProps) {
                   {doc.title || doc.name || `Document ${index + 1}`}
                 </p>
                 <p className="text-sm text-muted-foreground capitalize">
-                  {doc.kind} • {doc.url.split('.').pop()?.toUpperCase()}
+                  {doc.kind || 'document'} • {doc.url?.split('.').pop()?.toUpperCase() || 'FILE'}
                 </p>
               </div>
             </div>
