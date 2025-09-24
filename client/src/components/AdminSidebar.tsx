@@ -185,14 +185,21 @@ export default function AdminSidebar({
       const normalizeMediaArray = (items: any[]): MediaList => {
         return (items || []).map(item => {
           if (typeof item === 'string') {
-            // Clean up malformed URLs
+            // Clean up malformed URLs - handle incomplete JSON strings
             let cleanUrl = item;
-            if (item.includes("{'url':")) {
-              const match = item.match(/\/static\/([^']+)/);
-              if (match) {
-                cleanUrl = `/static/${match[1]}`;
+            
+            // Handle malformed JSON-like strings
+            if (item.includes("{'url':") || item.includes('{"url":')) {
+              // Try to extract URL from malformed string
+              const urlMatch = item.match(/['"](\/static\/[^'"]+)['"]/);
+              if (urlMatch) {
+                cleanUrl = urlMatch[1];
+              } else {
+                // If we can't extract URL, mark as invalid
+                cleanUrl = '/static/invalid-url';
               }
             }
+            
             // Ensure relative URL
             if (cleanUrl.includes('replit.dev/')) {
               const staticIndex = cleanUrl.indexOf('/static/');
@@ -200,23 +207,40 @@ export default function AdminSidebar({
                 cleanUrl = cleanUrl.substring(staticIndex);
               }
             }
+            
+            // Ensure it starts with /static/
+            if (!cleanUrl.startsWith('/static/')) {
+              cleanUrl = `/static/${cleanUrl.replace(/^\/+/, '')}`;
+            }
+            
             return { url: cleanUrl, name: '', kind: 'unknown' };
           }
           
           // Clean up object URLs too
-          if (item.url && item.url.includes("{'url':")) {
-            const match = item.url.match(/\/static\/([^']+)/);
-            if (match) {
-              item.url = `/static/${match[1]}`;
+          if (item.url) {
+            let cleanUrl = item.url;
+            
+            if (cleanUrl.includes("{'url':") || cleanUrl.includes('{"url":')) {
+              const urlMatch = cleanUrl.match(/['"](\/static\/[^'"]+)['"]/);
+              if (urlMatch) {
+                cleanUrl = urlMatch[1];
+              }
             }
-          }
-          
-          // Convert absolute URLs to relative
-          if (item.url && item.url.includes('replit.dev/')) {
-            const staticIndex = item.url.indexOf('/static/');
-            if (staticIndex !== -1) {
-              item.url = item.url.substring(staticIndex);
+            
+            // Convert absolute URLs to relative
+            if (cleanUrl.includes('replit.dev/')) {
+              const staticIndex = cleanUrl.indexOf('/static/');
+              if (staticIndex !== -1) {
+                cleanUrl = cleanUrl.substring(staticIndex);
+              }
             }
+            
+            // Ensure it starts with /static/
+            if (!cleanUrl.startsWith('/static/')) {
+              cleanUrl = `/static/${cleanUrl.replace(/^\/+/, '')}`;
+            }
+            
+            item.url = cleanUrl;
           }
           
           return item;
@@ -259,6 +283,9 @@ export default function AdminSidebar({
   const handleSaveGeneral = async () => {
     if (!selectedCode || !idfDetailQuery.data) return;
     try {
+      // Preserve existing logo when saving general info
+      const currentLogo = idfDetailQuery.data.logo;
+      
       await updateIdf(selectedCluster, selectedProject, selectedCode, {
         title: generalForm.title,
         description: generalForm.description,
@@ -270,6 +297,7 @@ export default function AdminSidebar({
         location: locationItems,
         dfo,
         table: tableData,
+        logo: currentLogo, // Preserve existing logo
       });
       toast({ title: "IDF updated", description: "General information saved" });
       refreshIdf();

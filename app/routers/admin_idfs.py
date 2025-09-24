@@ -1,9 +1,8 @@
-
 """Administrative endpoints for creating and updating IDFs."""
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -52,7 +51,7 @@ def _serialize_media_list(items: Any) -> str:
     """Convert media items to JSON, handling both string and object formats."""
     if not items:
         return json.dumps([])
-    
+
     serialized_items = []
     for item in items:
         if isinstance(item, str):
@@ -63,7 +62,7 @@ def _serialize_media_list(items: Any) -> str:
             serialized_items.append(item)
         else:
             serialized_items.append(str(item))
-    
+
     return json.dumps(serialized_items)
 
 
@@ -75,7 +74,7 @@ def _prepare_common_values(data: IdfUpsert) -> Dict[str, Any]:
             location_value = _serialize_media_list(data.location)
         else:
             location_value = json.dumps([data.location])
-    
+
     return {
         "title": data.title,
         "description": data.description,
@@ -110,10 +109,10 @@ def _load_media_list(value: Any) -> List[Any]:
     loaded = _load_json(value)
     if not loaded:
         return []
-    
+
     if not isinstance(loaded, list):
         return []
-    
+
     return loaded
 
 
@@ -240,11 +239,36 @@ async def update_idf(
     db_project = map_url_project_to_db_project(project)
     await _fetch_idf(cluster, db_project, code)
 
-    values = {
+    # Get current IDF data to preserve logo if not updated
+    current_idf = await database.fetch_one(
+        """
+        SELECT logo FROM idfs 
+        WHERE cluster = :cluster AND project = :project AND code = :code
+        """,
+        {"cluster": cluster, "project": db_project, "code": code}
+    )
+
+    # Preserve current logo if update_data.logo is None or empty
+    logo_value = idf_data.logo
+    if not logo_value and current_idf and current_idf["logo"]:
+        logo_value = current_idf["logo"]
+
+    # Update IDF data
+    params = {
+        "title": idf_data.title,
+        "description": idf_data.description,
+        "site": idf_data.site,
+        "room": idf_data.room,
+        "images": json.dumps(idf_data.images),
+        "documents": json.dumps(idf_data.documents),
+        "diagrams": json.dumps(idf_data.diagrams),
+        "location": json.dumps(idf_data.location) if idf_data.location else None,
+        "dfo": json.dumps(idf_data.dfo),
+        "logo": logo_value,
+        "table": json.dumps(idf_data.table.model_dump()) if idf_data.table else None,
         "cluster": cluster,
         "project": db_project,
         "code": code,
-        **_prepare_common_values(idf_data),
     }
 
     query = """
@@ -263,7 +287,7 @@ async def update_idf(
          WHERE cluster = :cluster AND project = :project AND code = :code
         RETURNING *
     """
-    row = await database.fetch_one(query, values)
+    row = await database.fetch_one(query, params)
     return _row_to_idf_public(dict(row))
 
 
