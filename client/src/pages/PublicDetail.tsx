@@ -411,7 +411,9 @@ export default function PublicDetail({
 
         {activeTab === "gallery" && (
           <div data-testid="tab-content-gallery">
-            <Gallery images={idf.gallery} />
+            <Gallery images={idf.images?.map(item => 
+              typeof item === 'string' ? item : item.url
+            ) || []} />
           </div>
         )}
 

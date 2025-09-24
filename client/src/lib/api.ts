@@ -125,7 +125,7 @@ export interface IdfUpsertPayload {
   description?: string;
   site?: string;
   room?: string;
-  gallery?: MediaPayload[];
+  images?: MediaPayload[];
   documents?: MediaPayload[];
   diagrams?: MediaPayload[];
   location?: MediaPayload[];

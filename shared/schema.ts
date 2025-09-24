@@ -68,12 +68,11 @@ export const idfPublicSchema = z.object({
   description: z.string().optional(),
   site: z.string().optional(),
   room: z.string().optional(),
-  gallery: z.array(mediaItemSchema),
-  documents: z.array(mediaItemSchema),
-  diagrams: z.array(mediaItemSchema),
-  dfo: mediaItemSchema.optional(),
-  location: mediaItemSchema.optional(),
-  location_items: z.array(mediaItemSchema).optional(),
+  images: z.array(z.union([z.string(), mediaItemSchema])),
+  documents: z.array(z.union([z.string(), mediaItemSchema])),
+  diagrams: z.array(z.union([z.string(), mediaItemSchema])),
+  dfo: z.array(z.union([z.string(), mediaItemSchema])),
+  location: z.union([z.string(), z.array(z.union([z.string(), mediaItemSchema]))]).optional(),
   table: idfTableSchema.optional(),
   health: idfHealthSchema.optional(),
   media: idfMediaSchema.optional(),
@@ -85,11 +84,11 @@ export const idfUpsertSchema = z.object({
   description: z.string().optional(),
   site: z.string().optional(),
   room: z.string().optional(),
-  gallery: z.array(mediaItemSchema).optional(),
-  documents: z.array(mediaItemSchema).optional(),
-  diagrams: z.array(mediaItemSchema).optional(),
-  location: z.array(mediaItemSchema).optional(),
-  dfo: mediaItemSchema.optional(),
+  images: z.array(z.union([z.string(), mediaItemSchema])).optional(),
+  documents: z.array(z.union([z.string(), mediaItemSchema])).optional(),
+  diagrams: z.array(z.union([z.string(), mediaItemSchema])).optional(),
+  location: z.union([z.string(), z.array(z.union([z.string(), mediaItemSchema]))]).optional(),
+  dfo: z.array(z.union([z.string(), mediaItemSchema])).optional(),
   table: idfTableSchema.optional(),
 });
 
@@ -163,11 +162,11 @@ export interface IdfCreate {
   description?: string;
   site?: string;
   room?: string;
-  images?: string[];
-  documents?: string[];
-  diagrams?: string[];
-  location?: string;
-  dfo?: string[];
+  images?: (string | MediaItem)[];
+  documents?: (string | MediaItem)[];
+  diagrams?: (string | MediaItem)[];
+  location?: string | (string | MediaItem)[];
+  dfo?: (string | MediaItem)[];
   logo?: string;
   table?: IdfTable;
 }
@@ -177,11 +176,11 @@ export interface IdfUpsert {
   description?: string;
   site?: string;
   room?: string;
-  images?: string[];
-  documents?: string[];
-  diagrams?: string[];
-  location?: string;
-  dfo?: string[];
+  images?: (string | MediaItem)[];
+  documents?: (string | MediaItem)[];
+  diagrams?: (string | MediaItem)[];
+  location?: string | (string | MediaItem)[];
+  dfo?: (string | MediaItem)[];
   logo?: string;
   table?: IdfTable;
 }

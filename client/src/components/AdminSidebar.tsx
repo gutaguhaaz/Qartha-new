@@ -38,6 +38,7 @@ import {
   updateIdf,
   uploadAsset,
   uploadIdfLogo,
+  uploadAssets,
 } from "@/lib/api";
 import { config, getProjectsForCluster } from "../config";
 import type { IdfPublic, MediaItem } from "@shared/schema";
@@ -171,6 +172,19 @@ export default function AdminSidebar({
     },
     enabled: isOpen && Boolean(selectedCode),
   });
+
+  // Function to refresh the selected IDF data
+  const refreshSelectedIdf = () => {
+    queryClient.invalidateQueries({
+      queryKey: [
+        "admin",
+        "idf-detail",
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+      ],
+    });
+  };
 
   useEffect(() => {
     if (idfDetailQuery.data) {
@@ -479,6 +493,58 @@ export default function AdminSidebar({
     }
   };
 
+  const handleDeleteDfo = async (index: number) => {
+    if (!selectedCode) return;
+    try {
+      await deleteAsset(selectedCluster, selectedProject, selectedCode, "dfo", index);
+      toast({ title: "DFO deleted successfully" });
+      refreshSelectedIdf();
+    } catch (error) {
+      console.error("Failed to delete DFO:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete DFO file",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUploadGallery = async (files: FileList | null) => {
+    if (!files || !selectedCode) return;
+    try {
+      const fileArray = Array.from(files);
+      await uploadAssets(selectedCluster, selectedProject, selectedCode, fileArray, "images");
+      toast({
+        title: "Gallery updated",
+        description: `Uploaded ${fileArray.length} image(s) successfully`,
+      });
+      refreshSelectedIdf();
+    } catch (error) {
+      console.error("Failed to upload gallery images:", error);
+      toast({
+        title: "Error",
+        description: "Failed to upload images",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteGalleryImage = async (index: number) => {
+    if (!selectedCode) return;
+    try {
+      await deleteAsset(selectedCluster, selectedProject, selectedCode, "images", index);
+      toast({ title: "Image deleted successfully" });
+      refreshSelectedIdf();
+    } catch (error) {
+      console.error("Failed to delete gallery image:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete image",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (!isOpen || !isAdmin) {
     return null;
   }
@@ -590,7 +656,7 @@ export default function AdminSidebar({
                   onValueChange={(value) => setActiveTab(value as TabValue)}
                   className="admin-tabs tabpaneladmin"
                 >
-                  <TabsList className="grid grid-cols-6 w-full gap-1 h-auto p-1">
+                  <TabsList className="admin-tabs grid w-full grid-cols-6 gap-1 h-auto p-1">
                     {TABS.map((tab) => (
                       <TabsTrigger
                         key={tab.value}
