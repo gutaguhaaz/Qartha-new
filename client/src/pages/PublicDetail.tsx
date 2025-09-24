@@ -9,8 +9,16 @@ import DfoImageViewer from "@/components/DfoImageViewer";
 import AdminSidebar from "@/components/AdminSidebar";
 import AddIdfDialog from "@/components/AddIdfDialog";
 import LocationViewer from "@/components/LocationViewer";
+import DiagramsViewer from "@/components/DiagramsViewer";
 import { useAuth } from "@/contexts/AuthContext";
 import type { MediaItem } from "@shared/schema";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface PublicDetailProps {
   cluster: string;
@@ -351,228 +359,218 @@ export default function PublicDetail({
 
       {/* Tabs */}
       <div className="mb-6">
-        <div
-          className="flex space-x-1 bg-muted rounded-lg p-1"
-          data-testid="tab-navigation"
-        >
-          <button
-            className={`tab-button ${activeTab === "table" ? "active" : ""}`}
-            onClick={() => setActiveTab("table")}
-            data-testid="tab-table"
-          >
-            <i className="fas fa-table mr-2"></i>Fiber Optic Information (DFO)
-          </button>
-          <button
-            className={`tab-button ${activeTab === "gallery" ? "active" : ""}`}
-            onClick={() => setActiveTab("gallery")}
-            data-testid="tab-gallery"
-          >
-            <i className="fas fa-images mr-2"></i>Gallery
-          </button>
-          <button
-            className={`tab-button ${activeTab === "location" ? "active" : ""}`}
-            onClick={() => setActiveTab("location")}
-            data-testid="tab-location"
-          >
-            <i className="fas fa-map-marker-alt mr-2"></i>Location
-          </button>
-          <button
-            className={`tab-button ${activeTab === "diagram" ? "active" : ""}`}
-            onClick={() => setActiveTab("diagram")}
-            data-testid="tab-diagram"
-          >
-            <i className="fas fa-project-diagram mr-2"></i>Diagram
-          </button>
-          <button
-            className={`tab-button ${activeTab === "documents" ? "active" : ""}`}
-            onClick={() => setActiveTab("documents")}
-            data-testid="tab-documents"
-          >
-            <i className="fas fa-file-alt mr-2"></i>Documents
-          </button>
-          {/* Overview tab - Hidden but kept in code */}
-          <button
-            className={`hidden tab-button ${activeTab === "overview" ? "active" : ""}`}
-            onClick={() => setActiveTab("overview")}
-            data-testid="tab-overview"
-          >
-            <i className="fas fa-info-circle mr-2"></i>Overview
-          </button>
-        </div>
-      </div>
+        <Tabs defaultValue="table" className="w-full">
+          <TabsList data-testid="tab-navigation" className="grid w-full grid-cols-5">
+            <TabsTrigger value="table">
+              <i className="fas fa-table mr-2"></i>Fiber Optic Information (DFO)
+            </TabsTrigger>
+            <TabsTrigger value="gallery">
+              <i className="fas fa-images mr-2"></i>Gallery
+            </TabsTrigger>
+            <TabsTrigger value="location">
+              <i className="fas fa-map-marker-alt mr-2"></i>Location
+            </TabsTrigger>
+            <TabsTrigger value="diagram">
+              <i className="fas fa-project-diagram mr-2"></i>Diagram
+            </TabsTrigger>
+            <TabsTrigger value="documents">
+              <i className="fas fa-file-alt mr-2"></i>Documents
+            </TabsTrigger>
+            {/* Overview tab - Hidden but kept in code */}
+            <TabsTrigger value="overview" className="hidden">
+              <i className="fas fa-info-circle mr-2"></i>Overview
+            </TabsTrigger>
+          </TabsList>
 
-      {/* Tab Content */}
-      <div className="tab-content">
-        {activeTab === "table" && (
-          <div className="bg-card border border-border rounded-lg overflow-hidden">
-            <DfoImageViewer item={idf.dfo} />
-          </div>
-        )}
+          {/* Tab Content */}
+          <div className="tab-content">
+            <TabsContent value="table">
+              <Card>
+                <CardHeader>
+                  <CardTitle>DFO</CardTitle>
+                  <CardDescription>
+                    Fiber Optic Information
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DfoImageViewer item={idf.dfo} />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-        {activeTab === "gallery" && (
-          <div data-testid="tab-content-gallery">
-            <Gallery images={idf.images?.map(item => 
-              typeof item === 'string' ? item : item.url
-            ) || []} />
-          </div>
-        )}
+            <TabsContent value="gallery">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Gallery</CardTitle>
+                  <CardDescription>
+                    Images and media
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Gallery images={idf.images?.map(item =>
+                    typeof item === 'string' ? item : item.url
+                  ) || []} />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-        {activeTab === "location" && (
-          <div data-testid="tab-content-location">
-            <LocationViewer location={
-              idf.location ? (
-                typeof idf.location === 'string' 
-                  ? { url: idf.location, name: 'Location Image', kind: 'image' }
-                  : idf.location
-              ) : null
-            } />
-          </div>
-        )}
+            <TabsContent value="location">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Location</CardTitle>
+                  <CardDescription>
+                    Location details and map
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <LocationViewer location={
+                    idf.location ? (
+                      typeof idf.location === 'string'
+                        ? { url: idf.location, name: 'Location Image', kind: 'image' }
+                        : idf.location
+                    ) : null
+                  } />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-        {activeTab === "diagram" && (
-          <div data-testid="tab-content-diagram">
-            <div className="space-y-6">
-              {idf.diagrams && idf.diagrams.length > 0 ? (
-                <div className="space-y-6">
-                  <div className="text-sm text-muted-foreground mb-4">
-                    {idf.diagrams.length} diagram{idf.diagrams.length !== 1 ? 's' : ''} available
-                  </div>
-                  {idf.diagrams.map((diagram: MediaItem, index: number) => (
-                    <div key={index} className="bg-card rounded-lg border p-6">
-                      <div className="mb-4">
-                        <h3 className="text-lg font-semibold text-foreground">
-                          {diagram.name || `Diagram ${index + 1}`}
-                        </h3>
+            <TabsContent value="diagrams">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Diagrams</CardTitle>
+                  <CardDescription>
+                    Network diagrams and technical documentation
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DiagramsViewer item={idf.diagrams} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="documents">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Documents</CardTitle>
+                  <CardDescription>
+                    Technical documents and reports
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DocList documents={documents} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Overview tab content - Hidden but kept in code */}
+            <TabsContent value="overview" className="hidden">
+              <div
+                className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+                data-testid="tab-content-overview"
+              >
+                <div className="bg-card border border-border rounded-lg p-6">
+                  <h3 className="text-lg font-semibold mb-4">IDF Details</h3>
+                  <dl className="space-y-3">
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Code</dt>
+                      <dd className="font-mono" data-testid="detail-code">
+                        {idf.code}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Title</dt>
+                      <dd data-testid="detail-title">{idf.title}</dd>
+                    </div>
+                    {idf.site && (
+                      <div>
+                        <dt className="text-sm text-muted-foreground">Site</dt>
+                        <dd data-testid="detail-site">{idf.site}</dd>
                       </div>
-                      <div className="flex justify-center">
-                        <PdfOrImage item={diagram} />
+                    )}
+                    {idf.room && (
+                      <div>
+                        <dt className="text-sm text-muted-foreground">Room</dt>
+                        <dd data-testid="detail-room">{idf.room}</dd>
+                      </div>
+                    )}
+                    {idf.description && (
+                      <div>
+                        <dt className="text-sm text-muted-foreground">
+                          Description
+                        </dt>
+                        <dd
+                          className="text-muted-foreground"
+                          data-testid="detail-description"
+                        >
+                          {idf.description}
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                </div>
+
+                {idf.health && (
+                  <div className="bg-card border border-border rounded-lg p-6">
+                    <h3 className="text-lg font-semibold mb-4">Health Status</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                          <span>Operational (OK)</span>
+                        </div>
+                        <span className="font-semibold" data-testid="count-ok">
+                          {idf.health.counts.ok}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                          <span>Under Review</span>
+                        </div>
+                        <span
+                          className="font-semibold"
+                          data-testid="count-revision"
+                        >
+                          {idf.health.counts.revision}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                          <span>Critical Failure</span>
+                        </div>
+                        <span className="font-semibold" data-testid="count-falla">
+                          {idf.health.counts.falla}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                          <span>Reserved</span>
+                        </div>
+                        <span
+                          className="font-semibold"
+                          data-testid="count-reservado"
+                        >
+                          {idf.health.counts.reservado}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                          <span>Available</span>
+                        </div>
+                        <span className="font-semibold" data-testid="count-libre">
+                          {idf.health.counts.libre}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  <i className="fas fa-project-diagram text-4xl mb-4"></i>
-                  <p>No diagrams available</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {activeTab === "documents" && (
-          <div data-testid="tab-content-documents">
-            <DocList documents={documents} />
-          </div>
-        )}
-
-        {/* Overview tab content - Hidden but kept in code */}
-        {activeTab === "overview" && (
-          <div
-            className="hidden grid grid-cols-1 lg:grid-cols-2 gap-8"
-            data-testid="tab-content-overview"
-          >
-            <div className="bg-card border border-border rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">IDF Details</h3>
-              <dl className="space-y-3">
-                <div>
-                  <dt className="text-sm text-muted-foreground">Code</dt>
-                  <dd className="font-mono" data-testid="detail-code">
-                    {idf.code}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Title</dt>
-                  <dd data-testid="detail-title">{idf.title}</dd>
-                </div>
-                {idf.site && (
-                  <div>
-                    <dt className="text-sm text-muted-foreground">Site</dt>
-                    <dd data-testid="detail-site">{idf.site}</dd>
                   </div>
                 )}
-                {idf.room && (
-                  <div>
-                    <dt className="text-sm text-muted-foreground">Room</dt>
-                    <dd data-testid="detail-room">{idf.room}</dd>
-                  </div>
-                )}
-                {idf.description && (
-                  <div>
-                    <dt className="text-sm text-muted-foreground">
-                      Description
-                    </dt>
-                    <dd
-                      className="text-muted-foreground"
-                      data-testid="detail-description"
-                    >
-                      {idf.description}
-                    </dd>
-                  </div>
-                )}
-              </dl>
-            </div>
-
-            {idf.health && (
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">Health Status</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span>Operational (OK)</span>
-                    </div>
-                    <span className="font-semibold" data-testid="count-ok">
-                      {idf.health.counts.ok}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                      <span>Under Review</span>
-                    </div>
-                    <span
-                      className="font-semibold"
-                      data-testid="count-revision"
-                    >
-                      {idf.health.counts.revision}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <span>Critical Failure</span>
-                    </div>
-                    <span className="font-semibold" data-testid="count-falla">
-                      {idf.health.counts.falla}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <span>Reserved</span>
-                    </div>
-                    <span
-                      className="font-semibold"
-                      data-testid="count-reservado"
-                    >
-                      {idf.health.counts.reservado}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-                      <span>Available</span>
-                    </div>
-                    <span className="font-semibold" data-testid="count-libre">
-                      {idf.health.counts.libre}
-                    </span>
-                  </div>
-                </div>
               </div>
-            )}
+            </TabsContent>
           </div>
-        )}
+        </Tabs>
       </div>
 
       {/* Add IDF Dialog */}
