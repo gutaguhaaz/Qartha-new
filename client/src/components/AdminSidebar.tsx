@@ -105,24 +105,45 @@ export default function AdminSidebar({
   const [uploading, setUploading] = useState(false); // State for handling upload progress
 
   // Mock handlers for upload/delete for each section
-  const handleRemoveGalleryItem = (index: number) => handleDeleteAsset("images", index); // Renamed for clarity
-  const handleUploadLocation = (files: FileList | null) => handleUploadAsset("location", files);
-  const handleRemoveLocationItem = (index: number) => handleDeleteAsset("location", index); // Renamed for clarity
+  const handleRemoveGalleryItem = (index: number) =>
+    handleDeleteAsset("images", index); // Renamed for clarity
+  const handleUploadLocation = (files: FileList | null) =>
+    handleUploadAsset("location", files);
+  const handleRemoveLocationItem = (index: number) =>
+    handleDeleteAsset("location", index); // Renamed for clarity
   const handleUploadDiagrams = async (files: FileList | null) => {
     if (!files || files.length === 0 || !selectedCode) return;
     try {
       const fileArray = Array.from(files);
-      const result = await uploadAssets(selectedCluster, selectedProject, selectedCode, fileArray, "diagrams");
+      const result = await uploadAssets(
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+        fileArray,
+        "diagrams",
+      );
 
       // Invalidate all relevant queries to refresh both admin and public views
       await queryClient.invalidateQueries({
         queryKey: ["admin", "idfs", selectedCluster, selectedProject],
       });
       await queryClient.invalidateQueries({
-        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+        queryKey: [
+          "admin",
+          "idf-detail",
+          selectedCluster,
+          selectedProject,
+          selectedCode,
+        ],
       });
       await queryClient.invalidateQueries({
-        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+        queryKey: [
+          "/api",
+          selectedCluster,
+          selectedProject,
+          "idfs",
+          selectedCode,
+        ],
       });
 
       // Trigger reload in the diagrams tab if it's currently active
@@ -146,17 +167,35 @@ export default function AdminSidebar({
   const handleRemoveDiagramItem = async (index: number) => {
     if (!selectedCode) return;
     try {
-      await deleteAsset(selectedCluster, selectedProject, selectedCode, "diagrams", index);
+      await deleteAsset(
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+        "diagrams",
+        index,
+      );
 
       // Invalidate all relevant queries to refresh both admin and public views
       await queryClient.invalidateQueries({
         queryKey: ["admin", "idfs", selectedCluster, selectedProject],
       });
       await queryClient.invalidateQueries({
-        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+        queryKey: [
+          "admin",
+          "idf-detail",
+          selectedCluster,
+          selectedProject,
+          selectedCode,
+        ],
       });
       await queryClient.invalidateQueries({
-        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+        queryKey: [
+          "/api",
+          selectedCluster,
+          selectedProject,
+          "idfs",
+          selectedCode,
+        ],
       });
 
       toast({ title: "Diagram deleted successfully" });
@@ -176,20 +215,38 @@ export default function AdminSidebar({
     setUploading(true);
     try {
       const filesArray = Array.from(files);
-      const result = await uploadAssets(selectedCluster, selectedProject, selectedCode, filesArray, "documents");
+      const result = await uploadAssets(
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+        filesArray,
+        "documents",
+      );
 
       if (result?.documents) {
         // Use the documents returned by the API which include titles
-        setDocuments(prev => [...prev, ...result.documents]);
+        setDocuments((prev) => [...prev, ...result.documents]);
 
         // Specifically invalidate the current IDF detail query
         await queryClient.invalidateQueries({
-          queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+          queryKey: [
+            "admin",
+            "idf-detail",
+            selectedCluster,
+            selectedProject,
+            selectedCode,
+          ],
         });
 
         // Also invalidate public queries to refresh the documents tab
         await queryClient.invalidateQueries({
-          queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+          queryKey: [
+            "/api",
+            selectedCluster,
+            selectedProject,
+            "idfs",
+            selectedCode,
+          ],
         });
 
         toast({
@@ -212,33 +269,57 @@ export default function AdminSidebar({
     if (!selectedCluster || !selectedProject || !selectedCode) return;
 
     try {
-      await updateDocumentTitle(selectedCluster, selectedProject, selectedCode, index, newTitle);
+      await updateDocumentTitle(
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+        index,
+        newTitle,
+      );
 
       // Update local state immediately
-      setDocuments(prev => prev.map((doc, i) => 
-        i === index ? { ...doc, title: newTitle } : doc
-      ));
+      setDocuments((prev) =>
+        prev.map((doc, i) => (i === index ? { ...doc, title: newTitle } : doc)),
+      );
 
       // Force invalidate ALL related queries immediately
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+          queryKey: [
+            "admin",
+            "idf-detail",
+            selectedCluster,
+            selectedProject,
+            selectedCode,
+          ],
         }),
         queryClient.invalidateQueries({
-          queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+          queryKey: [
+            "/api",
+            selectedCluster,
+            selectedProject,
+            "idfs",
+            selectedCode,
+          ],
         }),
         queryClient.invalidateQueries({
           queryKey: ["admin", "idfs", selectedCluster, selectedProject],
-        })
+        }),
       ]);
 
       // Force refetch fresh data immediately
       setTimeout(async () => {
         try {
           await queryClient.refetchQueries({
-            queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+            queryKey: [
+              "/api",
+              selectedCluster,
+              selectedProject,
+              "idfs",
+              selectedCode,
+            ],
           });
-          
+
           // Trigger reload event after refetch
           window.dispatchEvent(new CustomEvent("reloadDocumentsTab"));
         } catch (e) {
@@ -264,10 +345,16 @@ export default function AdminSidebar({
     if (!selectedCluster || !selectedProject || !selectedCode) return;
 
     try {
-      await deleteAsset(selectedCluster, selectedProject, selectedCode, "documents", index);
+      await deleteAsset(
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+        "documents",
+        index,
+      );
 
       // Update local state
-      setDocuments(prev => prev.filter((_, i) => i !== index));
+      setDocuments((prev) => prev.filter((_, i) => i !== index));
 
       // Invalidate both the general list and specific IDF queries to refresh data
       await queryClient.invalidateQueries({
@@ -275,12 +362,24 @@ export default function AdminSidebar({
       });
 
       await queryClient.invalidateQueries({
-        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+        queryKey: [
+          "admin",
+          "idf-detail",
+          selectedCluster,
+          selectedProject,
+          selectedCode,
+        ],
       });
 
       // Also invalidate public queries to refresh the documents tab
       await queryClient.invalidateQueries({
-        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+        queryKey: [
+          "/api",
+          selectedCluster,
+          selectedProject,
+          "idfs",
+          selectedCode,
+        ],
       });
 
       // Trigger custom reload event for documents tab
@@ -305,10 +404,22 @@ export default function AdminSidebar({
     if (activeTab === "diagrams") {
       // Invalidate queries to refresh data without page reload
       queryClient.invalidateQueries({
-        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+        queryKey: [
+          "admin",
+          "idf-detail",
+          selectedCluster,
+          selectedProject,
+          selectedCode,
+        ],
       });
       queryClient.invalidateQueries({
-        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+        queryKey: [
+          "/api",
+          selectedCluster,
+          selectedProject,
+          "idfs",
+          selectedCode,
+        ],
       });
     }
   };
@@ -397,8 +508,8 @@ export default function AdminSidebar({
 
       // Normalize media arrays to handle both string and object formats
       const normalizeMediaArray = (items: any[]): MediaList => {
-        return (items || []).map(item => {
-          if (typeof item === 'string') {
+        return (items || []).map((item) => {
+          if (typeof item === "string") {
             // Clean up malformed URLs - handle incomplete JSON strings
             let cleanUrl = item;
 
@@ -410,24 +521,24 @@ export default function AdminSidebar({
                 cleanUrl = urlMatch[1];
               } else {
                 // If we can't extract URL, mark as invalid
-                cleanUrl = '/static/invalid-url';
+                cleanUrl = "/static/invalid-url";
               }
             }
 
             // Convert absolute URLs to relative
-            if (cleanUrl.includes('replit.dev/')) {
-              const staticIndex = cleanUrl.indexOf('/static/');
+            if (cleanUrl.includes("replit.dev/")) {
+              const staticIndex = cleanUrl.indexOf("/static/");
               if (staticIndex !== -1) {
                 cleanUrl = cleanUrl.substring(staticIndex);
               }
             }
 
             // Ensure it starts with /static/
-            if (!cleanUrl.startsWith('/static/')) {
-              cleanUrl = `/static/${cleanUrl.replace(/^\/+/, '')}`;
+            if (!cleanUrl.startsWith("/static/")) {
+              cleanUrl = `/static/${cleanUrl.replace(/^\/+/, "")}`;
             }
 
-            return { url: cleanUrl, name: '', kind: 'unknown' };
+            return { url: cleanUrl, name: "", kind: "unknown" };
           }
 
           // Clean up object URLs too
@@ -442,16 +553,16 @@ export default function AdminSidebar({
             }
 
             // Convert absolute URLs to relative
-            if (cleanUrl.includes('replit.dev/')) {
-              const staticIndex = cleanUrl.indexOf('/static/');
+            if (cleanUrl.includes("replit.dev/")) {
+              const staticIndex = cleanUrl.indexOf("/static/");
               if (staticIndex !== -1) {
                 cleanUrl = cleanUrl.substring(staticIndex);
               }
             }
 
             // Ensure it starts with /static/
-            if (!cleanUrl.startsWith('/static/')) {
-              cleanUrl = `/static/${cleanUrl.replace(/^\/+/, '')}`;
+            if (!cleanUrl.startsWith("/static/")) {
+              cleanUrl = `/static/${cleanUrl.replace(/^\/+/, "")}`;
             }
 
             item.url = cleanUrl;
@@ -467,17 +578,21 @@ export default function AdminSidebar({
 
       // Handle location as MediaItem object or string
       if (idf.location) {
-        if (typeof idf.location === 'object' && idf.location.url) {
+        if (typeof idf.location === "object" && idf.location.url) {
           // Location is already a MediaItem object
           setLocationItems([idf.location]);
-        } else if (typeof idf.location === 'string') {
+        } else if (typeof idf.location === "string") {
           // Location is a string path
-          const cleanUrl = idf.location.startsWith('/static/') ? idf.location : `/static/${idf.location}`;
-          setLocationItems([{
-            url: cleanUrl,
-            name: 'Location Image',
-            kind: 'image'
-          }]);
+          const cleanUrl = idf.location.startsWith("/static/")
+            ? idf.location
+            : `/static/${idf.location}`;
+          setLocationItems([
+            {
+              url: cleanUrl,
+              name: "Location Image",
+              kind: "image",
+            },
+          ]);
         } else {
           setLocationItems([]);
         }
@@ -487,11 +602,15 @@ export default function AdminSidebar({
 
       // Handle DFO data properly, ensuring names are preserved
       const dfoData = idf.dfo ?? [];
-      const normalizedDfo = Array.isArray(dfoData) ? dfoData.map(item => {
-        if (typeof item === 'string') return { url: item, name: 'DFO', kind: 'diagram' };
-        if (typeof item === 'object' && item.url) return { ...item, name: item.name || 'DFO' };
-        return { url: '', name: 'DFO', kind: 'diagram' };
-      }) : [];
+      const normalizedDfo = Array.isArray(dfoData)
+        ? dfoData.map((item) => {
+            if (typeof item === "string")
+              return { url: item, name: "DFO", kind: "diagram" };
+            if (typeof item === "object" && item.url)
+              return { ...item, name: item.name || "DFO" };
+            return { url: "", name: "DFO", kind: "diagram" };
+          })
+        : [];
       setDfo(normalizedDfo);
       setTableData(idf.table ?? null);
       setLogoPreview(idf.media?.logo?.url ?? null);
@@ -562,10 +681,22 @@ export default function AdminSidebar({
           queryKey: ["admin", "idfs", selectedCluster, selectedProject],
         });
         await queryClient.invalidateQueries({
-          queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+          queryKey: [
+            "admin",
+            "idf-detail",
+            selectedCluster,
+            selectedProject,
+            selectedCode,
+          ],
         });
         await queryClient.invalidateQueries({
-          queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+          queryKey: [
+            "/api",
+            selectedCluster,
+            selectedProject,
+            "idfs",
+            selectedCode,
+          ],
         });
 
         toast({
@@ -619,10 +750,22 @@ export default function AdminSidebar({
           queryKey: ["admin", "idfs", selectedCluster, selectedProject],
         });
         await queryClient.invalidateQueries({
-          queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+          queryKey: [
+            "admin",
+            "idf-detail",
+            selectedCluster,
+            selectedProject,
+            selectedCode,
+          ],
         });
         await queryClient.invalidateQueries({
-          queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+          queryKey: [
+            "/api",
+            selectedCluster,
+            selectedProject,
+            "idfs",
+            selectedCode,
+          ],
         });
         toast({ title: "Location image removed successfully" });
       } else {
@@ -654,23 +797,32 @@ export default function AdminSidebar({
       console.error("Logo upload error:", error);
       toast({
         title: "Upload failed",
-        description: error instanceof Error ? error.message : "Could not upload logo",
+        description:
+          error instanceof Error ? error.message : "Could not upload logo",
         variant: "destructive",
       });
     }
   };
 
   const handleUploadDfo = async (files: FileList | null) => {
-    if (!files || files.length === 0 || !selectedCluster || !selectedProject || !selectedCode) return;
+    if (
+      !files ||
+      files.length === 0 ||
+      !selectedCluster ||
+      !selectedProject ||
+      !selectedCode
+    )
+      return;
 
     try {
       setUploading(true);
-      const result = await uploadAsset( // Changed from uploadAssets to uploadAsset
+      const result = await uploadAsset(
+        // Changed from uploadAssets to uploadAsset
         selectedCluster,
         selectedProject,
         selectedCode,
         files[0], // Assuming uploadAsset handles single file, adjust if it takes array
-        "dfo"
+        "dfo",
       );
 
       if (result) {
@@ -681,12 +833,24 @@ export default function AdminSidebar({
 
         // Specifically invalidate the current IDF detail query
         await queryClient.invalidateQueries({
-          queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+          queryKey: [
+            "admin",
+            "idf-detail",
+            selectedCluster,
+            selectedProject,
+            selectedCode,
+          ],
         });
 
         // Also invalidate public queries to refresh the DFO tab
         await queryClient.invalidateQueries({
-          queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+          queryKey: [
+            "/api",
+            selectedCluster,
+            selectedProject,
+            "idfs",
+            selectedCode,
+          ],
         });
 
         toast({
@@ -710,10 +874,16 @@ export default function AdminSidebar({
     if (!selectedCluster || !selectedProject || !selectedCode) return;
 
     try {
-      await deleteAsset(selectedCluster, selectedProject, selectedCode, "dfo", index);
+      await deleteAsset(
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+        "dfo",
+        index,
+      );
 
       // Update local state
-      setDfo(prev => prev.filter((_, i) => i !== index));
+      setDfo((prev) => prev.filter((_, i) => i !== index));
 
       // Invalidate both the general list and specific IDF queries to refresh data
       await queryClient.invalidateQueries({
@@ -722,17 +892,30 @@ export default function AdminSidebar({
 
       // Specifically invalidate the current IDF detail query
       await queryClient.invalidateQueries({
-        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+        queryKey: [
+          "admin",
+          "idf-detail",
+          selectedCluster,
+          selectedProject,
+          selectedCode,
+        ],
       });
 
       // Also invalidate public queries to refresh the DFO tab
       await queryClient.invalidateQueries({
-        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+        queryKey: [
+          "/api",
+          selectedCluster,
+          selectedProject,
+          "idfs",
+          selectedCode,
+        ],
       });
 
       toast({
         title: "DFO item removed",
-        description: "File has been deleted successfully. The diagram will update automatically.",
+        description:
+          "File has been deleted successfully. The diagram will update automatically.",
       });
     } catch (error) {
       console.error("Error removing DFO item:", error);
@@ -747,7 +930,13 @@ export default function AdminSidebar({
   const handleDeleteDfo = async (index: number) => {
     if (!selectedCode) return;
     try {
-      await deleteAsset(selectedCluster, selectedProject, selectedCode, "dfo", index);
+      await deleteAsset(
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+        "dfo",
+        index,
+      );
       toast({ title: "DFO deleted successfully" });
       refreshSelectedIdf();
     } catch (error) {
@@ -764,17 +953,35 @@ export default function AdminSidebar({
     if (!files || !selectedCode) return;
     try {
       const fileArray = Array.from(files);
-      await uploadAssets(selectedCluster, selectedProject, selectedCode, fileArray, "images");
+      await uploadAssets(
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+        fileArray,
+        "images",
+      );
 
       // Invalidate all relevant queries to refresh both admin and public views
       await queryClient.invalidateQueries({
         queryKey: ["admin", "idfs", selectedCluster, selectedProject],
       });
       await queryClient.invalidateQueries({
-        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+        queryKey: [
+          "admin",
+          "idf-detail",
+          selectedCluster,
+          selectedProject,
+          selectedCode,
+        ],
       });
       await queryClient.invalidateQueries({
-        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+        queryKey: [
+          "/api",
+          selectedCluster,
+          selectedProject,
+          "idfs",
+          selectedCode,
+        ],
       });
 
       toast({
@@ -794,17 +1001,35 @@ export default function AdminSidebar({
   const handleDeleteGalleryImage = async (index: number) => {
     if (!selectedCode) return;
     try {
-      await deleteAsset(selectedCluster, selectedProject, selectedCode, "images", index);
+      await deleteAsset(
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+        "images",
+        index,
+      );
 
       // Invalidate all relevant queries to refresh both admin and public views
       await queryClient.invalidateQueries({
         queryKey: ["admin", "idfs", selectedCluster, selectedProject],
       });
       await queryClient.invalidateQueries({
-        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+        queryKey: [
+          "admin",
+          "idf-detail",
+          selectedCluster,
+          selectedProject,
+          selectedCode,
+        ],
       });
       await queryClient.invalidateQueries({
-        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+        queryKey: [
+          "/api",
+          selectedCluster,
+          selectedProject,
+          "idfs",
+          selectedCode,
+        ],
       });
 
       toast({ title: "Image deleted successfully" });
@@ -1045,12 +1270,16 @@ export default function AdminSidebar({
                             type="file"
                             accept="image/*,application/pdf"
                             multiple
-                            onChange={(event) => handleUploadDfo(event.target.files)}
+                            onChange={(event) =>
+                              handleUploadDfo(event.target.files)
+                            }
                           />
                         </div>
                         <div className="grid grid-cols-1 gap-3">
                           {dfo.map((item, index) => {
-                            const isImage = item.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                            const isImage = item.url?.match(
+                              /\.(jpg|jpeg|png|gif|webp)$/i,
+                            );
                             const isPdf = item.url?.match(/\.pdf$/i);
 
                             return (
@@ -1065,9 +1294,11 @@ export default function AdminSidebar({
                                       alt={item.name || `DFO ${index + 1}`}
                                       className="w-16 h-16 object-cover rounded border border-border"
                                       onError={(e) => {
-                                        const target = e.target as HTMLImageElement;
-                                        target.style.display = 'none';
-                                        target.nextElementSibling!.style.display = 'flex';
+                                        const target =
+                                          e.target as HTMLImageElement;
+                                        target.style.display = "none";
+                                        target.nextElementSibling!.style.display =
+                                          "flex";
                                       }}
                                     />
                                   ) : (
@@ -1083,9 +1314,15 @@ export default function AdminSidebar({
                                 <div className="flex-1 space-y-2">
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-2">
-                                      {isImage && <i className="fas fa-image text-blue-500"></i>}
-                                      {isPdf && <i className="fas fa-file-pdf text-red-500"></i>}
-                                      <span className="text-sm font-medium">DFO {index + 1}</span>
+                                      {isImage && (
+                                        <i className="fas fa-image text-blue-500"></i>
+                                      )}
+                                      {isPdf && (
+                                        <i className="fas fa-file-pdf text-red-500"></i>
+                                      )}
+                                      <span className="text-sm font-medium">
+                                        DFO {index + 1}
+                                      </span>
                                     </div>
                                     <Button
                                       variant="ghost"
@@ -1095,7 +1332,6 @@ export default function AdminSidebar({
                                       Remove
                                     </Button>
                                   </div>
-
                                 </div>
                               </div>
                             );
@@ -1133,13 +1369,14 @@ export default function AdminSidebar({
                               className="flex items-center space-x-3 p-3 border rounded-lg"
                             >
                               <img
-                                src={typeof item === 'string' ? item : item.url}
+                                src={typeof item === "string" ? item : item.url}
                                 alt={`Gallery ${index + 1}`}
                                 className="w-16 h-16 object-cover rounded"
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement;
-                                  target.style.display = 'none';
-                                  target.nextElementSibling!.style.display = 'flex';
+                                  target.style.display = "none";
+                                  target.nextElementSibling!.style.display =
+                                    "flex";
                                 }}
                               />
                               <div className="hidden w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
@@ -1147,11 +1384,15 @@ export default function AdminSidebar({
                               </div>
                               <div className="flex-1 space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-sm font-medium">Gallery Image {index + 1}</span>
+                                  <span className="text-sm font-medium">
+                                    Gallery Image {index + 1}
+                                  </span>
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleRemoveGalleryItem(index)}
+                                    onClick={() =>
+                                      handleRemoveGalleryItem(index)
+                                    }
                                   >
                                     Remove
                                   </Button>
@@ -1174,7 +1415,9 @@ export default function AdminSidebar({
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div>
-                          <Label htmlFor="location-upload">Upload location image</Label>
+                          <Label htmlFor="location-upload">
+                            Upload location image
+                          </Label>
                           <Input
                             id="location-upload"
                             type="file"
@@ -1193,12 +1436,15 @@ export default function AdminSidebar({
                               <div className="flex-shrink-0">
                                 <img
                                   src={item.url}
-                                  alt={item.name || `Location image ${index + 1}`}
+                                  alt={
+                                    item.name || `Location image ${index + 1}`
+                                  }
                                   className="w-16 h-16 object-cover rounded border border-border"
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                    target.nextElementSibling!.style.display = 'flex';
+                                    target.style.display = "none";
+                                    target.nextElementSibling!.style.display =
+                                      "flex";
                                   }}
                                 />
                                 <div className="hidden w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
@@ -1208,23 +1454,37 @@ export default function AdminSidebar({
 
                               <div className="flex-1 space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-sm font-medium">Location Image {index + 1}</span>
+                                  <span className="text-sm font-medium">
+                                    Location Image {index + 1}
+                                  </span>
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleRemoveLocationItem(index)}
+                                    onClick={() =>
+                                      handleRemoveLocationItem(index)
+                                    }
                                   >
                                     Remove
                                   </Button>
                                 </div>
                                 <div>
-                                  <Label htmlFor={`location-name-${index}`} className="text-xs">Display Name</Label>
+                                  <Label
+                                    htmlFor={`location-name-${index}`}
+                                    className="text-xs"
+                                  >
+                                    Display Name
+                                  </Label>
                                   <Input
                                     id={`location-name-${index}`}
-                                    value={item.name || ''}
+                                    value={item.name || ""}
                                     onChange={(e) => {
-                                      const newLocationItems = [...locationItems];
-                                      newLocationItems[index] = { ...item, name: e.target.value };
+                                      const newLocationItems = [
+                                        ...locationItems,
+                                      ];
+                                      newLocationItems[index] = {
+                                        ...item,
+                                        name: e.target.value,
+                                      };
                                       setLocationItems(newLocationItems);
                                     }}
                                     placeholder="Enter location name"
@@ -1262,7 +1522,9 @@ export default function AdminSidebar({
                         </div>
                         <div className="grid grid-cols-1 gap-3">
                           {diagrams.map((item, index) => {
-                            const isImage = item.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                            const isImage = item.url?.match(
+                              /\.(jpg|jpeg|png|gif|webp)$/i,
+                            );
                             const isPdf = item.url?.match(/\.pdf$/i);
 
                             return (
@@ -1277,9 +1539,11 @@ export default function AdminSidebar({
                                       alt={item.name || `Diagram ${index + 1}`}
                                       className="w-16 h-16 object-cover rounded border border-border"
                                       onError={(e) => {
-                                        const target = e.target as HTMLImageElement;
-                                        target.style.display = 'none';
-                                        target.nextElementSibling!.style.display = 'flex';
+                                        const target =
+                                          e.target as HTMLImageElement;
+                                        target.style.display = "none";
+                                        target.nextElementSibling!.style.display =
+                                          "flex";
                                       }}
                                     />
                                   ) : (
@@ -1295,14 +1559,22 @@ export default function AdminSidebar({
                                 <div className="flex-1 space-y-2">
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-2">
-                                      {isImage && <i className="fas fa-image text-blue-500"></i>}
-                                      {isPdf && <i className="fas fa-file-pdf text-red-500"></i>}
-                                      <span className="text-sm font-medium">Diagram {index + 1}</span>
+                                      {isImage && (
+                                        <i className="fas fa-image text-blue-500"></i>
+                                      )}
+                                      {isPdf && (
+                                        <i className="fas fa-file-pdf text-red-500"></i>
+                                      )}
+                                      <span className="text-sm font-medium">
+                                        Diagram {index + 1}
+                                      </span>
                                     </div>
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => handleRemoveDiagramItem(index)}
+                                      onClick={() =>
+                                        handleRemoveDiagramItem(index)
+                                      }
                                     >
                                       Remove
                                     </Button>
@@ -1321,12 +1593,8 @@ export default function AdminSidebar({
                       title="Documents"
                       description="Upload related documentation"
                       items={documents}
-                      onUpload={(files) =>
-                        handleUploadDocuments(files)
-                      }
-                      onDelete={(index) =>
-                        handleRemoveDocumentItem(index)
-                      }
+                      onUpload={(files) => handleUploadDocuments(files)}
+                      onDelete={(index) => handleRemoveDocumentItem(index)}
                       onUpdateTitle={(index, title) =>
                         handleUpdateDocumentTitle(index, title)
                       }
@@ -1426,9 +1694,9 @@ function AssetSection({
                           value={editingTitle}
                           onChange={(e) => setEditingTitle(e.target.value)}
                           onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
+                            if (e.key === "Enter") {
                               handleSaveTitle(index);
-                            } else if (e.key === 'Escape') {
+                            } else if (e.key === "Escape") {
                               handleCancelEditing();
                             }
                           }}
@@ -1457,13 +1725,22 @@ function AssetSection({
                       <>
                         <div className="flex items-center space-x-2">
                           <span className="font-semibold text-base truncate">
-                            {item.title && item.title !== "undefined" ? item.title : `Document ${index + 1}`}
+                            {item.title && item.title !== "undefined"
+                              ? item.title
+                              : `Sw ports ${index + 1}`}
                           </span>
                           {allowTitleEdit && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleStartEditing(index, item.title && item.title !== "undefined" ? item.title : "")}
+                              onClick={() =>
+                                handleStartEditing(
+                                  index,
+                                  item.title && item.title !== "undefined"
+                                    ? item.title
+                                    : "",
+                                )
+                              }
                               className="h-6 px-2 text-xs opacity-60 hover:opacity-100"
                             >
                               Edit
@@ -1471,7 +1748,9 @@ function AssetSection({
                           )}
                         </div>
                         <span className="text-sm text-muted-foreground truncate">
-                          {item.name || item.url?.split('/').pop() || 'document'}
+                          {item.name ||
+                            item.url?.split("/").pop() ||
+                            "document"}
                         </span>
                       </>
                     )}
