@@ -1,7 +1,6 @@
-
-import { useState, useRef, useCallback } from 'react';
-import { MediaItem } from '@shared/schema';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useState, useRef, useCallback } from "react";
+import { MediaItem } from "@shared/schema";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LocationViewerProps {
   location?: MediaItem | null;
@@ -17,29 +16,38 @@ export default function LocationViewer({ location }: LocationViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY * -0.01;
-    const newScale = Math.min(Math.max(scale + delta, 0.5), 5);
-    setScale(newScale);
-  }, [scale]);
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY * -0.01;
+      const newScale = Math.min(Math.max(scale + delta, 0.5), 5);
+      setScale(newScale);
+    },
+    [scale],
+  );
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
-    });
-  }, [position]);
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y,
+      });
+    },
+    [position],
+  );
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging) return;
-    
-    setPosition({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
-    });
-  }, [isDragging, dragStart]);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isDragging) return;
+
+      setPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    },
+    [isDragging, dragStart],
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -51,60 +59,72 @@ export default function LocationViewer({ location }: LocationViewerProps) {
   }, []);
 
   // Touch event handlers for mobile - without preventDefault
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 1) {
-      const touch = e.touches[0];
-      setIsDragging(true);
-      setDragStart({
-        x: touch.clientX - position.x,
-        y: touch.clientY - position.y
-      });
-    }
-  }, [position]);
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        setIsDragging(true);
+        setDragStart({
+          x: touch.clientX - position.x,
+          y: touch.clientY - position.y,
+        });
+      }
+    },
+    [position],
+  );
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || e.touches.length !== 1) return;
-    
-    const touch = e.touches[0];
-    setPosition({
-      x: touch.clientX - dragStart.x,
-      y: touch.clientY - dragStart.y
-    });
-  }, [isDragging, dragStart]);
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isDragging || e.touches.length !== 1) return;
+
+      const touch = e.touches[0];
+      setPosition({
+        x: touch.clientX - dragStart.x,
+        y: touch.clientY - dragStart.y,
+      });
+    },
+    [isDragging, dragStart],
+  );
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     setIsDragging(false);
   }, []);
 
   // Pinch to zoom for mobile - without preventDefault
-  const handleTouchStartPinch = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
-      const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) +
-        Math.pow(touch2.clientY - touch1.clientY, 2)
-      );
-      setDragStart({ x: distance, y: scale });
-    }
-  }, [scale]);
+  const handleTouchStartPinch = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 2) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const distance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+            Math.pow(touch2.clientY - touch1.clientY, 2),
+        );
+        setDragStart({ x: distance, y: scale });
+      }
+    },
+    [scale],
+  );
 
-  const handleTouchMovePinch = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
-      const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) +
-        Math.pow(touch2.clientY - touch1.clientY, 2)
-      );
-      const ratio = distance / dragStart.x;
-      const newScale = Math.min(Math.max(dragStart.y * ratio, 0.5), 5);
-      setScale(newScale);
-    }
-  }, [dragStart]);
+  const handleTouchMovePinch = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 2) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const distance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+            Math.pow(touch2.clientY - touch1.clientY, 2),
+        );
+        const ratio = distance / dragStart.x;
+        const newScale = Math.min(Math.max(dragStart.y * ratio, 0.5), 5);
+        setScale(newScale);
+      }
+    },
+    [dragStart],
+  );
 
-  const zoomIn = () => setScale(prev => Math.min(prev + 0.25, 5));
-  const zoomOut = () => setScale(prev => Math.max(prev - 0.25, 0.5));
+  const zoomIn = () => setScale((prev) => Math.min(prev + 0.25, 5));
+  const zoomOut = () => setScale((prev) => Math.max(prev - 0.25, 0.5));
   const resetView = () => {
     setScale(1);
     setPosition({ x: 0, y: 0 });
@@ -140,14 +160,20 @@ export default function LocationViewer({ location }: LocationViewerProps) {
       setIsFullscreen(!!document.fullscreenElement);
     };
 
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('msfullscreenchange', handleFullscreenChange);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("msfullscreenchange", handleFullscreenChange);
 
     return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener(
+        "webkitfullscreenchange",
+        handleFullscreenChange,
+      );
+      document.removeEventListener(
+        "msfullscreenchange",
+        handleFullscreenChange,
+      );
     };
   }, []);
 
@@ -161,16 +187,18 @@ export default function LocationViewer({ location }: LocationViewerProps) {
   }
 
   return (
-    <div 
+    <div
       ref={containerRef}
-      className={`bg-card border border-border rounded-lg overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''}`}
+      className={`bg-card border border-border rounded-lg overflow-hidden ${isFullscreen ? "fixed inset-0 z-50 rounded-none" : ""}`}
     >
       {/* Controls */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium">Location Image</span>
+          <span className="text-sm font-medium">Location:</span>
           {location.name && (
-            <span className="text-sm text-muted-foreground">• {location.name}</span>
+            <span className="text-sm text-muted-foreground">
+              • {location.name}
+            </span>
           )}
         </div>
         <div className="flex items-center space-x-2">
@@ -205,17 +233,19 @@ export default function LocationViewer({ location }: LocationViewerProps) {
             className="p-2 rounded-md bg-background border border-border hover:bg-accent transition-colors"
             title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
           >
-            <i className={`fas ${isFullscreen ? 'fa-compress' : 'fa-expand'} text-sm`}></i>
+            <i
+              className={`fas ${isFullscreen ? "fa-compress" : "fa-expand"} text-sm`}
+            ></i>
           </button>
         </div>
       </div>
 
       {/* Image Container */}
-      <div 
+      <div
         className="relative overflow-hidden bg-background"
-        style={{ 
-          height: isFullscreen ? 'calc(100vh - 120px)' : '500px',
-          touchAction: isMobile ? 'none' : 'auto'
+        style={{
+          height: isFullscreen ? "calc(100vh - 120px)" : "500px",
+          touchAction: isMobile ? "none" : "auto",
         }}
         onWheel={handleWheel}
         onMouseDown={!isMobile ? handleMouseDown : undefined}
@@ -223,24 +253,32 @@ export default function LocationViewer({ location }: LocationViewerProps) {
         onMouseUp={!isMobile ? handleMouseUp : undefined}
         onMouseLeave={!isMobile ? handleMouseUp : undefined}
         onDoubleClick={handleDoubleClick}
-        onTouchStart={isMobile ? (e) => {
-          handleTouchStart(e);
-          handleTouchStartPinch(e);
-        } : undefined}
-        onTouchMove={isMobile ? (e) => {
-          handleTouchMove(e);
-          handleTouchMovePinch(e);
-        } : undefined}
+        onTouchStart={
+          isMobile
+            ? (e) => {
+                handleTouchStart(e);
+                handleTouchStartPinch(e);
+              }
+            : undefined
+        }
+        onTouchMove={
+          isMobile
+            ? (e) => {
+                handleTouchMove(e);
+                handleTouchMovePinch(e);
+              }
+            : undefined
+        }
         onTouchEnd={isMobile ? handleTouchEnd : undefined}
       >
         <img
           ref={imageRef}
           src={location.url}
-          alt={location.name || 'Location image'}
+          alt={location.name || "Location image"}
           className="absolute top-1/2 left-1/2 max-w-none transition-transform duration-200"
           style={{
             transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px)) scale(${scale})`,
-            cursor: isDragging ? 'grabbing' : 'grab'
+            cursor: isDragging ? "grabbing" : "grab",
           }}
           draggable={false}
           onError={(e) => {
@@ -261,10 +299,9 @@ export default function LocationViewer({ location }: LocationViewerProps) {
       <div className="p-3 bg-muted/20 border-t border-border">
         <p className="text-xs text-muted-foreground text-center">
           <i className="fas fa-info-circle mr-1"></i>
-          {isMobile 
+          {isMobile
             ? "Pinch to zoom • Touch and drag to pan • Double-tap to reset view"
-            : "Use mouse wheel to zoom • Click and drag to pan • Double-click to reset view"
-          }
+            : "Use mouse wheel to zoom • Click and drag to pan • Double-click to reset view"}
         </p>
       </div>
     </div>
