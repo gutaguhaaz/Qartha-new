@@ -253,22 +253,16 @@ async def update_idf(
     if not logo_value and current_idf and current_idf["logo"]:
         logo_value = current_idf["logo"]
 
+    # Prepare values using existing serialization functions
+    values = _prepare_common_values(idf_data)
+    values["logo"] = logo_value
+
     # Update IDF data
     params = {
-        "title": idf_data.title,
-        "description": idf_data.description,
-        "site": idf_data.site,
-        "room": idf_data.room,
-        "images": json.dumps(idf_data.images),
-        "documents": json.dumps(idf_data.documents),
-        "diagrams": json.dumps(idf_data.diagrams),
-        "location": json.dumps(idf_data.location) if idf_data.location else None,
-        "dfo": json.dumps(idf_data.dfo),
-        "logo": logo_value,
-        "table": json.dumps(idf_data.table.model_dump()) if idf_data.table else None,
         "cluster": cluster,
         "project": db_project,
         "code": code,
+        **values,
     }
 
     query = """
