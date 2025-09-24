@@ -3,8 +3,8 @@ from fastapi.security import HTTPBearer
 from typing import Optional
 from datetime import timedelta
 import json
-from app.models.user_models import UserLogin, UserPublic, TokenPayload
-from app.core.security import verify_password, create_access_token, decode_access_token
+from app.models.user_models import UserLogin, UserPublic, TokenPayload, UserCreate
+from app.core.security import verify_password, create_access_token, decode_access_token, hash_password
 from app.db.database import database
 from app.core.config import settings
 
@@ -118,3 +118,45 @@ async def logout(response: Response):
 async def get_me(current_user: dict = Depends(get_current_user)):
     """Get current user information"""
     return UserPublic(**current_user)
+
+
+@router.post("/auth/register", response_model=UserPublic)
+async def register_user(
+    user_data: UserCreate, 
+    current_admin: dict = Depends(get_current_admin)
+):
+    """Register a new user (admin only)"""
+    # Check if user already exists
+    existing_user = await database.fetch_one(
+        "SELECT id FROM users WHERE email = :email",
+        {"email": user_data.email}
+    )
+    
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Hash password
+    password_hash = hash_password(user_data.password)
+    
+    # Create user
+    user_id = await database.fetch_val(
+        """
+        INSERT INTO users (email, password_hash, full_name, role, is_active, created_at, updated_at)
+        VALUES (:email, :password_hash, :full_name, :role, true, NOW(), NOW())
+        RETURNING id
+        """,
+        {
+            "email": user_data.email,
+            "password_hash": password_hash,
+            "full_name": user_data.full_name,
+            "role": user_data.role
+        }
+    )
+    
+    # Fetch the created user
+    new_user = await database.fetch_one(
+        "SELECT id, email, full_name, role, is_active, created_at, last_login_at FROM users WHERE id = :id",
+        {"id": user_id}
+    )
+    
+    return UserPublic(**dict(new_user))
