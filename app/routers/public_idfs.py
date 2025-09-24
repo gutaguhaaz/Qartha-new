@@ -376,7 +376,8 @@ async def get_idf(
             print(f"Processed string document: {doc_item}")
             processed_documents.append(doc_item)
 
-    return IdfPublic(</old_str></old_str>
+    return IdfPublic(
+        cluster=idf_dict["cluster"],</old_str></old_str>
 
     return IdfPublic(
         cluster=idf_dict["cluster"],
@@ -387,7 +388,14 @@ async def get_idf(
         site=idf_dict.get("site", ""),
         room=idf_dict.get("room", ""),
         images=convert_relative_to_absolute(parse_asset_field(idf_dict.get("images", []))),
-        documents=processed_documents,</old_str>
+        documents=processed_documents,
+        diagrams=convert_relative_to_absolute(parse_asset_field(idf_dict.get("diagrams", []))),
+        location=location_item.url if location_item else None,
+        dfo=convert_relative_to_absolute(parse_asset_field(idf_dict.get("dfo", []))),
+        logo=convert_relative_to_absolute(parse_asset_field(idf_dict.get("logo")), single_value=True) if idf_dict.get("logo") else None,
+        table=table_data,
+        health=health
+    )</old_str>
         diagrams=convert_relative_to_absolute(parse_asset_field(idf_dict.get("diagrams", []))),
         location=location_item.url if location_item else None,
         dfo=convert_relative_to_absolute(parse_asset_field(idf_dict.get("dfo", []))),
