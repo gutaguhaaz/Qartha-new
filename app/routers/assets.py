@@ -233,7 +233,7 @@ async def upload_dfo(
 
         relative_path = await _write_upload(file, file_path)
 
-        # Generate correct relative URL format
+        # Generate clean relative URL without absolute domain
         uploaded_files.append({
             "url": f"/static/{cluster}/{folder_project}/{code}/dfo/{filename}",
             "name": file.filename or filename,

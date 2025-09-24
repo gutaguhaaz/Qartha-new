@@ -56,20 +56,32 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
 
     let url = typeof currentItem === 'string' ? currentItem : currentItem.url;
 
-    // Handle malformed URLs that contain nested data structures
-    if (url.includes("replit.dev") && url.includes("/static/{'url':")) {
+    // Handle deeply nested malformed URLs with replit domain and nested objects
+    if (url.includes("replit.dev") && url.includes("//static/{'url':")) {
+      // Extract the clean path from deeply nested malformed URL
+      const match = url.match(/'\/static\/([^']+)'/);
+      if (match) {
+        url = `/static/${match[1]}`;
+      }
+    }
+    // Handle URLs that contain nested data structures
+    else if (url.includes("/static/{'url':")) {
       // Extract the clean path from malformed URL
       const match = url.match(/\/static\/([^\/]+\/[^\/]+\/[^\/]+\/dfo\/[^'"\s}]+)/);
       if (match) {
         url = `/static/${match[1]}`;
       }
-    } else if (url.includes("{'url':")) {
+    } 
+    // Handle other malformed formats with nested objects
+    else if (url.includes("{'url':")) {
       // Handle other malformed formats
       const match = url.match(/['"](\/static\/[^'"]+)['"]/);
       if (match) {
         url = match[1];
       }
-    } else if (url.includes('replit.dev/')) {
+    } 
+    // Handle absolute URLs with replit domain
+    else if (url.includes('replit.dev/')) {
       // Remove absolute URL domain if present
       const staticIndex = url.indexOf('/static/');
       if (staticIndex !== -1) {
@@ -78,7 +90,7 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
     }
 
     // Clean up any remaining malformed parts
-    if (url.startsWith('/static/{')) {
+    if (url.startsWith('/static/{') || url.includes('//static/')) {
       // If URL starts with malformed data, return empty to trigger error handling
       return '';
     }
@@ -89,7 +101,7 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
     }
 
     // Remove any trailing malformed data
-    url = url.split("'")[0].split('"')[0].split('}')[0];
+    url = url.split("'")[0].split('"')[0].split('}')[0].split(',')[0];
 
     return url;
   })();
