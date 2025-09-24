@@ -463,6 +463,53 @@ async def delete_image(
     return {"message": "Image deleted", "path": removed_path}
 
 
+@router.patch("/{cluster}/{project}/assets/{code}/documents/{index}/title")
+async def update_document_title(
+    title: str,
+    cluster: str = Depends(validate_cluster),
+    project: str = "",
+    code: str = "",
+    index: int = 0,
+    _admin: dict = Depends(get_current_admin),
+):
+    """Update only the title of a specific document without affecting other properties"""
+    db_project = map_url_project_to_db_project(project)
+    idf = await _get_idf(cluster, db_project, code)
+    documents = idf.get("documents") or []
+
+    # Handle case where documents might be stored as JSON string
+    if isinstance(documents, str):
+        try:
+            documents = json.loads(documents)
+        except json.JSONDecodeError:
+            documents = []
+    elif documents is None:
+        documents = []
+
+    if index < 0 or index >= len(documents):
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    # Update only the title, preserving all other properties
+    if isinstance(documents[index], dict):
+        documents[index]["title"] = title
+    else:
+        # Convert string format to object format with title
+        documents[index] = {
+            "url": documents[index],
+            "name": documents[index].split("/")[-1] if "/" in documents[index] else documents[index],
+            "title": title,
+            "kind": "document"
+        }
+
+    # Update only the documents field in database
+    await database.execute(
+        "UPDATE idfs SET documents = :documents WHERE cluster = :cluster AND project = :project AND code = :code",
+        {"documents": json.dumps(documents), "cluster": cluster, "project": db_project, "code": code},
+    )
+
+    return {"message": "Document title updated", "title": title, "index": index}
+
+
 @router.delete("/{cluster}/{project}/assets/{code}/documents/{index}")
 async def delete_document(
     cluster: str = Depends(validate_cluster),

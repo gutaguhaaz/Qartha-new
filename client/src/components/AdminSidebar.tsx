@@ -36,6 +36,7 @@ import {
   getIdf,
   getIdfs,
   updateIdf,
+  updateDocumentTitle,
   uploadAsset,
   uploadIdfLogo,
   uploadAssets,
@@ -207,6 +208,43 @@ export default function AdminSidebar({
       setUploading(false);
     }
   };
+  const handleUpdateDocumentTitle = async (index: number, newTitle: string) => {
+    if (!selectedCluster || !selectedProject || !selectedCode) return;
+
+    try {
+      await updateDocumentTitle(selectedCluster, selectedProject, selectedCode, index, newTitle);
+
+      // Update local state
+      setDocuments(prev => prev.map((doc, i) => 
+        i === index ? { ...doc, title: newTitle } : doc
+      ));
+
+      // Invalidate queries to refresh data
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+      });
+
+      // Trigger custom reload event for documents tab
+      window.dispatchEvent(new CustomEvent("reloadDocumentsTab"));
+
+      toast({
+        title: "Document title updated",
+        description: "Title has been updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating document title:", error);
+      toast({
+        title: "Update failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleRemoveDocumentItem = async (index: number) => {
     if (!selectedCluster || !selectedProject || !selectedCode) return;
 
@@ -1274,7 +1312,11 @@ export default function AdminSidebar({
                       onDelete={(index) =>
                         handleRemoveDocumentItem(index)
                       }
+                      onUpdateTitle={(index, title) =>
+                        handleUpdateDocumentTitle(index, title)
+                      }
                       accept=".pdf,.doc,.docx,.xls,.xlsx"
+                      allowTitleEdit={true}
                     />
                   </TabsContent>
                 </Tabs>
@@ -1297,7 +1339,9 @@ interface AssetSectionProps {
   items: MediaItem[];
   onUpload: (files: FileList | null) => void;
   onDelete: (index: number) => void;
+  onUpdateTitle?: (index: number, title: string) => void;
   accept: string;
+  allowTitleEdit?: boolean;
 }
 
 function AssetSection({
@@ -1306,8 +1350,31 @@ function AssetSection({
   items,
   onUpload,
   onDelete,
+  onUpdateTitle,
   accept,
+  allowTitleEdit = false,
 }: AssetSectionProps) {
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+
+  const handleStartEditing = (index: number, currentTitle: string) => {
+    setEditingIndex(index);
+    setEditingTitle(currentTitle || "");
+  };
+
+  const handleSaveTitle = async (index: number) => {
+    if (onUpdateTitle && editingTitle.trim()) {
+      await onUpdateTitle(index, editingTitle.trim());
+    }
+    setEditingIndex(null);
+    setEditingTitle("");
+  };
+
+  const handleCancelEditing = () => {
+    setEditingIndex(null);
+    setEditingTitle("");
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -1331,26 +1398,80 @@ function AssetSection({
                 key={`${item.url}-${index}`}
                 className="flex items-center justify-between rounded border border-border px-3 py-2 text-sm"
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 flex-1">
                   {item.kind === "document" ? (
-                    <FileIcon className="h-4 w-4" />
+                    <FileIcon className="h-4 w-4 flex-shrink-0" />
                   ) : (
-                    <ImageIcon className="h-4 w-4" />
+                    <ImageIcon className="h-4 w-4 flex-shrink-0" />
                   )}
-                  <div className="flex flex-col">
-                    <span className="font-medium">{item.title || item.name || `Document ${index + 1}`}</span>
-                    {item.title && item.name && item.title !== item.name && (
-                      <span className="text-xs text-muted-foreground">{item.name}</span>
+                  <div className="flex flex-col flex-1 min-w-0">
+                    {allowTitleEdit && editingIndex === index ? (
+                      <div className="flex items-center space-x-2 w-full">
+                        <Input
+                          value={editingTitle}
+                          onChange={(e) => setEditingTitle(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              handleSaveTitle(index);
+                            } else if (e.key === 'Escape') {
+                              handleCancelEditing();
+                            }
+                          }}
+                          className="text-xs h-8 flex-1"
+                          placeholder="Enter title"
+                          autoFocus
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSaveTitle(index)}
+                          className="h-8 px-2"
+                        >
+                          <Save className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleCancelEditing}
+                          className="h-8 px-2"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium truncate">
+                            {item.title || item.name || `Document ${index + 1}`}
+                          </span>
+                          {allowTitleEdit && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleStartEditing(index, item.title || item.name || "")}
+                              className="h-6 px-2 text-xs opacity-60 hover:opacity-100"
+                            >
+                              Edit
+                            </Button>
+                          )}
+                        </div>
+                        {item.title && item.name && item.title !== item.name && (
+                          <span className="text-xs text-muted-foreground truncate">{item.name}</span>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onDelete(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {editingIndex !== index && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDelete(index)}
+                    className="flex-shrink-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             ))
           ) : (

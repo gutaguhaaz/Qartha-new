@@ -9,6 +9,7 @@ export interface IdfSearchParams {
 
 const API_PREFIX = (config.api.baseUrl || "").replace(/\/$/, "");
 const API_ROOT = `${API_PREFIX}/api`;
+const API_BASE = API_PREFIX; // Assuming API_BASE should be the prefix
 
 const buildUrl = (path: string) => {
   const normalized = path.startsWith("/") ? path : `/${path}`;
@@ -200,10 +201,40 @@ export async function deleteAsset(
   cluster: string,
   project: string,
   code: string,
-  assetType: "images" | "documents" | "diagrams" | "dfo" | "location",
+  type: "images" | "documents" | "diagrams" | "location" | "dfo",
   index: number,
 ) {
-  return request(`/${cluster}/${project}/assets/${code}/${assetType}/${index}`, { method: "DELETE" });
+  const response = await fetch(
+    `${API_BASE}/api/${cluster}/${encodeURIComponent(project)}/assets/${code}/${type}/${index}`,
+    {
+      method: "DELETE",
+      credentials: "include",
+    },
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to delete ${type}`);
+  }
+  return response.json();
+}
+
+export async function updateDocumentTitle(
+  cluster: string,
+  project: string,
+  code: string,
+  index: number,
+  title: string,
+) {
+  const response = await fetch(
+    `${API_BASE}/api/${cluster}/${encodeURIComponent(project)}/assets/${code}/documents/${index}/title?title=${encodeURIComponent(title)}`,
+    {
+      method: "PATCH",
+      credentials: "include",
+    },
+  );
+  if (!response.ok) {
+    throw new Error("Failed to update document title");
+  }
+  return response.json();
 }
 
 export async function uploadLogo(cluster: string, project: string, file: File) {
