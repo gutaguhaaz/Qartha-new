@@ -28,7 +28,7 @@ const handleUnauthorized = () => {
   throw new Error("Unauthorized");
 };
 
-async function request(path: string, options: RequestInit = {}) {
+export async function request(path: string, options: RequestInit = {}) {
   const response = await fetch(buildUrl(path), {
     credentials: "include",
     ...options,

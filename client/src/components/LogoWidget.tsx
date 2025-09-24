@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, X, Image, Trash2 } from "lucide-react";
 import { uploadAsset, deleteAsset } from "@/lib/api";
+import { request } from "@/lib/api";
 
 interface LogoWidgetProps {
   cluster: string;
@@ -56,7 +57,10 @@ export default function LogoWidget({
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => deleteAsset(cluster, project, code, "logo"),
+    mutationFn: () => {
+      // Use the correct endpoint for deleting single assets like logo
+      return request(`/${cluster}/${project}/assets/${code}/logo`, { method: "DELETE" });
+    },
     onSuccess: () => {
       toast({
         title: "Success",
