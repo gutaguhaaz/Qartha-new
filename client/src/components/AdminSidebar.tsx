@@ -504,11 +504,22 @@ export default function AdminSidebar({
     try {
       const fileArray = Array.from(files);
       await uploadAssets(selectedCluster, selectedProject, selectedCode, fileArray, "images");
+      
+      // Invalidate all relevant queries to refresh both admin and public views
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "idfs", selectedCluster, selectedProject],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+      });
+      
       toast({
         title: "Gallery updated",
         description: `Uploaded ${fileArray.length} image(s) successfully`,
       });
-      refreshSelectedIdf();
     } catch (error) {
       console.error("Failed to upload gallery images:", error);
       toast({
@@ -523,8 +534,19 @@ export default function AdminSidebar({
     if (!selectedCode) return;
     try {
       await deleteAsset(selectedCluster, selectedProject, selectedCode, "images", index);
+      
+      // Invalidate all relevant queries to refresh both admin and public views
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "idfs", selectedCluster, selectedProject],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+      });
+      
       toast({ title: "Image deleted successfully" });
-      refreshSelectedIdf();
     } catch (error) {
       console.error("Failed to delete gallery image:", error);
       toast({
