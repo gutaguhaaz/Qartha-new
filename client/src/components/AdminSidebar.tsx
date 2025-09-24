@@ -354,27 +354,22 @@ export default function AdminSidebar({
     }
   };
 
-  const handleRemoveDfo = async () => {
+  const handleRemoveDfoItem = async (index: number) => {
     if (!selectedCode) return;
     try {
-      await updateIdf(selectedCluster, selectedProject, selectedCode, {
-        title: generalForm.title,
-        description: generalForm.description,
-        site: generalForm.site,
-        room: generalForm.room,
-        gallery,
-        documents,
-        diagrams,
-        location: locationItems,
-        dfo: [],
-        table: tableData,
-      });
-      toast({ title: "DFO removed" });
+      await deleteAsset(
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+        "dfo",
+        index,
+      );
+      toast({ title: "DFO item removed" });
       refreshIdf();
     } catch (error) {
       console.error(error);
       toast({
-        title: "Unable to remove DFO",
+        title: "Unable to remove DFO item",
         description: "Please try again",
         variant: "destructive",
       });
@@ -650,7 +645,7 @@ export default function AdminSidebar({
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => handleDeleteAsset("dfo", index)}
+                                      onClick={() => handleRemoveDfoItem(index)}
                                     >
                                       Remove
                                     </Button>
