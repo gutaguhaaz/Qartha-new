@@ -36,13 +36,16 @@ export default function DocumentsViewer({ item }: DocumentsViewerProps) {
     }
   };
 
-  
-
   const handleDownload = (url: string, filename?: string, title?: string) => {
+    // Create a proper download URL using the API base
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+    const downloadUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
+    
     const link = document.createElement('a');
-    link.href = url;
-    link.download = title || filename || 'document';
+    link.href = downloadUrl;
+    link.download = filename || title || 'document';
     link.target = '_blank';
+    link.rel = 'noopener noreferrer';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

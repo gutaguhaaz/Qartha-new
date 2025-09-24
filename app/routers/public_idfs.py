@@ -79,7 +79,7 @@ def compute_health(table_data: Optional[Dict[str, Any]]):
 
 
 def convert_relative_to_absolute(paths, single_value=False):
-    """Convert relative paths to absolute URLs"""
+    """Convert relative paths to relative URLs for proper static file serving"""
     if paths is None:
         return None if single_value else []
 
@@ -93,30 +93,30 @@ def convert_relative_to_absolute(paths, single_value=False):
             if isinstance(parsed_paths, list):
                 if single_value:
                     # For single value fields, return first item or None
-                    return f"{settings.PUBLIC_BASE_URL}/static/{parsed_paths[0]}" if parsed_paths else None
+                    return f"/static/{parsed_paths[0]}" if parsed_paths else None
                 else:
-                    return [f"{settings.PUBLIC_BASE_URL}/static/{path}" for path in parsed_paths if path]
+                    return [f"/static/{path}" for path in parsed_paths if path]
             # If it's a single string
             elif isinstance(parsed_paths, str) and parsed_paths:
                 if single_value:
-                    return f"{settings.PUBLIC_BASE_URL}/static/{parsed_paths}"
+                    return f"/static/{parsed_paths}"
                 else:
-                    return [f"{settings.PUBLIC_BASE_URL}/static/{parsed_paths}"]
+                    return [f"/static/{parsed_paths}"]
             return None if single_value else []
         except (json.JSONDecodeError, TypeError):
             # If not JSON, treat as single path
             if single_value:
-                return f"{settings.PUBLIC_BASE_URL}/static/{paths}"
+                return f"/static/{paths}"
             else:
-                return [f"{settings.PUBLIC_BASE_URL}/static/{paths}"]
+                return [f"/static/{paths}"]
     elif isinstance(paths, list):
         if not paths:  # Empty list
             return None if single_value else []
         if single_value:
             # For single value fields, return first item or None
-            return f"{settings.PUBLIC_BASE_URL}/static/{paths[0]}" if paths else None
+            return f"/static/{paths[0]}" if paths else None
         else:
-            return [f"{settings.PUBLIC_BASE_URL}/static/{path}" for path in paths if path]
+            return [f"/static/{path}" for path in paths if path]
 
     return None if single_value else []
 
@@ -342,6 +342,31 @@ async def get_idf(
             # Already a dict format
             location_item = MediaItem(**location_value)
 
+    # Process documents with proper structure preservation
+    documents_data = parse_asset_field(idf_dict.get("documents", []))
+    processed_documents = []
+    for doc in documents_data:
+        if isinstance(doc, dict):
+            # Preserve all fields and fix URL
+            url = doc.get("url", "")
+            if not url.startswith("/static/"):
+                url = f"/static/{url}"
+            processed_documents.append({
+                "url": url,
+                "title": doc.get("title", ""),
+                "name": doc.get("name", ""),
+                "kind": doc.get("kind", "document")
+            })
+        elif isinstance(doc, str):
+            # String format - create basic structure
+            url = doc if doc.startswith("/static/") else f"/static/{doc}"
+            processed_documents.append({
+                "url": url,
+                "title": "",
+                "name": "",
+                "kind": "document"
+            })
+
     return IdfPublic(
         cluster=idf_dict["cluster"],
         project=idf_dict["project"],
@@ -351,7 +376,7 @@ async def get_idf(
         site=idf_dict.get("site", ""),
         room=idf_dict.get("room", ""),
         images=convert_relative_to_absolute(parse_asset_field(idf_dict.get("images", []))),
-        documents=convert_relative_to_absolute(parse_asset_field(idf_dict.get("documents", []))),
+        documents=processed_documents,
         diagrams=convert_relative_to_absolute(parse_asset_field(idf_dict.get("diagrams", []))),
         location=location_item.url if location_item else None,
         dfo=convert_relative_to_absolute(parse_asset_field(idf_dict.get("dfo", []))),

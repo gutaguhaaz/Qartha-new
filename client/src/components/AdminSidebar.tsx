@@ -1337,7 +1337,12 @@ function AssetSection({
                   ) : (
                     <ImageIcon className="h-4 w-4" />
                   )}
-                  <span>{item.name ?? item.url}</span>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{item.title || item.name || `Document ${index + 1}`}</span>
+                    {item.title && item.name && item.title !== item.name && (
+                      <span className="text-xs text-muted-foreground">{item.name}</span>
+                    )}
+                  </div>
                 </div>
                 <Button
                   variant="ghost"
