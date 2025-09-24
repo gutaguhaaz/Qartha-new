@@ -419,7 +419,13 @@ export default function PublicDetail({
 
         {activeTab === "location" && (
           <div data-testid="tab-content-location">
-            <LocationViewer location={idf.location} />
+            <LocationViewer location={
+              idf.location ? (
+                typeof idf.location === 'string' 
+                  ? { url: idf.location, name: 'Location Image', kind: 'image' }
+                  : idf.location
+              ) : null
+            } />
           </div>
         )}
 

@@ -50,9 +50,8 @@ export default function LocationViewer({ location }: LocationViewerProps) {
     setPosition({ x: 0, y: 0 });
   }, []);
 
-  // Touch event handlers for mobile
+  // Touch event handlers for mobile - without preventDefault
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
     if (e.touches.length === 1) {
       const touch = e.touches[0];
       setIsDragging(true);
@@ -64,7 +63,6 @@ export default function LocationViewer({ location }: LocationViewerProps) {
   }, [position]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
     if (!isDragging || e.touches.length !== 1) return;
     
     const touch = e.touches[0];
@@ -75,11 +73,10 @@ export default function LocationViewer({ location }: LocationViewerProps) {
   }, [isDragging, dragStart]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
     setIsDragging(false);
   }, []);
 
-  // Pinch to zoom for mobile
+  // Pinch to zoom for mobile - without preventDefault
   const handleTouchStartPinch = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       const touch1 = e.touches[0];
@@ -94,7 +91,6 @@ export default function LocationViewer({ location }: LocationViewerProps) {
 
   const handleTouchMovePinch = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2) {
-      e.preventDefault();
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.sqrt(
@@ -216,8 +212,11 @@ export default function LocationViewer({ location }: LocationViewerProps) {
 
       {/* Image Container */}
       <div 
-        className="relative overflow-hidden bg-background touch-none"
-        style={{ height: isFullscreen ? 'calc(100vh - 120px)' : '500px' }}
+        className="relative overflow-hidden bg-background"
+        style={{ 
+          height: isFullscreen ? 'calc(100vh - 120px)' : '500px',
+          touchAction: isMobile ? 'none' : 'auto'
+        }}
         onWheel={handleWheel}
         onMouseDown={!isMobile ? handleMouseDown : undefined}
         onMouseMove={!isMobile ? handleMouseMove : undefined}
