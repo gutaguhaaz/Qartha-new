@@ -65,13 +65,37 @@ export default function PublicDetail({
     window.addEventListener("openAdminWithIdf", handleOpenAdmin);
     window.addEventListener("reloadDiagramsTab", handleReloadDiagramsTab);
     window.addEventListener("reloadDocumentsTab", handleReloadDocumentsTab);
-    
+
     return () => {
       window.removeEventListener("openAdminWithIdf", handleOpenAdmin);
       window.removeEventListener("reloadDiagramsTab", handleReloadDiagramsTab);
       window.removeEventListener("reloadDocumentsTab", handleReloadDocumentsTab);
     };
   }, [canManage, activeTab, queryClient]);
+
+  // Prefetch initial IDF data
+  useEffect(() => {
+    if (params.cluster && params.project && params.code) {
+      queryClient.prefetchQuery({
+        queryKey: ["/api", params.cluster, params.project, "idfs", params.code],
+        queryFn: () => getIdf(params.cluster, params.project, params.code),
+      });
+    }
+  }, [params.cluster, params.project, params.code, queryClient]);
+
+  // Listen for document updates
+  useEffect(() => {
+    const handleDocumentUpdate = () => {
+      if (params.cluster && params.project && params.code) {
+        queryClient.invalidateQueries({
+          queryKey: ["/api", params.cluster, params.project, "idfs", params.code],
+        });
+      }
+    };
+
+    window.addEventListener("reloadDocumentsTab", handleDocumentUpdate);
+    return () => window.removeEventListener("reloadDocumentsTab", handleDocumentUpdate);
+  }, [params.cluster, params.project, params.code, queryClient]);
 
   const {
     data: idf,
@@ -464,7 +488,12 @@ export default function PublicDetail({
 
         {activeTab === "documents" && (
           <div data-testid="tab-content-documents">
-            <DocumentsViewer item={idf.documents} />
+            <DocumentsViewer 
+              item={idf.documents} 
+              cluster={params.cluster}
+              project={params.project}
+              code={params.code}
+            />
           </div>
         )}
 

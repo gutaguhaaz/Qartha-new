@@ -1,4 +1,3 @@
-
 import { FileText, Download, FileSpreadsheet, File, Archive } from "lucide-react";
 
 interface Document {
@@ -40,7 +39,7 @@ export default function DocumentsViewer({ item }: DocumentsViewerProps) {
     // Create a proper download URL using the API base
     const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
     const downloadUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
-    
+
     const link = document.createElement('a');
     link.href = downloadUrl;
     link.download = filename || title || 'document';
@@ -90,7 +89,7 @@ export default function DocumentsViewer({ item }: DocumentsViewerProps) {
                 </p>
               </div>
             </div>
-            
+
             <button
               onClick={() => handleDownload(doc.url, doc.name, doc.title)}
               className="flex items-center space-x-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"

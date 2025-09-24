@@ -214,17 +214,26 @@ export default function AdminSidebar({
     try {
       await updateDocumentTitle(selectedCluster, selectedProject, selectedCode, index, newTitle);
 
-      // Update local state
+      // Update local state immediately
       setDocuments(prev => prev.map((doc, i) => 
         i === index ? { ...doc, title: newTitle } : doc
       ));
 
-      // Invalidate queries to refresh data
-      await queryClient.invalidateQueries({
-        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
-      });
+      // Invalidate ALL relevant queries to ensure complete refresh
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["admin", "idfs", selectedCluster, selectedProject],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+        }),
+      ]);
 
-      await queryClient.invalidateQueries({
+      // Force refetch the current IDF data
+      await queryClient.refetchQueries({
         queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
       });
 
