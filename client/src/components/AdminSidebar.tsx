@@ -100,6 +100,7 @@ export default function AdminSidebar({
   const [dfo, setDfo] = useState<MediaList>([]);
   const [tableData, setTableData] = useState<any>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false); // State for handling upload progress
 
   // Mock handlers for upload/delete for each section
   const handleUploadGallery = (files: FileList | null) => handleUploadAsset("images", files);
@@ -180,14 +181,14 @@ export default function AdminSidebar({
         site: idf.site ?? "",
         room: idf.room ?? "",
       });
-      
+
       // Normalize media arrays to handle both string and object formats
       const normalizeMediaArray = (items: any[]): MediaList => {
         return (items || []).map(item => {
           if (typeof item === 'string') {
             // Clean up malformed URLs - handle incomplete JSON strings
             let cleanUrl = item;
-            
+
             // Handle malformed JSON-like strings
             if (item.includes("{'url':") || item.includes('{"url":')) {
               // Try to extract URL from malformed string
@@ -199,7 +200,7 @@ export default function AdminSidebar({
                 cleanUrl = '/static/invalid-url';
               }
             }
-            
+
             // Ensure relative URL
             if (cleanUrl.includes('replit.dev/')) {
               const staticIndex = cleanUrl.indexOf('/static/');
@@ -207,26 +208,26 @@ export default function AdminSidebar({
                 cleanUrl = cleanUrl.substring(staticIndex);
               }
             }
-            
+
             // Ensure it starts with /static/
             if (!cleanUrl.startsWith('/static/')) {
               cleanUrl = `/static/${cleanUrl.replace(/^\/+/, '')}`;
             }
-            
+
             return { url: cleanUrl, name: '', kind: 'unknown' };
           }
-          
+
           // Clean up object URLs too
           if (item.url) {
             let cleanUrl = item.url;
-            
+
             if (cleanUrl.includes("{'url':") || cleanUrl.includes('{"url":')) {
               const urlMatch = cleanUrl.match(/['"](\/static\/[^'"]+)['"]/);
               if (urlMatch) {
                 cleanUrl = urlMatch[1];
               }
             }
-            
+
             // Convert absolute URLs to relative
             if (cleanUrl.includes('replit.dev/')) {
               const staticIndex = cleanUrl.indexOf('/static/');
@@ -234,26 +235,26 @@ export default function AdminSidebar({
                 cleanUrl = cleanUrl.substring(staticIndex);
               }
             }
-            
+
             // Ensure it starts with /static/
             if (!cleanUrl.startsWith('/static/')) {
               cleanUrl = `/static/${cleanUrl.replace(/^\/+/, '')}`;
             }
-            
+
             item.url = cleanUrl;
           }
-          
+
           return item;
         });
       };
-      
+
       setGallery(normalizeMediaArray(idf.images ?? []));
       setDocuments(normalizeMediaArray(idf.documents ?? []));
       setDiagrams(normalizeMediaArray(idf.diagrams ?? []));
-      
+
       const locations = idf.location_items ?? (idf.location ? [idf.location] : []);
       setLocationItems(normalizeMediaArray(locations ?? []));
-      
+
       // Handle DFO data properly, ensuring names are preserved
       const dfoData = idf.dfo ?? [];
       const normalizedDfo = Array.isArray(dfoData) ? dfoData.map(item => {
@@ -292,7 +293,7 @@ export default function AdminSidebar({
     try {
       // Preserve existing logo when saving general info
       const currentLogo = idfDetailQuery.data.logo;
-      
+
       await updateIdf(selectedCluster, selectedProject, selectedCode, {
         title: generalForm.title,
         description: generalForm.description,
@@ -395,49 +396,74 @@ export default function AdminSidebar({
   };
 
   const handleUploadDfo = async (files: FileList | null) => {
-    if (!files || !selectedCode) return;
+    if (!files || files.length === 0 || !selectedCluster || !selectedProject || !selectedCode) return;
+
     try {
-      for (const file of Array.from(files)) {
-        await uploadAsset(
-          selectedCluster,
-          selectedProject,
-          selectedCode,
-          file,
-          "dfo",
-        );
+      setUploading(true);
+      const result = await uploadAsset( // Changed from uploadAssets to uploadAsset
+        selectedCluster,
+        selectedProject,
+        selectedCode,
+        files[0], // Assuming uploadAsset handles single file, adjust if it takes array
+        "dfo"
+      );
+
+      if (result) {
+        // Invalidate both the general list and specific IDF queries to refresh data
+        await queryClient.invalidateQueries({
+          queryKey: ["admin", "idfs", selectedCluster, selectedProject],
+        });
+
+        // Specifically invalidate the current IDF detail query
+        await queryClient.invalidateQueries({
+          queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+        });
+
+        toast({
+          title: "DFO uploaded successfully",
+          description: `${files.length} file(s) uploaded. The diagram will update automatically.`,
+        });
       }
-      toast({
-        title: "DFO updated",
-        description: `Uploaded ${files.length} DFO file(s)`,
-      });
-      refreshIdf();
     } catch (error) {
-      console.error(error);
+      console.error("Error uploading DFO:", error);
       toast({
-        title: "DFO upload failed",
-        description: "Could not upload DFO",
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
+    } finally {
+      setUploading(false);
     }
   };
 
   const handleRemoveDfoItem = async (index: number) => {
-    if (!selectedCode) return;
+    if (!selectedCluster || !selectedProject || !selectedCode) return;
+
     try {
-      await deleteAsset(
-        selectedCluster,
-        selectedProject,
-        selectedCode,
-        "dfo",
-        index,
-      );
-      toast({ title: "DFO item removed" });
-      refreshIdf();
-    } catch (error) {
-      console.error(error);
+      await deleteAsset(selectedCluster, selectedProject, selectedCode, "dfo", index);
+
+      // Update local state
+      setDfo(prev => prev.filter((_, i) => i !== index));
+
+      // Invalidate both the general list and specific IDF queries to refresh data
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "idfs", selectedCluster, selectedProject],
+      });
+
+      // Specifically invalidate the current IDF detail query
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+      });
+
       toast({
-        title: "Unable to remove DFO item",
-        description: "Please try again",
+        title: "DFO item removed",
+        description: "File has been deleted successfully. The diagram will update automatically.",
+      });
+    } catch (error) {
+      console.error("Error removing DFO item:", error);
+      toast({
+        title: "Delete failed",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
@@ -717,7 +743,7 @@ export default function AdminSidebar({
                                       Remove
                                     </Button>
                                   </div>
-                                  
+
                                 </div>
                               </div>
                             );
