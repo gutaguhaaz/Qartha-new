@@ -170,7 +170,7 @@ async def list_idfs(
                         if "replit.dev" in url or "{'url':" in url:
                             # Try to extract clean path from malformed URL
                             import re
-                            match = re.search(r'/static/([^'"}]+)', url)
+                            match = re.search(r'/static/([^\'"}]+)', url)
                             if match:
                                 clean_url = f"/static/{match.group(1)}"
                                 first_dfo["url"] = clean_url
