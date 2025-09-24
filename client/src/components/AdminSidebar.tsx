@@ -356,9 +356,21 @@ export default function AdminSidebar({
           file,
           type,
         );
+
+        // Invalidate all relevant queries to refresh both admin and public views
+        await queryClient.invalidateQueries({
+          queryKey: ["admin", "idfs", selectedCluster, selectedProject],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+        });
+
         toast({
-          title: "Upload complete",
-          description: "Location image uploaded successfully",
+          title: "Location uploaded successfully",
+          description: "Location image uploaded and updated automatically",
         });
       } else {
         // Multiple files for other types
@@ -375,8 +387,8 @@ export default function AdminSidebar({
           title: "Upload complete",
           description: `Uploaded ${files.length} file(s)`,
         });
+        refreshIdf();
       }
-      refreshIdf();
     } catch (error) {
       console.error(error);
       toast({
@@ -400,8 +412,23 @@ export default function AdminSidebar({
         type,
         index,
       );
-      toast({ title: "Asset removed" });
-      refreshIdf();
+
+      // For location deletions, invalidate all relevant queries
+      if (type === "location") {
+        await queryClient.invalidateQueries({
+          queryKey: ["admin", "idfs", selectedCluster, selectedProject],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+        });
+        toast({ title: "Location image removed successfully" });
+      } else {
+        toast({ title: "Asset removed" });
+        refreshIdf();
+      }
     } catch (error) {
       console.error(error);
       toast({
