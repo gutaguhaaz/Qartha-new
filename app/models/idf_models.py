@@ -71,11 +71,11 @@ class IdfUpsert(BaseModel):
     description: Optional[str] = None
     site: Optional[str] = None
     room: Optional[str] = None
-    images: List[Union[str, MediaItem]] = Field(default_factory=list)
-    documents: List[Union[str, MediaItem]] = Field(default_factory=list)
-    diagrams: List[Union[str, MediaItem]] = Field(default_factory=list)
+    images: Optional[List[Union[str, MediaItem]]] = None
+    documents: Optional[List[Union[str, MediaItem]]] = None
+    diagrams: Optional[List[Union[str, MediaItem]]] = None
     location: Optional[Union[str, List[Union[str, MediaItem]]]] = None
-    dfo: List[Union[str, MediaItem]] = Field(default_factory=list)
+    dfo: Optional[List[Union[str, MediaItem]]] = None
     logo: Optional[str] = None
     table: Optional[IdfTable] = None
 
