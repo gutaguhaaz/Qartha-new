@@ -31,6 +31,7 @@ export default function DocumentsViewer({ item, cluster, project, code }: Docume
   // Update local documents when item prop changes
   useEffect(() => {
     if (item) {
+      console.log("DocumentsViewer received new documents:", item);
       setLocalDocuments(item);
     }
   }, [item]);
@@ -59,7 +60,8 @@ export default function DocumentsViewer({ item, cluster, project, code }: Docume
               console.log("Fresh data received:", freshData?.documents);
 
               if (freshData?.documents) {
-                setLocalDocuments(freshData.documents);
+                // Force update with fresh data
+                setLocalDocuments([...freshData.documents]);
               }
             } catch (fetchError) {
               console.error("Error fetching fresh data:", fetchError);
@@ -144,7 +146,7 @@ export default function DocumentsViewer({ item, cluster, project, code }: Docume
               {getFileIcon(doc.name || doc.url || 'document')}
               <div>
                 <p className="font-semibold text-foreground text-base">
-                  {doc.title && doc.title !== "undefined" ? doc.title : `Document ${index + 1}`}
+                  {doc.title && doc.title.trim() !== "" && doc.title !== "undefined" ? doc.title : `Document ${index + 1}`}
                 </p>
                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                   <span>{doc.name || doc.url?.split('/').pop() || 'document'}</span>
