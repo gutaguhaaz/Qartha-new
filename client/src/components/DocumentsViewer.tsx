@@ -1,4 +1,7 @@
 import { FileText, Download, FileSpreadsheet, File, Archive } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getIdf } from "@/lib/api";
 
 interface Document {
   url: string;
@@ -9,11 +12,50 @@ interface Document {
 
 interface DocumentsViewerProps {
   item?: Document[] | null;
+  cluster?: string;
+  project?: string;
+  code?: string;
 }
 
-export default function DocumentsViewer({ item }: DocumentsViewerProps) {
+export default function DocumentsViewer({ item, cluster, project, code }: DocumentsViewerProps) {
+  const [localDocuments, setLocalDocuments] = useState<Document[]>(item || []);
+  const queryClient = useQueryClient();
 
-  const documents = item || [];
+  // Query to get fresh IDF data when needed
+  const { data: freshIdfData } = useQuery({
+    queryKey: ["/api", cluster, project, "idfs", code],
+    queryFn: () => cluster && project && code ? getIdf(cluster, project, code) : null,
+    enabled: false, // Only run when manually refetched
+  });
+
+  // Update local documents when item prop changes
+  useEffect(() => {
+    if (item) {
+      setLocalDocuments(item);
+    }
+  }, [item]);
+
+  // Listen for document reload events
+  useEffect(() => {
+    const handleReloadDocuments = async () => {
+      if (cluster && project && code) {
+        // Force refetch fresh data
+        const freshData = await queryClient.fetchQuery({
+          queryKey: ["/api", cluster, project, "idfs", code],
+          queryFn: () => getIdf(cluster, project, code),
+        });
+        
+        if (freshData?.documents) {
+          setLocalDocuments(freshData.documents);
+        }
+      }
+    };
+
+    window.addEventListener("reloadDocumentsTab", handleReloadDocuments);
+    return () => window.removeEventListener("reloadDocumentsTab", handleReloadDocuments);
+  }, [cluster, project, code, queryClient]);
+
+  const documents = localDocuments;
 
   const getFileIcon = (filename: string) => {
     if (!filename) return <File className="w-5 h-5 text-gray-500" />;

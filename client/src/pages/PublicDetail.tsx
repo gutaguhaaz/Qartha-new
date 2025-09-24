@@ -53,10 +53,15 @@ export default function PublicDetail({
       }
     };
 
-    const handleReloadDocumentsTab = () => {
+    const handleReloadDocumentsTab = async () => {
       if (activeTab === "documents") {
-        // Invalidate queries to refresh data without page reload
-        queryClient.invalidateQueries({
+        // Force invalidate and refetch data
+        await queryClient.invalidateQueries({
+          queryKey: ["/api", cluster, project, "idfs", code],
+        });
+        
+        // Force a fresh fetch
+        await queryClient.refetchQueries({
           queryKey: ["/api", cluster, project, "idfs", code],
         });
       }
@@ -490,9 +495,9 @@ export default function PublicDetail({
           <div data-testid="tab-content-documents">
             <DocumentsViewer 
               item={idf.documents} 
-              cluster={params.cluster}
-              project={params.project}
-              code={params.code}
+              cluster={cluster}
+              project={project}
+              code={code}
             />
           </div>
         )}

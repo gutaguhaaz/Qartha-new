@@ -219,8 +219,8 @@ export default function AdminSidebar({
         i === index ? { ...doc, title: newTitle } : doc
       ));
 
-      // Invalidate ALL relevant queries to ensure complete refresh
-      await Promise.all([
+      // Force invalidate and refetch ALL relevant queries
+      const queryPromises = [
         queryClient.invalidateQueries({
           queryKey: ["admin", "idf-detail", selectedCluster, selectedProject, selectedCode],
         }),
@@ -230,14 +230,20 @@ export default function AdminSidebar({
         queryClient.invalidateQueries({
           queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
         }),
-      ]);
+      ];
 
-      // Force refetch the current IDF data
-      await queryClient.refetchQueries({
-        queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
-      });
+      await Promise.all(queryPromises);
 
-      // Trigger custom reload event for documents tab
+      // Force fresh data fetch with multiple attempts to ensure it propagates
+      setTimeout(async () => {
+        await queryClient.refetchQueries({
+          queryKey: ["/api", selectedCluster, selectedProject, "idfs", selectedCode],
+        });
+        // Trigger reload event after refetch
+        window.dispatchEvent(new CustomEvent("reloadDocumentsTab"));
+      }, 100);
+
+      // Also trigger immediate reload
       window.dispatchEvent(new CustomEvent("reloadDocumentsTab"));
 
       toast({
