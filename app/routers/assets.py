@@ -94,6 +94,15 @@ async def upload_images(
 
     idf = await _get_idf(cluster, db_project, code)
     current_images = idf.get("images") or []
+    
+    # Handle case where images might be stored as JSON string
+    if isinstance(current_images, str):
+        try:
+            current_images = json.loads(current_images)
+        except json.JSONDecodeError:
+            current_images = []
+    elif current_images is None:
+        current_images = []
 
     new_paths = []
     for file in files:
@@ -130,6 +139,15 @@ async def upload_documents(
 
     idf = await _get_idf(cluster, db_project, code)
     current_documents = idf.get("documents") or []
+    
+    # Handle case where documents might be stored as JSON string
+    if isinstance(current_documents, str):
+        try:
+            current_documents = json.loads(current_documents)
+        except json.JSONDecodeError:
+            current_documents = []
+    elif current_documents is None:
+        current_documents = []
 
     new_paths = []
     for file in files:
@@ -163,6 +181,15 @@ async def upload_diagrams(
 
     idf = await _get_idf(cluster, db_project, code)
     current_diagrams = idf.get("diagrams") or []
+    
+    # Handle case where diagrams might be stored as JSON string
+    if isinstance(current_diagrams, str):
+        try:
+            current_diagrams = json.loads(current_diagrams)
+        except json.JSONDecodeError:
+            current_diagrams = []
+    elif current_diagrams is None:
+        current_diagrams = []
 
     new_paths = []
     for file in files:
@@ -196,6 +223,15 @@ async def upload_dfo(
 
     idf = await _get_idf(cluster, db_project, code)
     current_dfo = idf.get("dfo") or []
+    
+    # Handle case where dfo might be stored as JSON string
+    if isinstance(current_dfo, str):
+        try:
+            current_dfo = json.loads(current_dfo)
+        except json.JSONDecodeError:
+            current_dfo = []
+    elif current_dfo is None:
+        current_dfo = []
 
     new_paths = []
     for file in files:
@@ -345,6 +381,15 @@ async def delete_image(
     db_project = map_url_project_to_db_project(project)
     idf = await _get_idf(cluster, db_project, code)
     images = idf.get("images") or []
+    
+    # Handle case where images might be stored as JSON string
+    if isinstance(images, str):
+        try:
+            images = json.loads(images)
+        except json.JSONDecodeError:
+            images = []
+    elif images is None:
+        images = []
 
     if index < 0 or index >= len(images):
         raise HTTPException(status_code=404, detail="Image not found")
@@ -376,6 +421,15 @@ async def delete_document(
     db_project = map_url_project_to_db_project(project)
     idf = await _get_idf(cluster, db_project, code)
     documents = idf.get("documents") or []
+    
+    # Handle case where documents might be stored as JSON string
+    if isinstance(documents, str):
+        try:
+            documents = json.loads(documents)
+        except json.JSONDecodeError:
+            documents = []
+    elif documents is None:
+        documents = []
 
     if index < 0 or index >= len(documents):
         raise HTTPException(status_code=404, detail="Document not found")
@@ -407,6 +461,15 @@ async def delete_diagram(
     db_project = map_url_project_to_db_project(project)
     idf = await _get_idf(cluster, db_project, code)
     diagrams = idf.get("diagrams") or []
+    
+    # Handle case where diagrams might be stored as JSON string
+    if isinstance(diagrams, str):
+        try:
+            diagrams = json.loads(diagrams)
+        except json.JSONDecodeError:
+            diagrams = []
+    elif diagrams is None:
+        diagrams = []
 
     if index < 0 or index >= len(diagrams):
         raise HTTPException(status_code=404, detail="Diagram not found")
@@ -438,6 +501,15 @@ async def delete_dfo(
     db_project = map_url_project_to_db_project(project)
     idf = await _get_idf(cluster, db_project, code)
     dfo = idf.get("dfo") or []
+    
+    # Handle case where dfo might be stored as JSON string
+    if isinstance(dfo, str):
+        try:
+            dfo = json.loads(dfo)
+        except json.JSONDecodeError:
+            dfo = []
+    elif dfo is None:
+        dfo = []
 
     if index < 0 or index >= len(dfo):
         raise HTTPException(status_code=404, detail="DFO file not found")
