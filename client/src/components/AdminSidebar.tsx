@@ -98,7 +98,7 @@ export default function AdminSidebar({
   const [documents, setDocuments] = useState<MediaList>([]);
   const [diagrams, setDiagrams] = useState<MediaList>([]);
   const [locationItems, setLocationItems] = useState<MediaList>([]);
-  const [dfo, setDfo] = useState<MediaPayload | null>(null);
+  const [dfo, setDfo] = useState<MediaList>([]);
   const [tableData, setTableData] = useState<any>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
@@ -187,7 +187,7 @@ export default function AdminSidebar({
       const locations =
         idf.location_items ?? (idf.location ? [idf.location] : []);
       setLocationItems(locations ?? []);
-      setDfo(idf.dfo ?? null);
+      setDfo(idf.dfo ?? []);
       setTableData(idf.table ?? null);
       setLogoPreview(idf.media?.logo?.url ?? null);
     }
@@ -318,40 +318,20 @@ export default function AdminSidebar({
 
   const handleUploadDfo = async (files: FileList | null) => {
     if (!files || !selectedCode) return;
-    const file = files[0];
     try {
-      const previousDiagramCount = diagrams.length;
-      const result = await uploadAsset(
-        selectedCluster,
-        selectedProject,
-        selectedCode,
-        file,
-        "diagram",
-      );
-      try {
-        await deleteAsset(
+      for (const file of Array.from(files)) {
+        await uploadAsset(
           selectedCluster,
           selectedProject,
           selectedCode,
-          "diagrams",
-          previousDiagramCount,
+          file,
+          "dfo",
         );
-      } catch (error) {
-        console.warn("Failed to clean temporary DFO diagram", error);
       }
-      await updateIdf(selectedCluster, selectedProject, selectedCode, {
-        title: generalForm.title,
-        description: generalForm.description,
-        site: generalForm.site,
-        room: generalForm.room,
-        gallery,
-        documents,
-        diagrams,
-        location: locationItems,
-        dfo: { url: (result as any).url, name: file.name, kind: "diagram" },
-        table: tableData,
+      toast({
+        title: "DFO updated",
+        description: `Uploaded ${files.length} DFO file(s)`,
       });
-      toast({ title: "DFO updated" });
       refreshIdf();
     } catch (error) {
       console.error(error);
@@ -375,7 +355,7 @@ export default function AdminSidebar({
         documents,
         diagrams,
         location: locationItems,
-        dfo: null,
+        dfo: [],
         table: tableData,
       });
       toast({ title: "DFO removed" });
@@ -602,75 +582,86 @@ export default function AdminSidebar({
                     <Card>
                       <CardHeader>
                         <CardTitle>DFO</CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Upload DFO diagrams and documents
+                        </p>
                       </CardHeader>
-                      <CardContent className="space-y-3">
-                        {dfo ? (
-                          <div className="space-y-3">
-                            <div className="flex items-start space-x-3 rounded border border-border p-3">
-                              {/* DFO Preview */}
-                              <div className="flex-shrink-0">
-                                {dfo.url && dfo.url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                                  <img
-                                    src={dfo.url}
-                                    alt="DFO Preview"
-                                    className="w-16 h-16 object-cover rounded border"
-                                    onError={(e) => {
-                                      const target = e.target as HTMLImageElement;
-                                      target.style.display = 'none';
-                                      target.nextElementSibling!.style.display = 'flex';
-                                    }}
-                                  />
-                                ) : (
-                                  <div className="w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
-                                    <i className="fas fa-file text-muted-foreground"></i>
-                                  </div>
-                                )}
-                                <div className="hidden w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
-                                  <i className="fas fa-exclamation-triangle text-yellow-500"></i>
-                                </div>
-                              </div>
-
-                              <div className="flex-1 space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm font-medium">DFO Document</span>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleRemoveDfo}
-                                  >
-                                    Remove
-                                  </Button>
-                                </div>
-                                <div>
-                                  <Label htmlFor="dfo-name" className="text-xs">Display Name</Label>
-                                  <Input
-                                    id="dfo-name"
-                                    value={dfo.name || ''}
-                                    onChange={(e) => {
-                                      setDfo(prev => prev ? { ...prev, name: e.target.value } : null);
-                                    }}
-                                    placeholder="Enter DFO name"
-                                    className="text-xs"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">
-                            No DFO associated
-                          </p>
-                        )}
+                      <CardContent className="space-y-4">
                         <div>
-                          <Label htmlFor="dfo-upload">Upload new DFO</Label>
+                          <Label htmlFor="dfo-upload">Upload files</Label>
                           <Input
                             id="dfo-upload"
                             type="file"
                             accept="image/*,application/pdf"
-                            onChange={(event) =>
-                              handleUploadDfo(event.target.files)
-                            }
+                            multiple
+                            onChange={(event) => handleUploadDfo(event.target.files)}
                           />
+                        </div>
+                        <div className="grid grid-cols-1 gap-3">
+                          {dfo.map((item, index) => {
+                            const isImage = item.url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                            const isPdf = item.url.match(/\.pdf$/i);
+
+                            return (
+                              <div
+                                key={index}
+                                className="flex items-start space-x-3 rounded border border-border p-3"
+                              >
+                                <div className="flex-shrink-0">
+                                  {isImage ? (
+                                    <img
+                                      src={item.url}
+                                      alt={item.name || `DFO ${index + 1}`}
+                                      className="w-16 h-16 object-cover rounded border border-border"
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                        target.nextElementSibling!.style.display = 'flex';
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
+                                      <i className="fas fa-file-pdf text-red-500"></i>
+                                    </div>
+                                  )}
+                                  <div className="hidden w-16 h-16 flex items-center justify-center bg-muted rounded border border-border">
+                                    <i className="fas fa-exclamation-triangle text-yellow-500"></i>
+                                  </div>
+                                </div>
+
+                                <div className="flex-1 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-2">
+                                      {isImage && <i className="fas fa-image text-blue-500"></i>}
+                                      {isPdf && <i className="fas fa-file-pdf text-red-500"></i>}
+                                      <span className="text-sm font-medium">DFO {index + 1}</span>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeleteAsset("dfo", index)}
+                                    >
+                                      Remove
+                                    </Button>
+                                  </div>
+                                  <div>
+                                    <Label htmlFor={`dfo-name-${index}`} className="text-xs">Display Name</Label>
+                                    <Input
+                                      id={`dfo-name-${index}`}
+                                      value={item.name || ''}
+                                      onChange={(e) => {
+                                        const newDfo = [...dfo];
+                                        newDfo[index] = { ...item, name: e.target.value };
+                                        setDfo(newDfo);
+                                      }}
+                                      placeholder="Enter DFO name"
+                                      className="text-xs"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </CardContent>
                     </Card>

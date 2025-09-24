@@ -199,8 +199,9 @@ async def upload_dfo(
 
     new_paths = []
     for file in files:
-        if not file.content_type or not file.content_type.startswith("image/"):
-            raise HTTPException(status_code=400, detail="DFO files must be images")
+        # Allow both images and PDFs for DFO
+        if not file.content_type or not (file.content_type.startswith("image/") or file.content_type == "application/pdf"):
+            raise HTTPException(status_code=400, detail="DFO files must be images or PDFs")
 
         extension = Path(file.filename or "dfo.png").suffix or ".png"
         filename = f"{int(time.time() * 1000)}{extension}"

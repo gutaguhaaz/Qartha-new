@@ -190,9 +190,6 @@ export async function uploadAsset(
   if (assetType === "location" || assetType === "logo") {
     formData.append("file", file);
     return requestForm(`/${cluster}/${project}/assets/${code}/${assetType}`, formData);
-  } else if (assetType === "dfo") {
-    formData.append("files", file);
-    return requestForm(`/${cluster}/${project}/assets/${code}/diagrams`, formData);
   } else {
     formData.append("files", file);
     return requestForm(`/${cluster}/${project}/assets/${code}/${assetType}`, formData);
