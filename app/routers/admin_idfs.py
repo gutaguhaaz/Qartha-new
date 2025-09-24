@@ -239,7 +239,7 @@ async def update_idf(
     db_project = map_url_project_to_db_project(project)
     await _fetch_idf(cluster, db_project, code)
 
-    # Get current IDF data to preserve logo if not updated
+    # Get current IDF data to preserve logo
     current_idf = await database.fetch_one(
         """
         SELECT logo FROM idfs 
@@ -248,21 +248,29 @@ async def update_idf(
         {"cluster": cluster, "project": db_project, "code": code}
     )
 
-    # Preserve current logo if update_data.logo is None or empty
-    logo_value = idf_data.logo
-    if not logo_value and current_idf and current_idf["logo"]:
-        logo_value = current_idf["logo"]
+    # Handle location - keep as JSON string if it's a list, or convert to JSON
+    location_value = None
+    if idf_data.location:
+        if isinstance(idf_data.location, list):
+            location_value = _serialize_media_list(idf_data.location)
+        else:
+            location_value = json.dumps([idf_data.location])
 
-    # Prepare values using existing serialization functions
-    values = _prepare_common_values(idf_data)
-    values["logo"] = logo_value
-
-    # Update IDF data
+    # Update IDF data - NEVER change logo through PUT
     params = {
+        "title": idf_data.title,
+        "description": idf_data.description,
+        "site": idf_data.site,
+        "room": idf_data.room,
+        "images": _serialize_media_list(idf_data.images),
+        "documents": _serialize_media_list(idf_data.documents),
+        "diagrams": _serialize_media_list(idf_data.diagrams),
+        "location": location_value,
+        "dfo": _serialize_media_list(idf_data.dfo),
+        "table_data": _serialize_table(idf_data.table),
         "cluster": cluster,
         "project": db_project,
         "code": code,
-        **values,
     }
 
     query = """
@@ -276,7 +284,6 @@ async def update_idf(
                diagrams = :diagrams,
                location = :location,
                dfo = :dfo,
-               logo = :logo,
                table_data = :table_data
          WHERE cluster = :cluster AND project = :project AND code = :code
         RETURNING *

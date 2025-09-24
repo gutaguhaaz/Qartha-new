@@ -1,4 +1,3 @@
-
 """Asset management endpoints for media associated with IDFs."""
 from __future__ import annotations
 
@@ -94,7 +93,7 @@ async def upload_images(
 
     idf = await _get_idf(cluster, db_project, code)
     current_images = idf.get("images") or []
-    
+
     # Handle case where images might be stored as JSON string
     if isinstance(current_images, str):
         try:
@@ -139,7 +138,7 @@ async def upload_documents(
 
     idf = await _get_idf(cluster, db_project, code)
     current_documents = idf.get("documents") or []
-    
+
     # Handle case where documents might be stored as JSON string
     if isinstance(current_documents, str):
         try:
@@ -181,7 +180,7 @@ async def upload_diagrams(
 
     idf = await _get_idf(cluster, db_project, code)
     current_diagrams = idf.get("diagrams") or []
-    
+
     # Handle case where diagrams might be stored as JSON string
     if isinstance(current_diagrams, str):
         try:
@@ -221,46 +220,44 @@ async def upload_dfo(
     db_project = map_url_project_to_db_project(project)
     folder_project = map_db_project_to_folder_name(db_project)
 
+    uploaded_files = []
+    for file in files:
+        # Allow both images and PDFs for DFO
+        if not file.content_type or not (file.content_type.startswith("image/") or file.content_type == "application/pdf"):
+            raise HTTPException(status_code=400, detail=f"File {file.filename} must be an image or PDF")
+
+        timestamp = int(time.time() * 1000)
+        extension = Path(file.filename or "dfo.png").suffix or ".png"
+        filename = f"{timestamp}{extension}"
+        file_path = STATIC_ROOT / cluster / folder_project / code / "dfo" / filename
+
+        relative_path = await _write_upload(file, file_path)
+
+        # Generate correct URL format: /static/cluster/project/code/dfo/filename
+        uploaded_files.append({
+            "url": f"/static/{cluster}/{folder_project}/{code}/dfo/{filename}",
+            "name": file.filename or filename,
+            "kind": "dfo" if file.content_type.startswith("image/") else "document"
+        })
+
+    # Get current DFO to append to it, instead of overwriting
     idf = await _get_idf(cluster, db_project, code)
     current_dfo = idf.get("dfo") or []
-    
-    # Handle case where dfo might be stored as JSON string
     if isinstance(current_dfo, str):
         try:
             current_dfo = json.loads(current_dfo)
         except json.JSONDecodeError:
             current_dfo = []
-    elif current_dfo is None:
-        current_dfo = []
 
-    new_dfo_objects = []
-    for file in files:
-        # Allow both images and PDFs for DFO
-        if not file.content_type or not (file.content_type.startswith("image/") or file.content_type == "application/pdf"):
-            raise HTTPException(status_code=400, detail="DFO files must be images or PDFs")
+    updated_dfo = current_dfo + uploaded_files
 
-        extension = Path(file.filename or "dfo.png").suffix or ".png"
-        filename = f"{int(time.time() * 1000)}{extension}"
-        file_path = STATIC_ROOT / cluster / folder_project / code / "dfo" / filename
-
-        relative_path = await _write_upload(file, file_path)
-        
-        # Create complete DFO object with name and kind
-        dfo_object = {
-            "url": relative_path,
-            "name": file.filename or f"DFO {len(current_dfo) + len(new_dfo_objects) + 1}",
-            "kind": "diagram" if file.content_type.startswith("image/") else "document"
-        }
-        new_dfo_objects.append(dfo_object)
-
-    updated_dfo = current_dfo + new_dfo_objects
-
-    await database.execute(
+    # Update database
+    result = await database.execute(
         "UPDATE idfs SET dfo = :dfo WHERE cluster = :cluster AND project = :project AND code = :code",
         {"dfo": json.dumps(updated_dfo), "cluster": cluster, "project": db_project, "code": code},
     )
 
-    return {"paths": [obj["url"] for obj in new_dfo_objects], "message": f"Uploaded {len(files)} DFO files successfully"}
+    return {"uploaded": uploaded_files, "count": len(uploaded_files)}
 
 
 # ---------------------------------------------------------------------------
@@ -320,13 +317,13 @@ async def upload_logo(
         "UPDATE idfs SET logo = :logo WHERE cluster = :cluster AND project = :project AND code = :code",
         {"logo": relative_path, "cluster": cluster, "project": db_project, "code": code},
     )
-    
+
     # Verify the update happened
     updated_idf = await database.fetch_one(
         "SELECT logo FROM idfs WHERE cluster = :cluster AND project = :project AND code = :code",
         {"cluster": cluster, "project": db_project, "code": code},
     )
-    
+
     if not updated_idf:
         raise HTTPException(status_code=404, detail="IDF not found for logo update")
 
@@ -350,13 +347,13 @@ async def get_idf_logo(
 ):
     """Get logo for specific IDF"""
     db_project = map_url_project_to_db_project(project)
-    
+
     idf = await _get_idf(cluster, db_project, code)
     logo_path = idf.get("logo")
-    
+
     if not logo_path:
         raise HTTPException(status_code=404, detail="Logo not found")
-    
+
     # Check if file exists in filesystem
     full_path = STATIC_ROOT / logo_path
     if not full_path.exists():
@@ -366,7 +363,7 @@ async def get_idf_logo(
             {"cluster": cluster, "project": db_project, "code": code},
         )
         raise HTTPException(status_code=404, detail="Logo file not found")
-    
+
     return {
         "url": f"/static/{logo_path}",
         "name": "IDF Logo",
@@ -388,7 +385,7 @@ async def delete_image(
     db_project = map_url_project_to_db_project(project)
     idf = await _get_idf(cluster, db_project, code)
     images = idf.get("images") or []
-    
+
     # Handle case where images might be stored as JSON string
     if isinstance(images, str):
         try:
@@ -428,7 +425,7 @@ async def delete_document(
     db_project = map_url_project_to_db_project(project)
     idf = await _get_idf(cluster, db_project, code)
     documents = idf.get("documents") or []
-    
+
     # Handle case where documents might be stored as JSON string
     if isinstance(documents, str):
         try:
@@ -468,7 +465,7 @@ async def delete_diagram(
     db_project = map_url_project_to_db_project(project)
     idf = await _get_idf(cluster, db_project, code)
     diagrams = idf.get("diagrams") or []
-    
+
     # Handle case where diagrams might be stored as JSON string
     if isinstance(diagrams, str):
         try:
@@ -508,7 +505,7 @@ async def delete_dfo(
     db_project = map_url_project_to_db_project(project)
     idf = await _get_idf(cluster, db_project, code)
     dfo = idf.get("dfo") or []
-    
+
     # Handle case where dfo might be stored as JSON string
     if isinstance(dfo, str):
         try:
@@ -522,7 +519,7 @@ async def delete_dfo(
         raise HTTPException(status_code=404, detail="DFO file not found")
 
     removed_item = dfo.pop(index)
-    
+
     # Handle both old format (string) and new format (object)
     if isinstance(removed_item, dict):
         removed_path = removed_item.get("url", "").replace("/static/", "")
