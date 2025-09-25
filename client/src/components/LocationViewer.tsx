@@ -7,7 +7,7 @@ interface LocationViewerProps {
 }
 
 export default function LocationViewer({ location }: LocationViewerProps) {
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(0.8); // Empezar con 80% para que se vea mejor
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -20,7 +20,7 @@ export default function LocationViewer({ location }: LocationViewerProps) {
     (e: React.WheelEvent) => {
       e.preventDefault();
       const delta = e.deltaY * -0.01;
-      const newScale = Math.min(Math.max(scale + delta, 0.5), 5);
+      const newScale = Math.min(Math.max(scale + delta, 0.2), 5); // Permitir zoom out hasta 20%
       setScale(newScale);
     },
     [scale],
@@ -116,7 +116,7 @@ export default function LocationViewer({ location }: LocationViewerProps) {
             Math.pow(touch2.clientY - touch1.clientY, 2),
         );
         const ratio = distance / dragStart.x;
-        const newScale = Math.min(Math.max(dragStart.y * ratio, 0.5), 5);
+        const newScale = Math.min(Math.max(dragStart.y * ratio, 0.2), 5);
         setScale(newScale);
       }
     },
@@ -124,9 +124,9 @@ export default function LocationViewer({ location }: LocationViewerProps) {
   );
 
   const zoomIn = () => setScale((prev) => Math.min(prev + 0.25, 5));
-  const zoomOut = () => setScale((prev) => Math.max(prev - 0.25, 0.5));
+  const zoomOut = () => setScale((prev) => Math.max(prev - 0.25, 0.2)); // Permitir zoom out hasta 20%
   const resetView = () => {
-    setScale(1);
+    setScale(0.8); // Reset al 80% en lugar de 100%
     setPosition({ x: 0, y: 0 });
   };
 
@@ -206,7 +206,7 @@ export default function LocationViewer({ location }: LocationViewerProps) {
             onClick={zoomOut}
             className="p-2 rounded-md bg-background border border-border hover:bg-accent transition-colors"
             title="Zoom Out"
-            disabled={scale <= 0.5}
+            disabled={scale <= 0.2}
           >
             <i className="fas fa-search-minus text-sm"></i>
           </button>
@@ -275,10 +275,12 @@ export default function LocationViewer({ location }: LocationViewerProps) {
           ref={imageRef}
           src={location.url}
           alt={location.name || "Location image"}
-          className="absolute top-1/2 left-1/2 max-w-none transition-transform duration-200"
+          className="absolute top-1/2 left-1/2 max-w-none max-h-none transition-transform duration-200"
           style={{
             transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px)) scale(${scale})`,
             cursor: isDragging ? "grabbing" : "grab",
+            width: "auto",
+            height: "100%", // Ajustar a la altura del contenedor
           }}
           draggable={false}
           onError={(e) => {
