@@ -12,6 +12,7 @@ import AddIdfDialog from "@/components/AddIdfDialog";
 import LocationViewer from "@/components/LocationViewer";
 import { useAuth } from "@/contexts/AuthContext";
 import type { MediaItem } from "@shared/schema";
+import { Camera, FileText, Grid3X3, MapPin, Network } from "lucide-react";
 
 interface PublicDetailProps {
   cluster: string;
@@ -56,12 +57,12 @@ export default function PublicDetail({
     const handleReloadDocumentsTab = async () => {
       try {
         console.log("Reloading documents tab, current tab:", activeTab);
-        
+
         // Always invalidate and refetch, regardless of active tab
         await queryClient.invalidateQueries({
           queryKey: ["/api", cluster, project, "idfs", code],
         });
-        
+
         // Force a fresh fetch after a small delay
         setTimeout(async () => {
           try {
@@ -417,53 +418,112 @@ export default function PublicDetail({
 
       {/* Tabs */}
       <div className="mb-6">
-        <div
-          className="flex space-x-1 bg-muted rounded-lg p-1"
-          data-testid="tab-navigation"
-        >
+        {/* Desktop tabs */}
+        <div className="hidden md:flex bg-muted rounded-lg p-1 space-x-1">
           <button
-            className={`tab-button ${activeTab === "table" ? "active" : ""}`}
             onClick={() => setActiveTab("table")}
+            className={`tab-button ${
+              activeTab === "table" ? "active" : ""
+            }`}
             data-testid="tab-table"
           >
             <i className="fas fa-table mr-2"></i>Fiber Optic Information (DFO)
           </button>
           <button
-            className={`tab-button ${activeTab === "gallery" ? "active" : ""}`}
             onClick={() => setActiveTab("gallery")}
+            className={`tab-button ${
+              activeTab === "gallery" ? "active" : ""
+            }`}
             data-testid="tab-gallery"
           >
             <i className="fas fa-images mr-2"></i>Gallery
           </button>
           <button
-            className={`tab-button ${activeTab === "location" ? "active" : ""}`}
             onClick={() => setActiveTab("location")}
+            className={`tab-button ${
+              activeTab === "location" ? "active" : ""
+            }`}
             data-testid="tab-location"
           >
             <i className="fas fa-map-marker-alt mr-2"></i>Location
           </button>
           <button
-            className={`tab-button ${activeTab === "diagram" ? "active" : ""}`}
             onClick={() => setActiveTab("diagram")}
+            className={`tab-button ${
+              activeTab === "diagram" ? "active" : ""
+            }`}
             data-testid="tab-diagram"
           >
             <i className="fas fa-project-diagram mr-2"></i>Diagram
           </button>
           <button
-            className={`tab-button ${activeTab === "documents" ? "active" : ""}`}
             onClick={() => setActiveTab("documents")}
+            className={`tab-button ${
+              activeTab === "documents" ? "active" : ""
+            }`}
             data-testid="tab-documents"
           >
             <i className="fas fa-file-alt mr-2"></i>Documents
           </button>
-          {/* Overview tab - Hidden but kept in code */}
-          <button
-            className={`hidden tab-button ${activeTab === "overview" ? "active" : ""}`}
-            onClick={() => setActiveTab("overview")}
-            data-testid="tab-overview"
-          >
-            <i className="fas fa-info-circle mr-2"></i>Overview
-          </button>
+        </div>
+
+        {/* Mobile tabs - two rows */}
+        <div className="md:hidden mobile-tabs-container bg-muted rounded-lg p-1">
+          <div className="mobile-tabs-row flex justify-center space-x-1 mb-2">
+            <button
+              onClick={() => setActiveTab("table")}
+              className={`tab-button ${
+                activeTab === "table" ? "active" : ""
+              }`}
+              data-testid="tab-table"
+            >
+              <i className="fas fa-table mobile-tab-icon w-4 h-4"></i>
+              <span className="mobile-tab-text">Fiber Optic</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("gallery")}
+              className={`tab-button ${
+                activeTab === "gallery" ? "active" : ""
+              }`}
+              data-testid="tab-gallery"
+            >
+              <i className="fas fa-images mobile-tab-icon w-4 h-4"></i>
+              <span className="mobile-tab-text">Gallery</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("location")}
+              className={`tab-button ${
+                activeTab === "location" ? "active" : ""
+              }`}
+              data-testid="tab-location"
+            >
+              <i className="fas fa-map-marker-alt mobile-tab-icon w-4 h-4"></i>
+              <span className="mobile-tab-text">Location</span>
+            </button>
+          </div>
+          <div className="mobile-tabs-row flex justify-center space-x-1">
+            <button
+              onClick={() => setActiveTab("diagram")}
+              className={`tab-button ${
+                activeTab === "diagram" ? "active" : ""
+              }`}
+              data-testid="tab-diagram"
+            >
+              <i className="fas fa-project-diagram mobile-tab-icon w-4 h-4"></i>
+              <span className="mobile-tab-text">Diagram</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("documents")}
+              className={`tab-button ${
+                activeTab === "documents" ? "active" : ""
+              }`}
+              data-testid="tab-documents"
+            >
+              <i className="fas fa-file-alt mobile-tab-icon w-4 h-4"></i>
+              <span className="mobile-tab-text">Documents</span>
+            </button>
+            <div className="flex-1"></div> {/* Spacer for alignment */}
+          </div>
         </div>
       </div>
 
