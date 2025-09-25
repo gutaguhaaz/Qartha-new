@@ -12,18 +12,20 @@ export default function LocationViewer({ location }: LocationViewerProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [wheelZoomEnabled, setWheelZoomEnabled] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
   const handleWheel = useCallback(
     (e: React.WheelEvent) => {
+      if (!wheelZoomEnabled) return; // Solo funciona si está habilitado
       e.preventDefault();
       const delta = e.deltaY * -0.01;
       const newScale = Math.min(Math.max(scale + delta, 0.2), 5); // Permitir zoom out hasta 20%
       setScale(newScale);
     },
-    [scale],
+    [scale, wheelZoomEnabled],
   );
 
   const handleMouseDown = useCallback(
@@ -231,6 +233,17 @@ export default function LocationViewer({ location }: LocationViewerProps) {
               <i className="fas fa-expand-arrows-alt text-sm"></i>
             </button>
             <button
+              onClick={() => setWheelZoomEnabled(!wheelZoomEnabled)}
+              className={`p-2 rounded-md border border-border transition-colors ${
+                wheelZoomEnabled 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-background hover:bg-accent"
+              }`}
+              title={wheelZoomEnabled ? "Disable Mouse Wheel Zoom" : "Enable Mouse Wheel Zoom"}
+            >
+              <i className="fas fa-mouse text-sm"></i>
+            </button>
+            <button
               onClick={toggleFullscreen}
               className="p-2 rounded-md bg-background border border-border hover:bg-accent transition-colors"
               title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
@@ -276,7 +289,23 @@ export default function LocationViewer({ location }: LocationViewerProps) {
             </button>
           </div>
           
-          {/* Controls row 2: Reset and fullscreen */}
+          {/* Controls row 2: Mouse wheel toggle */}
+          <div className="flex items-center justify-center">
+            <button
+              onClick={() => setWheelZoomEnabled(!wheelZoomEnabled)}
+              className={`px-4 py-2 rounded-md border border-border transition-colors text-sm ${
+                wheelZoomEnabled 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-background hover:bg-accent"
+              }`}
+              title={wheelZoomEnabled ? "Disable Mouse Wheel Zoom" : "Enable Mouse Wheel Zoom"}
+            >
+              <i className="fas fa-mouse mr-2"></i>
+              Mouse Wheel: {wheelZoomEnabled ? "ON" : "OFF"}
+            </button>
+          </div>
+          
+          {/* Controls row 3: Reset and fullscreen */}
           <div className="flex items-center justify-center space-x-4">
             <button
               onClick={resetView}
@@ -363,7 +392,7 @@ export default function LocationViewer({ location }: LocationViewerProps) {
           <i className="fas fa-info-circle mr-1"></i>
           {isMobile
             ? "Pinch to zoom • Touch and drag to pan • Double-tap to reset view"
-            : "Use mouse wheel to zoom • Click and drag to pan • Double-click to reset view"}
+            : `${wheelZoomEnabled ? "Mouse wheel to zoom • " : ""}Click and drag to pan • Double-click to reset view • Toggle mouse wheel zoom with button`}
         </p>
       </div>
     </div>
