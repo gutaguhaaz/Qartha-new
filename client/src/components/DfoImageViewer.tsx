@@ -155,6 +155,7 @@ export default function DfoImageViewer({ item }: DfoImageViewerProps) {
 
   const handleCenter = useCallback(() => {
     setPosition({ x: 0, y: 0 });
+    setZoom(100);
   }, []);
 
   const toggleFullscreen = () => {
