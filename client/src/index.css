@@ -164,13 +164,13 @@
       flex-direction: column;
       gap: 8px;
     }
-    
+
     .mobile-tabs-row {
       display: flex;
       width: 100%;
       gap: 4px;
     }
-    
+
     .mobile-tabs-row .tab-button {
       flex: 1;
       min-width: 0;
@@ -181,12 +181,12 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    
+
     .mobile-tab-icon {
       display: block;
       margin: 0 auto 2px auto;
     }
-    
+
     .mobile-tab-text {
       display: block;
       font-size: 9px;
@@ -196,6 +196,7 @@
 
   /* Hide mobile specific classes on desktop */
   @media (min-width: 769px) {
+
     .mobile-tabs-container,
     .mobile-tabs-row,
     .mobile-tab-icon,
@@ -673,4 +674,21 @@ button.create-idf {
   padding: 15px !important;
   border-radius: 13px !important;
   background: #f2f2f2 !important;
+}
+
+span.diagram-network-diagram-1,
+span.diagram-network-diagram-2,
+span.diagram-network-diagram-3,
+span.diagram-network-diagram-4 {
+  font-size: 0px;
+}
+
+span.diagram-network-diagram-1:before {
+  font-size: 1.125rem !important;
+  content: "Phisical Layout";
+}
+
+span.diagram-network-diagram-2:before {
+  font-size: 1.125rem !important;
+  content: "Network Topology";
 }

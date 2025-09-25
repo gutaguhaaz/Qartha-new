@@ -1,4 +1,3 @@
-
 import { useState, useRef, useCallback, useEffect } from "react";
 
 interface MediaItem {
@@ -114,7 +113,7 @@ export default function DiagramsViewer({ item }: DiagramsViewerProps) {
     return url;
   })();
 
-  const isPdf = correctedUrl.toLowerCase().endsWith('.pdf');
+  const isPdf = correctedUrl.toLowerCase().endsWith(".pdf");
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 25, 200));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 25, 50));
@@ -231,9 +230,15 @@ export default function DiagramsViewer({ item }: DiagramsViewerProps) {
             className={`text-lg font-semibold ${isFullscreen ? "text-white" : ""}`}
             data-testid="diagrams-title"
           >
-            {currentItem?.name ||
-              `Network Diagram ${currentIndex + 1}`}{" "}
-            ({currentIndex + 1} of {items.length})
+            <span
+              className={`diagram-${(
+                currentItem?.name || `Network Diagram ${currentIndex + 1}`
+              )
+                .replace(/\s+/g, "-")
+                .toLowerCase()}`}
+            >
+              {currentItem?.name || `Network Diagram ${currentIndex + 1}`}
+            </span>
           </h3>
           <div className="flex items-center space-x-2">
             {items.length > 1 && (
@@ -309,24 +314,34 @@ export default function DiagramsViewer({ item }: DiagramsViewerProps) {
         {/* Mobile layout - stacked vertically */}
         <div className="md:hidden space-y-3 mb-4">
           <div className="flex items-center justify-center">
-            <span className={`text-sm font-medium ${isFullscreen ? "text-white" : ""}`}>
+            {/* Vista celular */}
+            <span
+              className={`text-sm font-medium ${isFullscreen ? "text-white" : ""} diagram-${(
+                currentItem?.name || `Network Diagram ${currentIndex + 1}`
+              )
+                .replace(/\s+/g, "-")
+                .toLowerCase()}`}
+            >
               {currentItem?.name || `Network Diagram ${currentIndex + 1}`}
             </span>
+
             {items.length > 1 && (
-              <span className={`text-xs ml-2 ${isFullscreen ? "text-gray-300" : "text-muted-foreground"}`}>
+              <span
+                className={`text-xs ml-2 ${isFullscreen ? "text-gray-300" : "text-muted-foreground"}`}
+              >
                 • {currentIndex + 1} of {items.length}
               </span>
             )}
           </div>
-          
+
           {/* Navigation for multiple diagrams */}
           {items.length > 1 && (
             <div className="flex items-center justify-center space-x-4">
               <button
                 onClick={handlePrevious}
                 className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                  isFullscreen 
-                    ? "bg-gray-700 hover:bg-gray-600 text-white" 
+                  isFullscreen
+                    ? "bg-gray-700 hover:bg-gray-600 text-white"
                     : "bg-background border border-border hover:bg-accent"
                 }`}
                 title="Previous"
@@ -337,8 +352,8 @@ export default function DiagramsViewer({ item }: DiagramsViewerProps) {
               <button
                 onClick={handleNext}
                 className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                  isFullscreen 
-                    ? "bg-gray-700 hover:bg-gray-600 text-white" 
+                  isFullscreen
+                    ? "bg-gray-700 hover:bg-gray-600 text-white"
                     : "bg-background border border-border hover:bg-accent"
                 }`}
                 title="Next"
@@ -356,22 +371,24 @@ export default function DiagramsViewer({ item }: DiagramsViewerProps) {
                 <button
                   onClick={handleZoomOut}
                   className={`px-3 py-2 rounded-md text-sm transition-colors ${
-                    isFullscreen 
-                      ? "bg-gray-700 hover:bg-gray-600 text-white" 
+                    isFullscreen
+                      ? "bg-gray-700 hover:bg-gray-600 text-white"
                       : "bg-background border border-border hover:bg-accent"
                   }`}
                   title="Zoom Out"
                 >
                   <i className="fas fa-search-minus"></i>
                 </button>
-                <span className={`text-xs px-2 ${isFullscreen ? "text-white" : "text-muted-foreground"}`}>
+                <span
+                  className={`text-xs px-2 ${isFullscreen ? "text-white" : "text-muted-foreground"}`}
+                >
                   {zoom}%
                 </span>
                 <button
                   onClick={handleZoomIn}
                   className={`px-3 py-2 rounded-md text-sm transition-colors ${
-                    isFullscreen 
-                      ? "bg-gray-700 hover:bg-gray-600 text-white" 
+                    isFullscreen
+                      ? "bg-gray-700 hover:bg-gray-600 text-white"
                       : "bg-background border border-border hover:bg-accent"
                   }`}
                   title="Zoom In"
@@ -383,8 +400,8 @@ export default function DiagramsViewer({ item }: DiagramsViewerProps) {
             <button
               onClick={handleDownload}
               className={`px-3 py-2 rounded-md text-sm transition-colors ${
-                isFullscreen 
-                  ? "bg-gray-700 hover:bg-gray-600 text-white" 
+                isFullscreen
+                  ? "bg-gray-700 hover:bg-gray-600 text-white"
                   : "bg-background border border-border hover:bg-accent"
               }`}
               title="Download"
@@ -395,8 +412,8 @@ export default function DiagramsViewer({ item }: DiagramsViewerProps) {
               <button
                 onClick={handleCenter}
                 className={`px-3 py-2 rounded-md text-sm transition-colors ${
-                  isFullscreen 
-                    ? "bg-gray-700 hover:bg-gray-600 text-white" 
+                  isFullscreen
+                    ? "bg-gray-700 hover:bg-gray-600 text-white"
                     : "bg-background border border-border hover:bg-accent"
                 }`}
                 title="Center"
@@ -407,8 +424,8 @@ export default function DiagramsViewer({ item }: DiagramsViewerProps) {
             <button
               onClick={toggleFullscreen}
               className={`px-3 py-2 rounded-md text-sm transition-colors ${
-                isFullscreen 
-                  ? "bg-gray-700 hover:bg-gray-600 text-white" 
+                isFullscreen
+                  ? "bg-gray-700 hover:bg-gray-600 text-white"
                   : "bg-background border border-border hover:bg-accent"
               }`}
               title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
