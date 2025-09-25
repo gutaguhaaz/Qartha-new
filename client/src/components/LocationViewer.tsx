@@ -192,51 +192,111 @@ export default function LocationViewer({ location }: LocationViewerProps) {
       className={`bg-card border border-border rounded-lg overflow-hidden ${isFullscreen ? "fixed inset-0 z-50 rounded-none" : ""}`}
     >
       {/* Controls */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
-        <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium">Location:</span>
-          {location.name && (
-            <span className="text-sm text-muted-foreground">
-              • {location.name}
+      <div className="p-4 border-b border-border bg-muted/30">
+        {/* Desktop layout */}
+        <div className="hidden md:flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium">Location:</span>
+            {location.name && (
+              <span className="text-sm text-muted-foreground">
+                • {location.name}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={zoomOut}
+              className="p-2 rounded-md bg-background border border-border hover:bg-accent transition-colors"
+              title="Zoom Out"
+              disabled={scale <= 0.2}
+            >
+              <i className="fas fa-search-minus text-sm"></i>
+            </button>
+            <span className="text-sm text-muted-foreground min-w-[60px] text-center">
+              {Math.round(scale * 100)}%
             </span>
-          )}
+            <button
+              onClick={zoomIn}
+              className="p-2 rounded-md bg-background border border-border hover:bg-accent transition-colors"
+              title="Zoom In"
+              disabled={scale >= 5}
+            >
+              <i className="fas fa-search-plus text-sm"></i>
+            </button>
+            <button
+              onClick={resetView}
+              className="p-2 rounded-md bg-background border border-border hover:bg-accent transition-colors"
+              title="Reset View"
+            >
+              <i className="fas fa-expand-arrows-alt text-sm"></i>
+            </button>
+            <button
+              onClick={toggleFullscreen}
+              className="p-2 rounded-md bg-background border border-border hover:bg-accent transition-colors"
+              title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+            >
+              <i
+                className={`fas ${isFullscreen ? "fa-compress" : "fa-expand"} text-sm`}
+              ></i>
+            </button>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={zoomOut}
-            className="p-2 rounded-md bg-background border border-border hover:bg-accent transition-colors"
-            title="Zoom Out"
-            disabled={scale <= 0.2}
-          >
-            <i className="fas fa-search-minus text-sm"></i>
-          </button>
-          <span className="text-sm text-muted-foreground min-w-[60px] text-center">
-            {Math.round(scale * 100)}%
-          </span>
-          <button
-            onClick={zoomIn}
-            className="p-2 rounded-md bg-background border border-border hover:bg-accent transition-colors"
-            title="Zoom In"
-            disabled={scale >= 5}
-          >
-            <i className="fas fa-search-plus text-sm"></i>
-          </button>
-          <button
-            onClick={resetView}
-            className="p-2 rounded-md bg-background border border-border hover:bg-accent transition-colors"
-            title="Reset View"
-          >
-            <i className="fas fa-expand-arrows-alt text-sm"></i>
-          </button>
-          <button
-            onClick={toggleFullscreen}
-            className="p-2 rounded-md bg-background border border-border hover:bg-accent transition-colors"
-            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-          >
-            <i
-              className={`fas ${isFullscreen ? "fa-compress" : "fa-expand"} text-sm`}
-            ></i>
-          </button>
+
+        {/* Mobile layout - stacked vertically */}
+        <div className="md:hidden space-y-3">
+          <div className="flex items-center justify-center">
+            <span className="text-sm font-medium">Location</span>
+            {location.name && (
+              <span className="text-xs text-muted-foreground ml-2">
+                • {location.name}
+              </span>
+            )}
+          </div>
+          
+          {/* Controls row 1: Zoom controls */}
+          <div className="flex items-center justify-center space-x-3">
+            <button
+              onClick={zoomOut}
+              className="p-3 rounded-md bg-background border border-border hover:bg-accent transition-colors"
+              title="Zoom Out"
+              disabled={scale <= 0.2}
+            >
+              <i className="fas fa-search-minus text-base"></i>
+            </button>
+            <span className="text-sm text-muted-foreground min-w-[60px] text-center font-medium">
+              {Math.round(scale * 100)}%
+            </span>
+            <button
+              onClick={zoomIn}
+              className="p-3 rounded-md bg-background border border-border hover:bg-accent transition-colors"
+              title="Zoom In"
+              disabled={scale >= 5}
+            >
+              <i className="fas fa-search-plus text-base"></i>
+            </button>
+          </div>
+          
+          {/* Controls row 2: Reset and fullscreen */}
+          <div className="flex items-center justify-center space-x-4">
+            <button
+              onClick={resetView}
+              className="px-4 py-2 rounded-md bg-background border border-border hover:bg-accent transition-colors text-sm"
+              title="Reset View"
+            >
+              <i className="fas fa-expand-arrows-alt mr-2"></i>
+              Reset View
+            </button>
+            <button
+              onClick={toggleFullscreen}
+              className="px-4 py-2 rounded-md bg-background border border-border hover:bg-accent transition-colors text-sm"
+              title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+            >
+              <i
+                className={`fas ${isFullscreen ? "fa-compress" : "fa-expand"} mr-2`}
+              ></i>
+              {isFullscreen ? "Exit" : "Fullscreen"}
+            </button>
+          </div>
         </div>
       </div>
 
