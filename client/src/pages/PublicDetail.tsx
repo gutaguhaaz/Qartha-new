@@ -87,7 +87,10 @@ export default function PublicDetail({
     return () => {
       window.removeEventListener("openAdminWithIdf", handleOpenAdmin);
       window.removeEventListener("reloadDiagramsTab", handleReloadDiagramsTab);
-      window.removeEventListener("reloadDocumentsTab", handleReloadDocumentsTab);
+      window.removeEventListener(
+        "reloadDocumentsTab",
+        handleReloadDocumentsTab,
+      );
     };
   }, [canManage, activeTab, queryClient]);
 
@@ -106,13 +109,20 @@ export default function PublicDetail({
     const handleDocumentUpdate = () => {
       if (params.cluster && params.project && params.code) {
         queryClient.invalidateQueries({
-          queryKey: ["/api", params.cluster, params.project, "idfs", params.code],
+          queryKey: [
+            "/api",
+            params.cluster,
+            params.project,
+            "idfs",
+            params.code,
+          ],
         });
       }
     };
 
     window.addEventListener("reloadDocumentsTab", handleDocumentUpdate);
-    return () => window.removeEventListener("reloadDocumentsTab", handleDocumentUpdate);
+    return () =>
+      window.removeEventListener("reloadDocumentsTab", handleDocumentUpdate);
   }, [params.cluster, params.project, params.code, queryClient]);
 
   const {
@@ -275,15 +285,30 @@ export default function PublicDetail({
               )}
               {idf.media?.logo && (
                 <img
-                  src={idf.media.logo.url.startsWith('http') ? idf.media.logo.url : `${API_BASE}${idf.media.logo.url}`}
+                  src={
+                    idf.media.logo.url.startsWith("http")
+                      ? idf.media.logo.url
+                      : `${API_BASE}${idf.media.logo.url}`
+                  }
                   alt={`${idf.code} logo`}
                   className="h-12 w-auto"
                   onLoad={() => {
-                    console.log('IDF logo loaded successfully:', idf.media.logo.url);
+                    console.log(
+                      "IDF logo loaded successfully:",
+                      idf.media.logo.url,
+                    );
                   }}
                   onError={(e) => {
-                    console.error('Failed to load IDF logo:', idf.media.logo.url);
-                    console.error('Full URL attempted:', idf.media.logo.url.startsWith('http') ? idf.media.logo.url : `${API_BASE}${idf.media.logo.url}`);
+                    console.error(
+                      "Failed to load IDF logo:",
+                      idf.media.logo.url,
+                    );
+                    console.error(
+                      "Full URL attempted:",
+                      idf.media.logo.url.startsWith("http")
+                        ? idf.media.logo.url
+                        : `${API_BASE}${idf.media.logo.url}`,
+                    );
                     const target = e.target as HTMLImageElement;
                     target.style.display = "none";
                   }}
@@ -381,7 +406,7 @@ export default function PublicDetail({
                 className="w-24 h-24"
                 crossOrigin="anonymous"
                 onError={(e) => {
-                  console.error('QR Code failed to load:', qrUrl);
+                  console.error("QR Code failed to load:", qrUrl);
                   const target = e.target as HTMLImageElement;
                   target.style.display = "none";
                   target.parentElement!.innerHTML = `
@@ -391,7 +416,7 @@ export default function PublicDetail({
                   `;
                 }}
                 onLoad={() => {
-                  console.log('QR Code loaded successfully:', qrUrl);
+                  console.log("QR Code loaded successfully:", qrUrl);
                 }}
               />
               <p className="text-xs text-muted-foreground mt-2 text-center">
@@ -399,7 +424,7 @@ export default function PublicDetail({
               </p>
               <button
                 onClick={() => {
-                  const link = document.createElement('a');
+                  const link = document.createElement("a");
                   link.href = qrUrl;
                   link.download = `QR-${idf.code}.png`;
                   document.body.appendChild(link);
@@ -422,36 +447,28 @@ export default function PublicDetail({
         <div className="hidden md:flex bg-muted rounded-lg p-1 space-x-1">
           <button
             onClick={() => setActiveTab("table")}
-            className={`tab-button ${
-              activeTab === "table" ? "active" : ""
-            }`}
+            className={`tab-button ${activeTab === "table" ? "active" : ""}`}
             data-testid="tab-table"
           >
             <i className="fas fa-table mr-2"></i>Fiber Optic Information (DFO)
           </button>
           <button
             onClick={() => setActiveTab("gallery")}
-            className={`tab-button ${
-              activeTab === "gallery" ? "active" : ""
-            }`}
+            className={`tab-button ${activeTab === "gallery" ? "active" : ""}`}
             data-testid="tab-gallery"
           >
             <i className="fas fa-images mr-2"></i>Gallery
           </button>
           <button
             onClick={() => setActiveTab("location")}
-            className={`tab-button ${
-              activeTab === "location" ? "active" : ""
-            }`}
+            className={`tab-button ${activeTab === "location" ? "active" : ""}`}
             data-testid="tab-location"
           >
             <i className="fas fa-map-marker-alt mr-2"></i>Location
           </button>
           <button
             onClick={() => setActiveTab("diagram")}
-            className={`tab-button ${
-              activeTab === "diagram" ? "active" : ""
-            }`}
+            className={`tab-button ${activeTab === "diagram" ? "active" : ""}`}
             data-testid="tab-diagram"
           >
             <i className="fas fa-project-diagram mr-2"></i>Diagram
@@ -472,13 +489,11 @@ export default function PublicDetail({
           <div className="mobile-tabs-row flex justify-center space-x-1 mb-2">
             <button
               onClick={() => setActiveTab("table")}
-              className={`tab-button ${
-                activeTab === "table" ? "active" : ""
-              }`}
+              className={`tab-button ${activeTab === "table" ? "active" : ""}`}
               data-testid="tab-table"
             >
               <i className="fas fa-table mobile-tab-icon w-4 h-4"></i>
-              <span className="mobile-tab-text">Fiber Optic</span>
+              <span className="mobile-tab-text">DFO</span>
             </button>
             <button
               onClick={() => setActiveTab("gallery")}
@@ -537,21 +552,31 @@ export default function PublicDetail({
 
         {activeTab === "gallery" && (
           <div data-testid="tab-content-gallery">
-            <Gallery images={idf.images?.map(item => 
-              typeof item === 'string' ? item : item.url
-            ) || []} />
+            <Gallery
+              images={
+                idf.images?.map((item) =>
+                  typeof item === "string" ? item : item.url,
+                ) || []
+              }
+            />
           </div>
         )}
 
         {activeTab === "location" && (
           <div data-testid="tab-content-location">
-            <LocationViewer location={
-              idf.location ? (
-                typeof idf.location === 'string' 
-                  ? { url: idf.location, name: 'Location Image', kind: 'image' }
-                  : idf.location
-              ) : null
-            } />
+            <LocationViewer
+              location={
+                idf.location
+                  ? typeof idf.location === "string"
+                    ? {
+                        url: idf.location,
+                        name: "Location Image",
+                        kind: "image",
+                      }
+                    : idf.location
+                  : null
+              }
+            />
           </div>
         )}
 
@@ -565,8 +590,8 @@ export default function PublicDetail({
 
         {activeTab === "documents" && (
           <div data-testid="tab-content-documents">
-            <DocumentsViewer 
-              item={idf.documents} 
+            <DocumentsViewer
+              item={idf.documents}
               cluster={cluster}
               project={project}
               code={code}
