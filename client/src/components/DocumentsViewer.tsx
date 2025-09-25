@@ -149,46 +149,91 @@ export default function DocumentsViewer({
       </div>
 
       {/* Documents List */}
-      <div className="p-4 space-y-3">
-        {documents.map((doc, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-lg hover:bg-accent/50 transition-colors"
-          >
-            <div className="flex items-center space-x-3">
-              {getFileIcon(doc.name || doc.url || "document")}
-              <div>
-                <p className="font-semibold text-foreground text-base">
-                  {doc.title &&
-                  doc.title.trim() !== "" &&
-                  doc.title !== "undefined"
-                    ? doc.title
-                    : `SW ports ${index + 1}`}
-                </p>
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <span>
-                    {doc.name || doc.url?.split("/").pop() || "document"}
-                  </span>
-                  <span>•</span>
-                  <span className="capitalize">{doc.kind || "document"}</span>
-                  <span>•</span>
-                  <span>
-                    {doc.url?.split(".").pop()?.toUpperCase() || "FILE"}
-                  </span>
+      <div className="p-4">
+        {/* Desktop Layout */}
+        <div className="hidden md:block space-y-3">
+          {documents.map((doc, index) => (
+            <div
+              key={index}
+              className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-lg hover:bg-accent/50 transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                {getFileIcon(doc.name || doc.url || "document")}
+                <div>
+                  <p className="font-semibold text-foreground text-base">
+                    {doc.title &&
+                    doc.title.trim() !== "" &&
+                    doc.title !== "undefined"
+                      ? doc.title
+                      : `SW ports ${index + 1}`}
+                  </p>
+                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                    <span>
+                      {doc.name || doc.url?.split("/").pop() || "document"}
+                    </span>
+                    <span>•</span>
+                    <span className="capitalize">{doc.kind || "document"}</span>
+                    <span>•</span>
+                    <span>
+                      {doc.url?.split(".").pop()?.toUpperCase() || "FILE"}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <button
-              onClick={() => handleDownload(doc.url, doc.name, doc.title)}
-              className="flex items-center space-x-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-              title="Download document"
+              <button
+                onClick={() => handleDownload(doc.url, doc.name, doc.title)}
+                className="flex items-center space-x-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                title="Download document"
+              >
+                <Download className="w-4 h-4" />
+                <span className="text-sm">Download</span>
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Mobile Layout - Grid with 2 columns */}
+        <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {documents.map((doc, index) => (
+            <div
+              key={index}
+              className="flex flex-col p-3 bg-muted/30 border border-border rounded-lg hover:bg-accent/50 transition-colors"
             >
-              <Download className="w-4 h-4" />
-              <span className="text-sm">Download</span>
-            </button>
-          </div>
-        ))}
+              <div className="flex items-start space-x-2 mb-3">
+                {getFileIcon(doc.name || doc.url || "document")}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-foreground text-sm leading-tight truncate">
+                    {doc.title &&
+                    doc.title.trim() !== "" &&
+                    doc.title !== "undefined"
+                      ? doc.title
+                      : `SW ports ${index + 1}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1 truncate">
+                    {doc.name || doc.url?.split("/").pop() || "document"}
+                  </p>
+                  <div className="flex items-center space-x-1 text-xs text-muted-foreground mt-1">
+                    <span className="capitalize">{doc.kind || "doc"}</span>
+                    <span>•</span>
+                    <span>
+                      {doc.url?.split(".").pop()?.toUpperCase() || "FILE"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => handleDownload(doc.url, doc.name, doc.title)}
+                className="flex items-center justify-center space-x-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm"
+                title="Download document"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download</span>
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
