@@ -14,44 +14,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { MediaItem } from "@shared/schema";
 import { Camera, FileText, Grid3X3, MapPin, Network } from "lucide-react";
 
-// Placeholder types and components assumed to be available
-// import { Button } from "@/components/ui/Button";
-// import { ArrowLeft, Plus, QrCode, Edit, Building } from "lucide-react";
-// import QrCodeModal from "@/components/QrCodeModal";
-// import { titleCase } from "@/lib/utils";
-
-// Mock components and functions for demonstration purposes
-const Button = ({ children, ...props }) => <button {...props}>{children}</button>;
-const ArrowLeft = ({ className }) => <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>;
-const Plus = ({ className, ...props }) => <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>;
-const QrCode = ({ className }) => <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.282-2.906.747v13.5c0 1.052.282 2.062.747 2.906h.75a6.375 6.375 0 013.157-5.25h1.144a2.075 2.075 0 011.944 1.513l.496 1.578a2.075 2.075 0 001.944 1.513h.765c.65.09 1.282.172 1.905.25a6.375 6.375 0 003.157-5.25v-1.144a2.075 2.075 0 00-1.944-1.513h-.765c-.09-.017-.182-.025-.274-.027zM12 10.875c.75 0 1.375.625 1.375 1.375v1.875c0 .75-.625 1.375-1.375 1.375H9.375A2.075 2.075 0 017.5 13.5v-1.875c0-.75.625-1.375 1.375-1.375h2.125z" /></svg>;
-const Edit = ({ className }) => <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487a6.041 6.041 0 00-8.484 0L12 5.223 10.977 4.124a6.041 6.041 0 00-8.484 0m8.484 1.125a6.041 6.041 0 019.192 0M16.5 6.679v1.043a2.15 2.15 0 01-1.052 1.877l-1.553.776m-3.625.665c-.188.295-.394.585-.61.862v.001c-.216.277-.422.567-.61.862V14.25a2.25 2.25 0 001.625 2.232l1.553.776a2.15 2.15 0 011.052 1.877v1.043h.75a2.25 2.25 0 002.052-1.562l1.052-2.625c-.188-.295-.394-.585-.61-.862V13.5a2.25 2.25 0 00-1.625-2.232l-1.553-.776M12.75 1.506a4.016 4.016 0 00-.677.096c-1.126.376-2.085.776-2.756 1.157h-.001L9.375 2.787c-.49.378-.889.776-1.264 1.157H7.5A3.75 3.75 0 003.75 6.75v3.75c0 .75.447 1.375 1.003 1.75v1.75a3.75 3.75 0 001.003 1.75v2.25a3.75 3.75 0 001.125 2.037c.225.277.431.567.61.862v.001c.188.295.394.585.61.862h1.5c.216.277.422.567.61.862V19.5a3.75 3.75 0 001.003 1.75v.75c0 .75.587 1.375 1.313 1.625h.001C12.516 23.913 13.3 24 14.062 24h1.5c.762 0 1.547-.087 2.218-.287.318-.098.665-.237 1.003-.437.338-.207.665-.454.963-.75H19.5a3.75 3.75 0 001.003-1.75v-1.75a3.75 3.75 0 001.003-1.75v-3.75a3.75 3.75 0 001.003-1.75V10.5c.556-.375 1.003-1 1.003-1.75v-1.75a3.75 3.75 0 00-1.003-1.75v-3.75a3.75 3.75 0 00-1.003-1.75h-.375c-.375-.4-.774-.776-1.264-1.157L13.5 2.787a4.016 4.016 0 00-.677-.096z" /></svg>;
-const Building = ({ className }) => <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5m-16.5-24h16.5m-8.25-6.75h3.75c0 1.034-.448 1.955-1.168 2.657a3.75 3.75 0 00-1.864 3.247v4.75a3.75 3.75 0 001.864 3.247h1.168c.657 0 1.168.665 1.168 1.505v2.25h1.168c.657 0 1.168.665 1.168 1.505v2.25h1.168c.657 0 1.168-.665 1.168-1.505v-2.25c0-.954.512-1.75 1.168-1.75h1.168v-2.25c0-.954-.512-1.75-1.168-1.75h-1.168v-1.5c0-.954-.512-1.75-1.168-1.75h-1.168v-2.25c0-.954-.512-1.75-1.168-1.75h-1.168v-1.5a3.75 3.75 0 00-1.864-3.247V12h1.168c.657 0 1.168-.665 1.168-1.505V7.5m-1.168-6.75h-3.75" /></svg>;
-const DfoImageViewer = ({ item }) => <div className="bg-card border border-border rounded-lg overflow-hidden p-4">DFO Content Placeholder</div>;
-const Gallery = ({ images }) => <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4">Gallery Placeholder</div>;
-const LocationViewer = ({ location }) => <div className="bg-card border border-border rounded-lg overflow-hidden p-4">Location Content Placeholder</div>;
-const DiagramsViewer = ({ item }) => <div className="bg-card border border-border rounded-lg overflow-hidden p-4">Diagrams Content Placeholder</div>;
-const DocumentsViewer = ({ documents }) => <div className="bg-card border border-border rounded-lg overflow-hidden p-4">Documents Content Placeholder</div>;
-const AdminSidebar = ({ isOpen, onClose, preloadIdf }) => null;
-const AddIdfDialog = ({ open, onOpenChange, onCreated }) => null;
-const QrCodeModal = ({ open, onOpenChange, idf, cluster, project }) => null;
-const titleCase = (str) => str.charAt(0).toUpperCase() + str.slice(1);
-
-
 interface PublicDetailProps {
   cluster: string;
   project: string;
   code: string;
 }
-
-// Mock detail and logoUrl for placeholder
-const detail = { code: "IDF001", site: "SiteA", description: "This is a test IDF.", dfo: [], images: [], location: null, diagrams: [], documents: [] };
-const logoUrl = "/mock-logo.png";
-const qrCodeUrl = "/mock-qr.png";
-const showQrModal = false; // Mock state
-const handleOpenAdmin = () => console.log("Opening admin"); // Mock function
-const handleReloadDiagramsTab = () => console.log("Reloading diagrams");
-const handleReloadDocumentsTab = () => console.log("Reloading documents");
 
 export default function PublicDetail({
   params,
@@ -216,7 +183,7 @@ export default function PublicDetail({
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="animate-pulse">
           <div className="h-6 bg-muted rounded w-1/4 mb-4"></div>
           <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
@@ -229,7 +196,7 @@ export default function PublicDetail({
 
   if (error || !idf) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="text-center py-12">
           <i className="fas fa-exclamation-triangle text-4xl text-destructive mb-4"></i>
           <h2 className="text-xl font-semibent mb-2">Error Loading IDF</h2>
@@ -258,202 +225,253 @@ export default function PublicDetail({
   const qrUrl = `${window.location.origin}/api/${encodeURIComponent(cluster)}/${encodeURIComponent(apiProject)}/idfs/${encodeURIComponent(code)}/qr.png`;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
-          <div className="flex items-start justify-between gap-3 sm:gap-4">
-            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-              <Link
-                href={`/${cluster}/${project}`}
-                className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm sm:text-base"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span className="hidden sm:inline">Back to Directory</span>
-                <span className="sm:hidden">Back</span>
-              </Link>
+    <div className="max-w-7xl mx-auto px-6 py-8" data-testid="public-detail">
+      {/* Welcome Banner */}
+      <div className="bg-primary text-primary-foreground rounded-lg p-4 mb-6 text-center">
+        <h1 className="text-xl font-semibold">
+          Welcome to the Access Technical Fiber Optic Information Portal
+        </h1>
+      </div>
 
-              {canManage && (
-                <Button
-                  size="sm"
-                  onClick={() => setIsAddIdfDialogOpen(true)}
-                  className="create-idf text-xs sm:text-sm px-2 sm:px-3"
-                >
-                  <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Add IDF</span>
-                  <span className="sm:hidden">Add</span>
-                </Button>
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-4">
+            <Link
+              href={`/${cluster}/${project === "Sabinas Project" ? "Sabinas" : project}`}
+              className="flex items-center space-x-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
+              data-testid="back-button"
+            >
+              <i className="fas fa-arrow-left"></i>
+              <span>Back to Directory</span>
+            </Link>
+            {canManage && (
+              <button
+                onClick={() => setIsAddIdfDialogOpen(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                data-testid="button-add-idf"
+                title="Add new IDF"
+              >
+                <i className="fas fa-plus"></i>
+                <span>Add IDF</span>
+              </button>
+            )}
+          </div>
+
+          <nav className="text-sm" data-testid="breadcrumb">
+            <Link
+              href={`/${cluster}/${project === "Sabinas Project" ? "Sabinas" : project}`}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Directory
+            </Link>
+            <span className="mx-2 text-muted-foreground">/</span>
+            <span className="text-foreground">{idf.title}</span>
+          </nav>
+        </div>
+
+        <div className="flex items-start justify-between">
+          <div className="flex items-start space-x-4">
+            <div className="flex items-center space-x-4">
+              {logo && (
+                <img
+                  src={`${API_BASE}${logo.url}`}
+                  alt={`${cluster} logo`}
+                  className="h-12 w-auto"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              )}
+              {idf.media?.logo && (
+                <img
+                  src={
+                    idf.media.logo.url.startsWith("http")
+                      ? idf.media.logo.url
+                      : `${API_BASE}${idf.media.logo.url}`
+                  }
+                  alt={`${idf.code} logo`}
+                  className="h-12 w-auto"
+                  onLoad={() => {
+                    console.log(
+                      "IDF logo loaded successfully:",
+                      idf.media.logo.url,
+                    );
+                  }}
+                  onError={(e) => {
+                    console.error(
+                      "Failed to load IDF logo:",
+                      idf.media.logo.url,
+                    );
+                    console.error(
+                      "Full URL attempted:",
+                      idf.media.logo.url.startsWith("http")
+                        ? idf.media.logo.url
+                        : `${API_BASE}${idf.media.logo.url}`,
+                    );
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                  }}
+                />
               )}
             </div>
-
-            <div className="flex items-center gap-2 sm:gap-3">
-              {/* QR Code Modal */}
-              <QrCodeModal
-                open={showQrModal}
-                onOpenChange={(isOpen) => { /* Mock: setShowQrModal(isOpen) */ }}
-                idf={detail}
-                cluster={cluster}
-                project={project}
-              />
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => { /* Mock: setShowQrModal(true) */ }}
-                className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"
+            <div>
+              <h1
+                className="text-3xl font-bold text-foreground mb-2"
+                data-testid="idf-title"
               >
-                <QrCode className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">QR Code</span>
-              </Button>
+                {idf.title}
+              </h1>
+              <p
+                className="text-muted-foreground mb-4"
+                data-testid="idf-metadata"
+              >
+                {idf.code} • {idf.site} • {idf.room}
+              </p>
 
-              {canManage && (
-                <Button
-                  size="sm"
-                  onClick={() => { /* Mock: handleOpenAdmin() */ }}
-                  className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"
+              {/* Global Health Status - Hidden but kept in code */}
+              {idf.health && (
+                <div
+                  className="hidden flex items-center space-x-4"
+                  data-testid="health-status"
                 >
-                  <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Edit IDF</span>
-                  <span className="sm:hidden">Edit</span>
-                </Button>
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className={`health-indicator ${getHealthIndicatorClass(idf.health.level)}`}
+                    ></div>
+                    <span className="font-medium">
+                      {getHealthLabel(idf.health.level)}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-4 text-sm">
+                    {idf.health.counts.ok > 0 && (
+                      <span className="px-2 py-1 bg-green-500/10 text-green-400 rounded-full">
+                        {idf.health.counts.ok} OK
+                      </span>
+                    )}
+                    {idf.health.counts.revision > 0 && (
+                      <span className="px-2 py-1 bg-yellow-500/10 text-yellow-400 rounded-full">
+                        {idf.health.counts.revision} Review
+                      </span>
+                    )}
+                    {idf.health.counts.falla > 0 && (
+                      <span className="px-2 py-1 bg-red-500/10 text-red-400 rounded-full">
+                        {idf.health.counts.falla} Critical
+                      </span>
+                    )}
+                    {idf.health.counts.libre > 0 && (
+                      <span className="px-2 py-1 bg-gray-500/10 text-gray-400 rounded-full">
+                        {idf.health.counts.libre} Available
+                      </span>
+                    )}
+                    {idf.health.counts.reservado > 0 && (
+                      <span className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded-full">
+                        {idf.health.counts.reservado} Reserved
+                      </span>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Main content */}
-          <div className="mt-4 sm:mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Left column - IDF details */}
-            <div className="lg:col-span-2">
-              <div className="space-y-2 sm:space-y-1">
-                <div className="flex items-center gap-3">
-                  {logo && (
-                    <img
-                      src={`${API_BASE}${logo.url}`}
-                      alt="Project Logo"
-                      className="h-10 w-auto sm:h-12"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  )}
-                  {idf.media?.logo && (
-                    <img
-                      src={
-                        idf.media.logo.url.startsWith("http")
-                          ? idf.media.logo.url
-                          : `${API_BASE}${idf.media.logo.url}`
-                      }
-                      alt={`${idf.code} logo`}
-                      className="h-10 w-auto sm:h-12"
-                      onError={(e) => {
-                        console.error(
-                          "Failed to load IDF logo:",
-                          idf.media.logo.url,
-                        );
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = "none";
-                      }}
-                    />
-                  )}
-                  {!logo && !idf.media?.logo && (
-                    <div className="h-10 w-10 sm:h-12 sm:w-12 bg-muted rounded flex items-center justify-center">
-                      <Building className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
+          <div className="flex flex-col items-end space-y-4">
+            {/* Admin Button */}
+            {canManage && (
+              <button
+                onClick={() => {
+                  // Pre-load the admin panel with current IDF data
+                  const event = new CustomEvent("openAdminWithIdf", {
+                    detail: { cluster, project, code },
+                  });
+                  window.dispatchEvent(event);
+                }}
+                className="flex items-center space-x-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm"
+                data-testid="button-admin-edit"
+                title="Edit this IDF"
+              >
+                <i className="fas fa-edit"></i>
+                <span>Edit IDF</span>
+              </button>
+            )}
+
+            {/* QR Code */}
+            <div
+              className="bg-card border border-border rounded-lg p-4"
+              data-testid="qr-code"
+            >
+              <img
+                src={qrUrl}
+                alt="QR Code"
+                className="w-24 h-24"
+                crossOrigin="anonymous"
+                onError={(e) => {
+                  console.error("QR Code failed to load:", qrUrl);
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                  target.parentElement!.innerHTML = `
+                    <div class="w-24 h-24 bg-muted rounded flex items-center justify-center">
+                      <i class="fas fa-qrcode text-2xl text-muted-foreground"></i>
                     </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
-                      {idf.title}
-                    </h1>
-                    <p className="text-sm sm:text-base lg:text-lg text-muted-foreground">
-                      {[idf.code, titleCase(project === "Sabinas Project" ? "Sabinas" : project), idf.site]
-                        .filter(Boolean)
-                        .join(" • ")}
-                    </p>
-                  </div>
-                </div>
-
-                {idf.description && (
-                  <p className="text-muted-foreground mt-3 sm:mt-4 text-sm sm:text-base">
-                    {idf.description}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Right column - QR Code */}
-            <div className="flex justify-center lg:justify-end">
-              <div className="bg-white p-3 sm:p-4 rounded-lg border border-border shadow-sm">
-                <img
-                  src={qrUrl}
-                  alt="QR Code"
-                  className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = "none";
-                    target.nextElementSibling!.style.display = "flex";
-                  }}
-                  crossOrigin="anonymous"
-                />
-                <div className="hidden w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gray-100 rounded flex items-center justify-center">
-                  <QrCode className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
-                </div>
-                <p className="text-xs text-center text-muted-foreground mt-2">
-                  QR Code
-                </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full mt-2 text-xs px-2 py-1"
-                  onClick={() => {
-                    const link = document.createElement("a");
-                    link.href = qrUrl;
-                    link.download = `${idf.code}_qr.png`;
-                    link.click();
-                  }}
-                >
-                  Download
-                </Button>
-              </div>
+                  `;
+                }}
+                onLoad={() => {
+                  console.log("QR Code loaded successfully:", qrUrl);
+                }}
+              />
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                QR Code
+              </p>
+              <button
+                onClick={() => {
+                  const link = document.createElement("a");
+                  link.href = qrUrl;
+                  link.download = `QR-${idf.code}.png`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                className="w-full mt-2 px-2 py-1 text-xs bg-secondary text-secondary-foreground rounded hover:bg-secondary/80 transition-colors"
+                data-testid="download-qr"
+              >
+                Download
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+      {/* Tabs */}
+      <div className="mb-6">
         {/* Desktop tabs */}
-        <div className="hidden md:flex space-x-1 mb-6 bg-muted rounded-lg p-1">
+        <div className="hidden md:flex bg-muted rounded-lg p-1 space-x-1">
           <button
             onClick={() => setActiveTab("table")}
             className={`tab-button ${activeTab === "table" ? "active" : ""}`}
             data-testid="tab-table"
           >
-            <i className="fas fa-table mr-2"></i>
-            DFO
+            <i className="fas fa-table mr-2"></i>Fiber Optic Information (DFO)
           </button>
           <button
             onClick={() => setActiveTab("gallery")}
             className={`tab-button ${activeTab === "gallery" ? "active" : ""}`}
             data-testid="tab-gallery"
           >
-            <i className="fas fa-images mr-2"></i>
-            Gallery
+            <i className="fas fa-images mr-2"></i>Gallery
           </button>
           <button
             onClick={() => setActiveTab("location")}
             className={`tab-button ${activeTab === "location" ? "active" : ""}`}
             data-testid="tab-location"
           >
-            <i className="fas fa-map-marker-alt mr-2"></i>
-            Location
+            <i className="fas fa-map-marker-alt mr-2"></i>Location
           </button>
           <button
-            onClick={() => setActiveTab("diagrams")}
-            className={`tab-button ${activeTab === "diagrams" ? "active" : ""}`}
-            data-testid="tab-diagrams"
+            onClick={() => setActiveTab("diagram")}
+            className={`tab-button ${activeTab === "diagram" ? "active" : ""}`}
+            data-testid="tab-diagram"
           >
-            <i className="fas fa-project-diagram mr-2"></i>
-            Diagrams
+            <i className="fas fa-project-diagram mr-2"></i>Diagram
           </button>
           <button
             onClick={() => setActiveTab("documents")}
@@ -462,146 +480,232 @@ export default function PublicDetail({
             }`}
             data-testid="tab-documents"
           >
-            <i className="fas fa-file-alt mr-2"></i>
-            Documents
+            <i className="fas fa-file-alt mr-2"></i>Documents
           </button>
         </div>
 
-        {/* Mobile tabs - improved spacing */}
-        <div className="md:hidden bg-muted rounded-lg p-2 mb-4">
-          <div className="grid grid-cols-3 gap-2 mb-2">
+        {/* Mobile tabs - two rows */}
+        <div className="md:hidden mobile-tabs-container bg-muted rounded-lg p-1">
+          <div className="mobile-tabs-row flex justify-center space-x-1 mb-2">
             <button
               onClick={() => setActiveTab("table")}
-              className={`tab-button flex flex-col items-center py-3 px-2 rounded-md text-xs transition-all ${
-                activeTab === "table" ? "bg-primary text-primary-foreground" : "hover:bg-accent text-accent-foreground"
-              }`}
+              className={`tab-button ${activeTab === "table" ? "active" : ""}`}
               data-testid="tab-table"
             >
-              <i className="fas fa-table text-base mb-1"></i>
-              <span>DFO</span>
+              <i className="fas fa-table mobile-tab-icon w-4 h-4"></i>
+              <span className="mobile-tab-text">DFO</span>
             </button>
             <button
               onClick={() => setActiveTab("gallery")}
-              className={`tab-button flex flex-col items-center py-3 px-2 rounded-md text-xs transition-all ${
-                activeTab === "gallery" ? "bg-primary text-primary-foreground" : "hover:bg-accent text-accent-foreground"
+              className={`tab-button ${
+                activeTab === "gallery" ? "active" : ""
               }`}
               data-testid="tab-gallery"
             >
-              <i className="fas fa-images text-base mb-1"></i>
-              <span>Gallery</span>
+              <i className="fas fa-images mobile-tab-icon w-4 h-4"></i>
+              <span className="mobile-tab-text">Gallery</span>
             </button>
             <button
               onClick={() => setActiveTab("location")}
-              className={`tab-button flex flex-col items-center py-3 px-2 rounded-md text-xs transition-all ${
-                activeTab === "location" ? "bg-primary text-primary-foreground" : "hover:bg-accent text-accent-foreground"
+              className={`tab-button ${
+                activeTab === "location" ? "active" : ""
               }`}
               data-testid="tab-location"
             >
-              <i className="fas fa-map-marker-alt text-base mb-1"></i>
-              <span>Location</span>
+              <i className="fas fa-map-marker-alt mobile-tab-icon w-4 h-4"></i>
+              <span className="mobile-tab-text">Location</span>
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="mobile-tabs-row flex justify-center space-x-1">
             <button
-              onClick={() => setActiveTab("diagrams")}
-              className={`tab-button flex flex-col items-center py-3 px-2 rounded-md text-xs transition-all ${
-                activeTab === "diagrams" ? "bg-primary text-primary-foreground" : "hover:bg-accent text-accent-foreground"
+              onClick={() => setActiveTab("diagram")}
+              className={`tab-button ${
+                activeTab === "diagram" ? "active" : ""
               }`}
-              data-testid="tab-diagrams"
+              data-testid="tab-diagram"
             >
-              <i className="fas fa-project-diagram text-base mb-1"></i>
-              <span>Diagrams</span>
+              <i className="fas fa-project-diagram mobile-tab-icon w-4 h-4"></i>
+              <span className="mobile-tab-text">Diagram</span>
             </button>
             <button
               onClick={() => setActiveTab("documents")}
-              className={`tab-button flex flex-col items-center py-3 px-2 rounded-md text-xs transition-all ${
-                activeTab === "documents" ? "bg-primary text-primary-foreground" : "hover:bg-accent text-accent-foreground"
+              className={`tab-button ${
+                activeTab === "documents" ? "active" : ""
               }`}
               data-testid="tab-documents"
             >
-              <i className="fas fa-file-alt text-base mb-1"></i>
-              <span>Documents</span>
+              <i className="fas fa-file-alt mobile-tab-icon w-4 h-4"></i>
+              <span className="mobile-tab-text">Documents</span>
             </button>
+            <div className="flex-1"></div> {/* Spacer for alignment */}
           </div>
         </div>
+      </div>
 
-        {/* Tab Content */}
-        <div className="min-h-80 sm:min-h-96">
-          {activeTab === "table" && (
-            <div data-testid="tab-content-table" className="px-1 sm:px-0">
-              {idf.dfo?.length ? (
-                <DfoImageViewer item={idf.dfo} />
-              ) : (
-                <div className="bg-card border border-border rounded-lg p-4 sm:p-6">
-                  <div className="text-center py-8 sm:py-12 text-muted-foreground">
-                    <i className="fas fa-table text-3xl sm:text-4xl mb-3 sm:mb-4"></i>
-                    <p className="text-sm sm:text-base">No DFO data available</p>
+      {/* Tab Content */}
+      <div className="tab-content">
+        {activeTab === "table" && (
+          <div className="bg-card border border-border rounded-lg overflow-hidden">
+            <DfoImageViewer item={idf.dfo} />
+          </div>
+        )}
+
+        {activeTab === "gallery" && (
+          <div data-testid="tab-content-gallery">
+            <Gallery
+              images={
+                idf.images?.map((item) =>
+                  typeof item === "string" ? item : item.url,
+                ) || []
+              }
+            />
+          </div>
+        )}
+
+        {activeTab === "location" && (
+          <div data-testid="tab-content-location">
+            <LocationViewer
+              location={
+                idf.location
+                  ? typeof idf.location === "string"
+                    ? {
+                        url: idf.location,
+                        name: "Location Image",
+                        kind: "image",
+                      }
+                    : idf.location
+                  : null
+              }
+            />
+          </div>
+        )}
+
+        {activeTab === "diagram" && (
+          <div data-testid="tab-content-diagram">
+            <div className="bg-card border border-border rounded-lg overflow-hidden">
+              <DiagramsViewer item={idf.diagrams} />
+            </div>
+          </div>
+        )}
+
+        {activeTab === "documents" && (
+          <div data-testid="tab-content-documents">
+            <DocumentsViewer
+              item={idf.documents}
+              cluster={cluster}
+              project={project}
+              code={code}
+            />
+          </div>
+        )}
+
+        {/* Overview tab content - Hidden but kept in code */}
+        {activeTab === "overview" && (
+          <div
+            className="hidden grid grid-cols-1 lg:grid-cols-2 gap-8"
+            data-testid="tab-content-overview"
+          >
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-4">IDF Details</h3>
+              <dl className="space-y-3">
+                <div>
+                  <dt className="text-sm text-muted-foreground">Code</dt>
+                  <dd className="font-mono" data-testid="detail-code">
+                    {idf.code}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm text-muted-foreground">Title</dt>
+                  <dd data-testid="detail-title">{idf.title}</dd>
+                </div>
+                {idf.site && (
+                  <div>
+                    <dt className="text-sm text-muted-foreground">Site</dt>
+                    <dd data-testid="detail-site">{idf.site}</dd>
+                  </div>
+                )}
+                {idf.room && (
+                  <div>
+                    <dt className="text-sm text-muted-foreground">Room</dt>
+                    <dd data-testid="detail-room">{idf.room}</dd>
+                  </div>
+                )}
+                {idf.description && (
+                  <div>
+                    <dt className="text-sm text-muted-foreground">
+                      Description
+                    </dt>
+                    <dd
+                      className="text-muted-foreground"
+                      data-testid="detail-description"
+                    >
+                      {idf.description}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+
+            {idf.health && (
+              <div className="bg-card border border-border rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-4">Health Status</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span>Operational (OK)</span>
+                    </div>
+                    <span className="font-semibold" data-testid="count-ok">
+                      {idf.health.counts.ok}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <span>Under Review</span>
+                    </div>
+                    <span
+                      className="font-semibold"
+                      data-testid="count-revision"
+                    >
+                      {idf.health.counts.revision}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <span>Critical Failure</span>
+                    </div>
+                    <span className="font-semibold" data-testid="count-falla">
+                      {idf.health.counts.falla}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <span>Reserved</span>
+                    </div>
+                    <span
+                      className="font-semibold"
+                      data-testid="count-reservado"
+                    >
+                      {idf.health.counts.reservado}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                      <span>Available</span>
+                    </div>
+                    <span className="font-semibold" data-testid="count-libre">
+                      {idf.health.counts.libre}
+                    </span>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === "gallery" && (
-            <div data-testid="tab-content-gallery" className="px-1 sm:px-0">
-              {idf.images?.length ? (
-                <Gallery images={idf.images} />
-              ) : (
-                <div className="bg-card border border-border rounded-lg p-4 sm:p-6">
-                  <div className="text-center py-8 sm:py-12 text-muted-foreground">
-                    <i className="fas fa-images text-3xl sm:text-4xl mb-3 sm:mb-4"></i>
-                    <p className="text-sm sm:text-base">No images available</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === "location" && (
-            <div data-testid="tab-content-location" className="px-1 sm:px-0">
-              {idf.location ? (
-                <LocationViewer location={idf.location} />
-              ) : (
-                <div className="bg-card border border-border rounded-lg p-4 sm:p-6">
-                  <div className="text-center py-8 sm:py-12 text-muted-foreground">
-                    <i className="fas fa-map-marker-alt text-3xl sm:text-4xl mb-3 sm:mb-4"></i>
-                    <p className="text-sm sm:text-base">No location data available</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === "diagrams" && (
-            <div data-testid="tab-content-diagrams" className="px-1 sm:px-0">
-              {idf.diagrams?.length ? (
-                <DiagramsViewer item={idf.diagrams} />
-              ) : (
-                <div className="bg-card border border-border rounded-lg p-4 sm:p-6">
-                  <div className="text-center py-8 sm:py-12 text-muted-foreground">
-                    <i className="fas fa-project-diagram text-3xl sm:text-4xl mb-3 sm:mb-4"></i>
-                    <p className="text-sm sm:text-base">No diagrams available</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === "documents" && (
-            <div data-testid="tab-content-documents" className="px-1 sm:px-0">
-              {idf.documents?.length ? (
-                <DocumentsViewer documents={idf.documents} />
-              ) : (
-                <div className="bg-card border border-border rounded-lg p-4 sm:p-6">
-                  <div className="text-center py-8 sm:py-12 text-muted-foreground">
-                    <i className="fas fa-file-alt text-3xl sm:text-4xl mb-3 sm:mb-4"></i>
-                    <p className="text-sm sm:text-base">No documents available</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Add IDF Dialog */}
