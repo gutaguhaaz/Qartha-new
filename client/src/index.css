@@ -742,12 +742,12 @@ span.diagram-network-diagram-4 {
   font-size: 0px;
 }
 
-span.diagram-network-diagram-1:before {
+span.diagram-network-diagram-2:before {
   font-size: 1.125rem !important;
   content: "Phisical Layout";
 }
 
-span.diagram-network-diagram-2:before {
+span.diagram-network-diagram-1:before {
   font-size: 1.125rem !important;
   content: "Network Topology";
 }
