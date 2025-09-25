@@ -192,6 +192,65 @@
       font-size: 9px;
       line-height: 1.1;
     }
+
+    /* Mobile layout improvements for PublicDetail */
+    .mobile-header-layout {
+      flex-direction: column !important;
+      gap: 1rem !important;
+      align-items: stretch !important;
+    }
+
+    .mobile-header-content {
+      flex-direction: column !important;
+      gap: 1rem !important;
+      align-items: flex-start !important;
+    }
+
+    .mobile-header-info {
+      width: 100% !important;
+    }
+
+    .mobile-header-actions {
+      width: 100% !important;
+      flex-direction: row !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      gap: 1rem !important;
+    }
+
+    .mobile-qr-section {
+      flex-shrink: 0 !important;
+    }
+
+    .mobile-button-group {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 0.5rem !important;
+      flex-grow: 1 !important;
+    }
+
+    .mobile-button-group button {
+      width: 100% !important;
+      justify-content: center !important;
+    }
+
+    .mobile-nav-buttons {
+      flex-direction: column !important;
+      gap: 0.5rem !important;
+      width: 100% !important;
+    }
+
+    .mobile-nav-buttons a,
+    .mobile-nav-buttons button {
+      width: 100% !important;
+      justify-content: center !important;
+    }
+
+    .mobile-breadcrumb {
+      order: -1 !important;
+      margin-bottom: 1rem !important;
+      width: 100% !important;
+    }
   }
 
   /* Hide mobile specific classes on desktop */

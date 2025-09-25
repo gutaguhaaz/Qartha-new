@@ -225,7 +225,7 @@ export default function PublicDetail({
   const qrUrl = `${window.location.origin}/api/${encodeURIComponent(cluster)}/${encodeURIComponent(apiProject)}/idfs/${encodeURIComponent(code)}/qr.png`;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8" data-testid="public-detail">
+    <div className="max-w-7xl mx-auto px-6 py-8 md:px-6 sm:px-4" data-testid="public-detail">
       {/* Welcome Banner */}
       <div className="bg-primary text-primary-foreground rounded-lg p-4 mb-6 text-center">
         <h1 className="text-xl font-semibold">
@@ -235,8 +235,8 @@ export default function PublicDetail({
 
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
+        <div className="flex items-center justify-between mb-4 md:flex-row mobile-header-layout">
+          <div className="flex items-center space-x-4 mobile-nav-buttons">
             <Link
               href={`/${cluster}/${project === "Sabinas Project" ? "Sabinas" : project}`}
               className="flex items-center space-x-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
@@ -258,7 +258,7 @@ export default function PublicDetail({
             )}
           </div>
 
-          <nav className="text-sm" data-testid="breadcrumb">
+          <nav className="text-sm mobile-breadcrumb" data-testid="breadcrumb">
             <Link
               href={`/${cluster}/${project === "Sabinas Project" ? "Sabinas" : project}`}
               className="text-muted-foreground hover:text-foreground"
@@ -270,14 +270,14 @@ export default function PublicDetail({
           </nav>
         </div>
 
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-4">
+        <div className="flex items-start justify-between mobile-header-content">
+          <div className="flex items-start space-x-4 mobile-header-info">
             <div className="flex items-center space-x-4">
               {logo && (
                 <img
                   src={`${API_BASE}${logo.url}`}
                   alt={`${cluster} logo`}
-                  className="h-12 w-auto"
+                  className="h-12 w-auto md:h-12 sm:h-10"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = "none";
                   }}
@@ -291,7 +291,7 @@ export default function PublicDetail({
                       : `${API_BASE}${idf.media.logo.url}`
                   }
                   alt={`${idf.code} logo`}
-                  className="h-12 w-auto"
+                  className="h-12 w-auto md:h-12 sm:h-10"
                   onLoad={() => {
                     console.log(
                       "IDF logo loaded successfully:",
@@ -317,13 +317,13 @@ export default function PublicDetail({
             </div>
             <div>
               <h1
-                className="text-3xl font-bold text-foreground mb-2"
+                className="text-3xl font-bold text-foreground mb-2 md:text-3xl sm:text-2xl"
                 data-testid="idf-title"
               >
                 {idf.title}
               </h1>
               <p
-                className="text-muted-foreground mb-4"
+                className="text-muted-foreground mb-4 md:text-base sm:text-sm"
                 data-testid="idf-metadata"
               >
                 {idf.code} • {idf.site} • {idf.room}
@@ -375,42 +375,45 @@ export default function PublicDetail({
             </div>
           </div>
 
-          <div className="flex flex-col items-end space-y-4">
-            {/* Admin Button */}
-            {canManage && (
-              <button
-                onClick={() => {
-                  // Pre-load the admin panel with current IDF data
-                  const event = new CustomEvent("openAdminWithIdf", {
-                    detail: { cluster, project, code },
-                  });
-                  window.dispatchEvent(event);
-                }}
-                className="flex items-center space-x-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm"
-                data-testid="button-admin-edit"
-                title="Edit this IDF"
-              >
-                <i className="fas fa-edit"></i>
-                <span>Edit IDF</span>
-              </button>
-            )}
+          <div className="flex flex-col items-end space-y-4 mobile-header-actions">
+            {/* Mobile Button Group */}
+            <div className="mobile-button-group md:contents">
+              {/* Admin Button */}
+              {canManage && (
+                <button
+                  onClick={() => {
+                    // Pre-load the admin panel with current IDF data
+                    const event = new CustomEvent("openAdminWithIdf", {
+                      detail: { cluster, project, code },
+                    });
+                    window.dispatchEvent(event);
+                  }}
+                  className="flex items-center space-x-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm"
+                  data-testid="button-admin-edit"
+                  title="Edit this IDF"
+                >
+                  <i className="fas fa-edit"></i>
+                  <span>Edit IDF</span>
+                </button>
+              )}
+            </div>
 
             {/* QR Code */}
             <div
-              className="bg-card border border-border rounded-lg p-4"
+              className="bg-card border border-border rounded-lg p-4 mobile-qr-section"
               data-testid="qr-code"
             >
               <img
                 src={qrUrl}
                 alt="QR Code"
-                className="w-24 h-24"
+                className="w-24 h-24 md:w-24 md:h-24 sm:w-20 sm:h-20"
                 crossOrigin="anonymous"
                 onError={(e) => {
                   console.error("QR Code failed to load:", qrUrl);
                   const target = e.target as HTMLImageElement;
                   target.style.display = "none";
                   target.parentElement!.innerHTML = `
-                    <div class="w-24 h-24 bg-muted rounded flex items-center justify-center">
+                    <div class="w-24 h-24 md:w-24 md:h-24 sm:w-20 sm:h-20 bg-muted rounded flex items-center justify-center">
                       <i class="fas fa-qrcode text-2xl text-muted-foreground"></i>
                     </div>
                   `;
